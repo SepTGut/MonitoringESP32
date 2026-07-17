@@ -38,13 +38,16 @@
 }
 
 /* --- Reset & Base --- */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
     height: 100%;
     font-family: 'Outfit', system-ui, -apple-system, sans-serif;
     background: var(--bg-primary);
@@ -77,37 +80,57 @@ html, body {
 }
 
 .orb-1 {
-    width: 500px; height: 500px;
+    width: 500px;
+    height: 500px;
     background: var(--accent-blue);
-    top: -10%; left: -5%;
+    top: -10%;
+    left: -5%;
     animation-delay: 0s;
 }
 
 .orb-2 {
-    width: 400px; height: 400px;
+    width: 400px;
+    height: 400px;
     background: var(--accent-purple);
-    bottom: -10%; right: -5%;
+    bottom: -10%;
+    right: -5%;
     animation-delay: -7s;
 }
 
 .orb-3 {
-    width: 300px; height: 300px;
+    width: 300px;
+    height: 300px;
     background: var(--accent-cyan);
-    top: 40%; left: 50%;
+    top: 40%;
+    left: 50%;
     animation-delay: -14s;
 }
 
 @keyframes float {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    25% { transform: translate(30px, -50px) scale(1.05); }
-    50% { transform: translate(-20px, 30px) scale(0.95); }
-    75% { transform: translate(40px, 20px) scale(1.02); }
+
+    0%,
+    100% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    25% {
+        transform: translate(30px, -50px) scale(1.05);
+    }
+
+    50% {
+        transform: translate(-20px, 30px) scale(0.95);
+    }
+
+    75% {
+        transform: translate(40px, 20px) scale(1.02);
+    }
 }
 
 /* --- Sidebar --- */
 .sidebar {
     position: fixed;
-    top: 0; left: 0;
+    top: 0;
+    left: 0;
     width: var(--sidebar-width);
     height: 100vh;
     background: var(--bg-card);
@@ -129,7 +152,8 @@ html, body {
 }
 
 .brand-icon {
-    width: 36px; height: 36px;
+    width: 36px;
+    height: 36px;
     color: var(--accent-cyan);
     flex-shrink: 0;
 }
@@ -140,7 +164,9 @@ html, body {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .brand-text {
@@ -174,7 +200,8 @@ html, body {
 }
 
 .nav-btn svg {
-    width: 20px; height: 20px;
+    width: 20px;
+    height: 20px;
     flex-shrink: 0;
 }
 
@@ -202,7 +229,8 @@ html, body {
 }
 
 .conn-dot {
-    width: 8px; height: 8px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background: var(--accent-rose);
     transition: background var(--transition);
@@ -217,7 +245,9 @@ html, body {
 .mobile-bar {
     display: none;
     position: fixed;
-    top: 0; left: 0; right: 0;
+    top: 0;
+    left: 0;
+    right: 0;
     height: var(--mobile-bar-height);
     background: var(--bg-card);
     backdrop-filter: blur(24px);
@@ -238,7 +268,8 @@ html, body {
 }
 
 .hamburger span {
-    width: 20px; height: 2px;
+    width: 20px;
+    height: 2px;
     background: var(--text-primary);
     border-radius: 2px;
     transition: var(--transition);
@@ -275,8 +306,15 @@ html, body {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .page-header {
@@ -326,12 +364,14 @@ html, body {
 
 .hero-ring {
     position: relative;
-    width: 120px; height: 120px;
+    width: 120px;
+    height: 120px;
     margin-bottom: 1rem;
 }
 
 .hero-ring svg {
-    width: 100%; height: 100%;
+    width: 100%;
+    height: 100%;
     transform: rotate(-90deg);
 }
 
@@ -350,8 +390,13 @@ html, body {
     transition: stroke-dashoffset 0.8s ease;
 }
 
-.hero-card[data-type="ac"] .ring-fill { stroke: var(--ring-ac); }
-.hero-card[data-type="dc"] .ring-fill { stroke: var(--ring-dc); }
+.hero-card[data-type="ac"] .ring-fill {
+    stroke: var(--ring-ac);
+}
+
+.hero-card[data-type="dc"] .ring-fill {
+    stroke: var(--ring-dc);
+}
 
 .hero-value {
     position: absolute;
@@ -409,7 +454,8 @@ html, body {
 }
 
 .metric-icon {
-    width: 36px; height: 36px;
+    width: 36px;
+    height: 36px;
     border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
@@ -418,15 +464,39 @@ html, body {
 }
 
 .metric-icon svg {
-    width: 18px; height: 18px;
+    width: 18px;
+    height: 18px;
 }
 
-.metric-card[data-type="voltage"] .metric-icon { color: var(--accent-blue); background: rgba(59, 130, 246, 0.1); }
-.metric-card[data-type="current"] .metric-icon { color: var(--accent-amber); background: rgba(245, 158, 11, 0.1); }
-.metric-card[data-type="ac"] .metric-icon      { color: var(--accent-purple); background: rgba(168, 85, 247, 0.1); }
-.metric-card[data-type="accur"] .metric-icon    { color: var(--accent-cyan); background: rgba(34, 211, 238, 0.1); }
-.metric-card[data-type="rpm"] .metric-icon      { color: var(--accent-green); background: rgba(16, 185, 129, 0.1); }
-.metric-card[data-type="temp"] .metric-icon     { color: var(--accent-rose); background: rgba(244, 63, 94, 0.1); }
+.metric-card[data-type="voltage"] .metric-icon {
+    color: var(--accent-blue);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.metric-card[data-type="current"] .metric-icon {
+    color: var(--accent-amber);
+    background: rgba(245, 158, 11, 0.1);
+}
+
+.metric-card[data-type="ac"] .metric-icon {
+    color: var(--accent-purple);
+    background: rgba(168, 85, 247, 0.1);
+}
+
+.metric-card[data-type="accur"] .metric-icon {
+    color: var(--accent-cyan);
+    background: rgba(34, 211, 238, 0.1);
+}
+
+.metric-card[data-type="rpm"] .metric-icon {
+    color: var(--accent-green);
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.metric-card[data-type="temp"] .metric-icon {
+    color: var(--accent-rose);
+    background: rgba(244, 63, 94, 0.1);
+}
 
 .metric-body {
     display: flex;
@@ -466,12 +536,29 @@ html, body {
     transition: width 0.6s ease;
 }
 
-.metric-card[data-type="voltage"] .metric-bar-fill { background: linear-gradient(90deg, var(--accent-blue), #60a5fa); }
-.metric-card[data-type="current"] .metric-bar-fill { background: linear-gradient(90deg, var(--accent-amber), #fbbf24); }
-.metric-card[data-type="ac"] .metric-bar-fill      { background: linear-gradient(90deg, var(--accent-purple), #c084fc); }
-.metric-card[data-type="accur"] .metric-bar-fill    { background: linear-gradient(90deg, var(--accent-cyan), #67e8f9); }
-.metric-card[data-type="rpm"] .metric-bar-fill      { background: linear-gradient(90deg, var(--accent-green), #34d399); }
-.metric-card[data-type="temp"] .metric-bar-fill     { background: linear-gradient(90deg, var(--accent-rose), #fb7185); }
+.metric-card[data-type="voltage"] .metric-bar-fill {
+    background: linear-gradient(90deg, var(--accent-blue), #60a5fa);
+}
+
+.metric-card[data-type="current"] .metric-bar-fill {
+    background: linear-gradient(90deg, var(--accent-amber), #fbbf24);
+}
+
+.metric-card[data-type="ac"] .metric-bar-fill {
+    background: linear-gradient(90deg, var(--accent-purple), #c084fc);
+}
+
+.metric-card[data-type="accur"] .metric-bar-fill {
+    background: linear-gradient(90deg, var(--accent-cyan), #67e8f9);
+}
+
+.metric-card[data-type="rpm"] .metric-bar-fill {
+    background: linear-gradient(90deg, var(--accent-green), #34d399);
+}
+
+.metric-card[data-type="temp"] .metric-bar-fill {
+    background: linear-gradient(90deg, var(--accent-rose), #fb7185);
+}
 
 /* --- Settings --- */
 .settings-grid {
@@ -497,7 +584,8 @@ html, body {
 }
 
 .settings-card-header svg {
-    width: 20px; height: 20px;
+    width: 20px;
+    height: 20px;
     color: var(--accent-blue);
     flex-shrink: 0;
 }
@@ -547,7 +635,8 @@ html, body {
     letter-spacing: 0.03em;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--border-glass);
     border-radius: var(--radius-sm);
@@ -559,7 +648,24 @@ html, body {
     transition: all var(--transition);
 }
 
-.form-group input:focus {
+.form-group select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+    padding-right: 2.5rem;
+    cursor: pointer;
+}
+
+.form-group select option {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.form-group input:focus,
+.form-group select:focus {
     border-color: var(--accent-blue);
     background: rgba(255, 255, 255, 0.06);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
@@ -573,7 +679,8 @@ html, body {
 }
 
 .form-checkbox input[type="checkbox"] {
-    width: 16px; height: 16px;
+    width: 16px;
+    height: 16px;
     accent-color: var(--accent-blue);
     cursor: pointer;
 }
@@ -651,8 +758,13 @@ html, body {
     transform: translateX(-50%) translateY(0);
 }
 
-.toast.success { border-color: var(--accent-green); }
-.toast.error   { border-color: var(--accent-rose); }
+.toast.success {
+    border-color: var(--accent-green);
+}
+
+.toast.error {
+    border-color: var(--accent-rose);
+}
 
 /* --- Responsive --- */
 @media (max-width: 768px) {

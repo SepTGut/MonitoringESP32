@@ -33,6 +33,13 @@ struct SystemConfig {
     float maxA;
     uint32_t maxRpm;
     uint32_t maxTemp;
+
+    // INA226 Bus Address Assignments
+    uint8_t ina1Addr;
+    uint8_t ina2Addr;
+
+    // Simulation/Dummy Mode
+    bool dummyMode;
 };
 
 class ConfigManager {

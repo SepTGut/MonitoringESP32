@@ -13,4 +13,7 @@ namespace Tasks {
 
     // Start network/communication task on Core 0 (Protocol Core)
     void startNetworkTask();
+
+    // Trigger an on-demand I2C scanner run safely on Core 1
+    void requestI2CScan();
 }

@@ -30,9 +30,7 @@
     let wsReconnectTimer = null;
 
     // --- Demo Mode Detection ---
-    const isDemoMode = window.location.hostname.endsWith('.github.io') ||
-        window.location.protocol === 'file:' ||
-        window.location.search.includes('demo=true');
+    const isDemoMode = true; // Always enable demo mode in the test preview folder
 
     // --- Mock Database for Demo Mode (Static Hosting) ---
     let demoConfigStore = {
@@ -167,6 +165,7 @@
         cfgMaxT: $('cfg-max-t'),
         cfgIna1Addr: $('cfg-ina1-addr'),
         cfgIna2Addr:   $('cfg-ina2-addr'),
+        cfgDummyMode:  $('cfg-dummy-mode'),
         btnSaveCfg:    $('btn-save-cfg'),
         btnRestart:    $('btn-restart'),
         btnScanI2c:    $('btn-scan-i2c'),
@@ -178,6 +177,11 @@
         sysClients: $('sys-clients'),
         sysI2cMap: $('sys-i2c-map'),
 
+        // Virtual LCD
+        lcdLine0:       $('lcd-line-0'),
+        lcdLine1:       $('lcd-line-1'),
+        lcdScreenTitle: $('lcd-screen-title'),
+        lcdDot:         $('lcd-dot'),
 
         // Toast
         toast: $('toast'),
@@ -275,6 +279,8 @@
 
     function connectWS() {
         if (isDemoMode) {
+            const cardLcd = document.querySelector('.card-lcd');
+            if (cardLcd) cardLcd.style.display = 'flex';
             startDemoSimulation();
             return;
         }
@@ -360,6 +366,81 @@
         if (data.uptime != null) {
             setText(dom.uptimeLabel, 'Uptime: ' + formatUptime(data.uptime));
         }
+
+        // Update virtual LCD display to match dynamic hardware outputs
+        updateVirtualLcd(data);
+    }
+
+    // --- Virtual LCD Preview Simulation ---
+    let lcdCurrentScreen = 0;
+    let lastLcdRotationTime = Date.now();
+
+    function padLcd(line) {
+        line = line.substring(0, 16);
+        while (line.length < 16) {
+            line += " ";
+        }
+        return line.toUpperCase();
+    }
+
+    function updateVirtualLcd(sensorData) {
+        if (!dom.lcdLine0 || !dom.lcdLine1) return;
+
+        const now = Date.now();
+        if (now - lastLcdRotationTime >= 3000) {
+            lcdCurrentScreen = (lcdCurrentScreen + 1) % 4;
+            lastLcdRotationTime = now;
+        }
+
+        let l0 = "";
+        let l1 = "";
+        let title = "";
+
+        switch (lcdCurrentScreen) {
+            case 0:
+                title = "AC OVERVIEW";
+                const acV = sensorData.acV != null ? sensorData.acV.toFixed(1) : "0.0";
+                const acA = sensorData.acA != null ? sensorData.acA.toFixed(2) : "0.00";
+                l0 = `AC:  ${acV.padStart(5)}V ${acA.padStart(5)}A`;
+                
+                const acP = sensorData.acP != null ? Math.round(sensorData.acP).toString() : "0";
+                const pf = dom.cfgCalPf && dom.cfgCalPf.value ? parseFloat(dom.cfgCalPf.value).toFixed(2) : "0.85";
+                l1 = `Pwr:${acP.padStart(4)}W PF${pf}`;
+                break;
+
+            case 1:
+                title = "DC CHANNELS";
+                const dcV1 = sensorData.dcV1 != null ? sensorData.dcV1.toFixed(2) : "0.00";
+                const dcA1 = sensorData.dcA1 != null ? sensorData.dcA1.toFixed(2) : "0.00";
+                l0 = `DC1: ${dcV1.padStart(5)}V ${dcA1.padStart(5)}A`;
+
+                const dcV2 = sensorData.dcV2 != null ? sensorData.dcV2.toFixed(2) : "0.00";
+                const dcA2 = sensorData.dcA2 != null ? sensorData.dcA2.toFixed(2) : "0.00";
+                l1 = `DC2: ${dcV2.padStart(5)}V ${dcA2.padStart(5)}A`;
+                break;
+
+            case 2:
+                title = "SPEED & TEMPS";
+                const rpm = sensorData.rpm != null ? Math.round(sensorData.rpm) : "0";
+                l0 = `Speed: ${rpm.toString().padStart(5)} RPM`;
+
+                const t1 = sensorData.t1 != null ? sensorData.t1.toFixed(1) : "0.0";
+                const t2 = sensorData.t2 != null ? sensorData.t2.toFixed(1) : "0.0";
+                l1 = `T: ${t1.padStart(5)}C / ${t2.padStart(5)}C`;
+                break;
+
+            case 3:
+                title = "SYSTEM INFO";
+                const ssid = dom.cfgApSsid && dom.cfgApSsid.value ? dom.cfgApSsid.value : "WINDMONITOR";
+                l0 = `WiFi: ${ssid}`;
+                l1 = "IP  : 192.168.4.1";
+                break;
+        }
+
+        dom.lcdLine0.textContent = padLcd(l0);
+        dom.lcdLine1.textContent = padLcd(l1);
+        dom.lcdScreenTitle.textContent = title;
+        dom.lcdDot.textContent = "● ACTIVE";
     }
 
     // --- Helpers ---
@@ -411,6 +492,7 @@
 
                 if (data.ina1Addr != null) dom.cfgIna1Addr.value = data.ina1Addr;
                 if (data.ina2Addr != null) dom.cfgIna2Addr.value = data.ina2Addr;
+                if (data.dummyMode != null && dom.cfgDummyMode) dom.cfgDummyMode.checked = data.dummyMode;
             })
             .catch(() => showToast('Failed to load settings', 'error'));
     }
@@ -454,7 +536,8 @@
             maxRpm: parseInt(dom.cfgMaxRpm.value, 10),
             maxTemp: parseInt(dom.cfgMaxT.value, 10),
             ina1Addr: parseInt(dom.cfgIna1Addr.value, 10),
-            ina2Addr: parseInt(dom.cfgIna2Addr.value, 10)
+            ina2Addr: parseInt(dom.cfgIna2Addr.value, 10),
+            dummyMode: dom.cfgDummyMode ? dom.cfgDummyMode.checked : false
         };
 
         apiFetch('/api/config', {

@@ -17,14 +17,22 @@
     };
 
     // --- WebSocket ---
-    const gateway = `ws://${window.location.hostname}/ws`;
+    let targetIP = window.location.hostname;
+    if (targetIP === '127.0.0.1' || targetIP === 'localhost') {
+        targetIP = '192.168.4.1'; // Connect to ESP32 SoftAP IP by default when previewing locally
+    }
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('ip')) {
+        targetIP = urlParams.get('ip');
+    }
+    const gateway = `ws://${targetIP}/ws`;
     let ws = null;
     let wsReconnectTimer = null;
 
     // --- Demo Mode Detection ---
     const isDemoMode = window.location.hostname.endsWith('.github.io') ||
-                       window.location.protocol === 'file:' ||
-                       window.location.search.includes('demo=true');
+        window.location.protocol === 'file:' ||
+        window.location.search.includes('demo=true');
 
     // --- Mock Database for Demo Mode (Static Hosting) ---
     let demoConfigStore = {
@@ -43,7 +51,9 @@
         maxV: 80,
         maxA: 30,
         maxRpm: 3000,
-        maxTemp: 100
+        maxTemp: 100,
+        ina1Addr: 64,  // 0x40
+        ina2Addr: 65   // 0x41
     };
 
     // --- API Fetch Interceptor for static hosting ---
@@ -57,7 +67,8 @@
                                 fw: 'v1.0.0-demo',
                                 heap: 245100,
                                 uptime: Math.floor(performance.now() / 1000),
-                                clients: 1
+                                clients: 1,
+                                i2c: [0x27, 0x40, 0x41]
                             })
                         });
                     } else if (url === '/api/config' && options && options.method === 'POST') {
@@ -86,85 +97,91 @@
 
     const dom = {
         // Power hero values
-        acPwr:     $('val-acpwr'),
-        dcPwr1:    $('val-dcpwr1'),
-        dcPwr2:    $('val-dcpwr2'),
+        acPwr: $('val-acpwr'),
+        dcPwr1: $('val-dcpwr1'),
+        dcPwr2: $('val-dcpwr2'),
 
         // Power rings
-        ringAC:    $('power-ring-ac'),
-        ringDC1:   $('power-ring-dc1'),
-        ringDC2:   $('power-ring-dc2'),
+        ringAC: $('power-ring-ac'),
+        ringDC1: $('power-ring-dc1'),
+        ringDC2: $('power-ring-dc2'),
 
         // Metric values
-        acVolt1:   $('val-acvolt1'),
-        acCur:     $('val-accur'),
-        acVolt2:   $('val-acvolt2'),
-        dcVolt1:   $('val-dcvolt1'),
-        dcCur1:    $('val-dccur1'),
-        dcVolt2:   $('val-dcvolt2'),
-        dcCur2:    $('val-dccur2'),
-        rpm:       $('val-rpm'),
-        temp1:     $('val-temp1'),
-        temp2:     $('val-temp2'),
+        acVolt1: $('val-acvolt1'),
+        acCur: $('val-accur'),
+        acVolt2: $('val-acvolt2'),
+        dcVolt1: $('val-dcvolt1'),
+        dcCur1: $('val-dccur1'),
+        dcVolt2: $('val-dcvolt2'),
+        dcCur2: $('val-dccur2'),
+        rpm: $('val-rpm'),
+        temp1: $('val-temp1'),
+        temp2: $('val-temp2'),
 
         // Progress bars
         barAcVolt1: $('bar-acvolt1'),
-        barAcCur:   $('bar-accur'),
+        barAcCur: $('bar-accur'),
         barAcVolt2: $('bar-acvolt2'),
         barDcVolt1: $('bar-dcvolt1'),
-        barDcCur1:  $('bar-dccur1'),
+        barDcCur1: $('bar-dccur1'),
         barDcVolt2: $('bar-dcvolt2'),
-        barDcCur2:  $('bar-dccur2'),
-        barRpm:     $('bar-rpm'),
-        barTemp1:   $('bar-temp1'),
-        barTemp2:   $('bar-temp2'),
+        barDcCur2: $('bar-dccur2'),
+        barRpm: $('bar-rpm'),
+        barTemp1: $('bar-temp1'),
+        barTemp2: $('bar-temp2'),
 
         // Connection status
-        wsDot:       $('ws-dot'),
-        wsLabel:     $('ws-label'),
+        wsDot: $('ws-dot'),
+        wsLabel: $('ws-label'),
         wsDotMobile: $('ws-dot-mobile'),
 
         // Uptime
         uptimeLabel: $('uptime-label'),
 
         // Navigation
-        navDashboard:  $('nav-dashboard'),
-        navSettings:   $('nav-settings'),
+        navDashboard: $('nav-dashboard'),
+        navSettings: $('nav-settings'),
         pageDashboard: $('page-dashboard'),
-        pageSettings:  $('page-settings'),
+        pageSettings: $('page-settings'),
 
         // Mobile
         hamburger: $('hamburger'),
-        sidebar:   $('sidebar'),
+        sidebar: $('sidebar'),
 
         // Settings Form Controls
-        cfgApSsid:     $('cfg-ap-ssid'),
-        cfgApPass:     $('cfg-ap-pass'),
+        cfgApSsid: $('cfg-ap-ssid'),
+        cfgApPass: $('cfg-ap-pass'),
         cfgStaEnabled: $('cfg-sta-enabled'),
-        cfgStaSsid:    $('cfg-sta-ssid'),
-        cfgStaPass:    $('cfg-sta-pass'),
-        cfgPollMs:     $('cfg-poll-ms'),
-        cfgPushMs:     $('cfg-push-ms'),
-        cfgLogMs:      $('cfg-log-ms'),
-        cfgCalZmpt1:   $('cfg-cal-zmpt1'),
-        cfgCalZmpt2:   $('cfg-cal-zmpt2'),
-        cfgCalZmct:    $('cfg-cal-zmct'),
-        cfgCalPf:      $('cfg-cal-pf'),
-        cfgMaxV:       $('cfg-max-v'),
-        cfgMaxA:       $('cfg-max-a'),
-        cfgMaxRpm:     $('cfg-max-rpm'),
-        cfgMaxT:       $('cfg-max-t'),
+        cfgStaSsid: $('cfg-sta-ssid'),
+        cfgStaPass: $('cfg-sta-pass'),
+        cfgPollMs: $('cfg-poll-ms'),
+        cfgPushMs: $('cfg-push-ms'),
+        cfgLogMs: $('cfg-log-ms'),
+        cfgCalZmpt1: $('cfg-cal-zmpt1'),
+        cfgCalZmpt2: $('cfg-cal-zmpt2'),
+        cfgCalZmct: $('cfg-cal-zmct'),
+        cfgCalPf: $('cfg-cal-pf'),
+        cfgMaxV: $('cfg-max-v'),
+        cfgMaxA: $('cfg-max-a'),
+        cfgMaxRpm: $('cfg-max-rpm'),
+        cfgMaxT: $('cfg-max-t'),
+        cfgIna1Addr: $('cfg-ina1-addr'),
+        cfgIna2Addr:   $('cfg-ina2-addr'),
+        cfgDummyMode:  $('cfg-dummy-mode'),
         btnSaveCfg:    $('btn-save-cfg'),
         btnRestart:    $('btn-restart'),
+        btnScanI2c:    $('btn-scan-i2c'),
 
         // System info
-        sysFw:      $('sys-fw'),
-        sysHeap:    $('sys-heap'),
-        sysUptime:  $('sys-uptime'),
+        sysFw: $('sys-fw'),
+        sysHeap: $('sys-heap'),
+        sysUptime: $('sys-uptime'),
         sysClients: $('sys-clients'),
+        sysI2cMap: $('sys-i2c-map'),
+
 
         // Toast
-        toast:    $('toast'),
+        toast: $('toast'),
         toastMsg: $('toast-msg')
     };
 
@@ -230,9 +247,9 @@
 
             const windSpeed = 5.0 + 3.0 * Math.sin(simStep * 0.3);
 
-            const acV  = 30.0 + 25.0 * Math.sin(simStep * 0.5) * (windSpeed / 8.0);
-            const acA  = 2.0 + 1.5 * Math.sin(simStep * 0.7) * (windSpeed / 8.0);
-            const acP  = Math.max(0, acV * acA * (demoConfigStore.pf || 0.85));
+            const acV = 30.0 + 25.0 * Math.sin(simStep * 0.5) * (windSpeed / 8.0);
+            const acA = 2.0 + 1.5 * Math.sin(simStep * 0.7) * (windSpeed / 8.0);
+            const acP = Math.max(0, acV * acA * (demoConfigStore.pf || 0.85));
             const acV2 = acV * 0.95 + 1.5 * Math.sin(simStep * 1.1);
 
             const dcV1 = 12.0 + 2.0 * Math.sin(simStep * 0.4);
@@ -243,9 +260,9 @@
             const dcA2 = 1.5 + 1.0 * Math.sin(simStep * 0.55);
             const dcP2 = Math.max(0, dcV2 * dcA2);
 
-            const rpm  = Math.max(0, 800 + 600 * Math.sin(simStep * 0.25) * (windSpeed / 8.0));
-            const t1   = 32.0 + 4.0 * Math.sin(simStep * 0.15);
-            const t2   = 26.0 + 2.0 * Math.sin(simStep * 0.1);
+            const rpm = Math.max(0, 800 + 600 * Math.sin(simStep * 0.25) * (windSpeed / 8.0));
+            const t1 = 32.0 + 4.0 * Math.sin(simStep * 0.15);
+            const t2 = 26.0 + 2.0 * Math.sin(simStep * 0.1);
 
             updateDashboard({
                 acV: acV, acA: Math.max(0, acA), acP: acP, acV2: acV2,
@@ -300,7 +317,7 @@
 
     // --- Dashboard Update ---
     function updateDashboard(data) {
-        const acP  = data.acP != null ? data.acP : 0;
+        const acP = data.acP != null ? data.acP : 0;
         const dcP1 = data.dcP1 != null ? data.dcP1 : 0;
         const dcP2 = data.dcP2 != null ? data.dcP2 : 0;
 
@@ -318,27 +335,27 @@
 
         // Metric values
         setText(dom.acVolt1, fmt(data.acV, 1));
-        setText(dom.acCur,   fmt(data.acA, 2));
+        setText(dom.acCur, fmt(data.acA, 2));
         setText(dom.acVolt2, fmt(data.acV2, 1));
         setText(dom.dcVolt1, fmt(data.dcV1, 2));
-        setText(dom.dcCur1,  fmt(data.dcA1, 2));
+        setText(dom.dcCur1, fmt(data.dcA1, 2));
         setText(dom.dcVolt2, fmt(data.dcV2, 2));
-        setText(dom.dcCur2,  fmt(data.dcA2, 2));
-        setText(dom.rpm,     data.rpm != null ? Math.round(data.rpm).toString() : '0');
-        setText(dom.temp1,   fmt(data.t1, 1));
-        setText(dom.temp2,   fmt(data.t2, 1));
+        setText(dom.dcCur2, fmt(data.dcA2, 2));
+        setText(dom.rpm, data.rpm != null ? Math.round(data.rpm).toString() : '0');
+        setText(dom.temp1, fmt(data.t1, 1));
+        setText(dom.temp2, fmt(data.t2, 1));
 
         // Progress bars
         setBar(dom.barAcVolt1, data.acV, cfg.maxACVoltage);
-        setBar(dom.barAcCur,   data.acA, cfg.maxACCurrent);
+        setBar(dom.barAcCur, data.acA, cfg.maxACCurrent);
         setBar(dom.barAcVolt2, data.acV2, cfg.maxACVoltage);
         setBar(dom.barDcVolt1, data.dcV1, cfg.maxVoltage);
-        setBar(dom.barDcCur1,  data.dcA1, cfg.maxCurrent);
+        setBar(dom.barDcCur1, data.dcA1, cfg.maxCurrent);
         setBar(dom.barDcVolt2, data.dcV2, cfg.maxVoltage);
-        setBar(dom.barDcCur2,  data.dcA2, cfg.maxCurrent);
-        setBar(dom.barRpm,     data.rpm, cfg.maxRPM);
-        setBar(dom.barTemp1,   data.t1, cfg.maxTemp);
-        setBar(dom.barTemp2,   data.t2, cfg.maxTemp);
+        setBar(dom.barDcCur2, data.dcA2, cfg.maxCurrent);
+        setBar(dom.barRpm, data.rpm, cfg.maxRPM);
+        setBar(dom.barTemp1, data.t1, cfg.maxTemp);
+        setBar(dom.barTemp2, data.t2, cfg.maxTemp);
 
         // Uptime
         if (data.uptime != null) {
@@ -373,25 +390,29 @@
         apiFetch('/api/config')
             .then(r => r.json())
             .then(data => {
-                if (data.apSsid != null)     dom.cfgApSsid.value = data.apSsid;
-                if (data.apPass != null)     dom.cfgApPass.value = data.apPass;
+                if (data.apSsid != null) dom.cfgApSsid.value = data.apSsid;
+                if (data.apPass != null) dom.cfgApPass.value = data.apPass;
                 if (data.staEnabled != null) dom.cfgStaEnabled.checked = data.staEnabled;
-                if (data.staSsid != null)    dom.cfgStaSsid.value = data.staSsid;
-                if (data.staPass != null)    dom.cfgStaPass.value = data.staPass;
-                
-                if (data.pollMs != null)     dom.cfgPollMs.value = data.pollMs;
-                if (data.wsPushMs != null)   dom.cfgPushMs.value = data.wsPushMs;
-                if (data.logMs != null)      dom.cfgLogMs.value = data.logMs;
+                if (data.staSsid != null) dom.cfgStaSsid.value = data.staSsid;
+                if (data.staPass != null) dom.cfgStaPass.value = data.staPass;
 
-                if (data.zmpt1Cal != null)   dom.cfgCalZmpt1.value = data.zmpt1Cal;
-                if (data.zmpt2Cal != null)   dom.cfgCalZmpt2.value = data.zmpt2Cal;
-                if (data.zmctCal != null)    dom.cfgCalZmct.value = data.zmctCal;
-                if (data.pf != null)         dom.cfgCalPf.value = data.pf;
+                if (data.pollMs != null) dom.cfgPollMs.value = data.pollMs;
+                if (data.wsPushMs != null) dom.cfgPushMs.value = data.wsPushMs;
+                if (data.logMs != null) dom.cfgLogMs.value = data.logMs;
 
-                if (data.maxV != null)       { dom.cfgMaxV.value = data.maxV; cfg.maxVoltage = data.maxV; }
-                if (data.maxA != null)       { dom.cfgMaxA.value = data.maxA; cfg.maxCurrent = data.maxA; }
-                if (data.maxRpm != null)     { dom.cfgMaxRpm.value = data.maxRpm; cfg.maxRPM = data.maxRpm; }
-                if (data.maxTemp != null)    { dom.cfgMaxT.value = data.maxTemp; cfg.maxTemp = data.maxTemp; }
+                if (data.zmpt1Cal != null) dom.cfgCalZmpt1.value = data.zmpt1Cal;
+                if (data.zmpt2Cal != null) dom.cfgCalZmpt2.value = data.zmpt2Cal;
+                if (data.zmctCal != null) dom.cfgCalZmct.value = data.zmctCal;
+                if (data.pf != null) dom.cfgCalPf.value = data.pf;
+
+                if (data.maxV != null) { dom.cfgMaxV.value = data.maxV; cfg.maxVoltage = data.maxV; }
+                if (data.maxA != null) { dom.cfgMaxA.value = data.maxA; cfg.maxCurrent = data.maxA; }
+                if (data.maxRpm != null) { dom.cfgMaxRpm.value = data.maxRpm; cfg.maxRPM = data.maxRpm; }
+                if (data.maxTemp != null) { dom.cfgMaxT.value = data.maxTemp; cfg.maxTemp = data.maxTemp; }
+
+                if (data.ina1Addr != null) dom.cfgIna1Addr.value = data.ina1Addr;
+                if (data.ina2Addr != null) dom.cfgIna2Addr.value = data.ina2Addr;
+                if (data.dummyMode != null && dom.cfgDummyMode) dom.cfgDummyMode.checked = data.dummyMode;
             })
             .catch(() => showToast('Failed to load settings', 'error'));
     }
@@ -401,33 +422,42 @@
         apiFetch('/api/sysinfo')
             .then(r => r.json())
             .then(data => {
-                if (data.fw != null)      dom.sysFw.textContent = data.fw;
-                if (data.heap != null)    dom.sysHeap.textContent = (data.heap / 1024).toFixed(1) + ' KB';
-                if (data.uptime != null)  dom.sysUptime.textContent = formatUptime(data.uptime);
+                if (data.fw != null) dom.sysFw.textContent = data.fw;
+                if (data.heap != null) dom.sysHeap.textContent = (data.heap / 1024).toFixed(1) + ' KB';
+                if (data.uptime != null) dom.sysUptime.textContent = formatUptime(data.uptime);
                 if (data.clients != null) dom.sysClients.textContent = data.clients;
+
+                if (data.i2c != null && Array.isArray(data.i2c)) {
+                    dom.sysI2cMap.textContent = data.i2c.length > 0
+                        ? data.i2c.map(addr => '0x' + addr.toString(16).toUpperCase()).join(', ')
+                        : 'None';
+                }
             })
-            .catch(() => {});
+            .catch(() => { });
     }
 
     // --- Settings: Save Config ---
     dom.btnSaveCfg.addEventListener('click', () => {
         const payload = {
-            apSsid:     dom.cfgApSsid.value,
-            apPass:     dom.cfgApPass.value,
+            apSsid: dom.cfgApSsid.value,
+            apPass: dom.cfgApPass.value,
             staEnabled: dom.cfgStaEnabled.checked,
-            staSsid:    dom.cfgStaSsid.value,
-            staPass:    dom.cfgStaPass.value,
-            pollMs:     parseInt(dom.cfgPollMs.value, 10),
-            wsPushMs:   parseInt(dom.cfgPushMs.value, 10),
-            logMs:      parseInt(dom.cfgLogMs.value, 10),
-            zmpt1Cal:   parseFloat(dom.cfgCalZmpt1.value),
-            zmpt2Cal:   parseFloat(dom.cfgCalZmpt2.value),
-            zmctCal:    parseFloat(dom.cfgCalZmct.value),
-            pf:         parseFloat(dom.cfgCalPf.value),
-            maxV:       parseFloat(dom.cfgMaxV.value),
-            maxA:       parseFloat(dom.cfgMaxA.value),
-            maxRpm:     parseInt(dom.cfgMaxRpm.value, 10),
-            maxTemp:    parseInt(dom.cfgMaxT.value, 10)
+            staSsid: dom.cfgStaSsid.value,
+            staPass: dom.cfgStaPass.value,
+            pollMs: parseInt(dom.cfgPollMs.value, 10),
+            wsPushMs: parseInt(dom.cfgPushMs.value, 10),
+            logMs: parseInt(dom.cfgLogMs.value, 10),
+            zmpt1Cal: parseFloat(dom.cfgCalZmpt1.value),
+            zmpt2Cal: parseFloat(dom.cfgCalZmpt2.value),
+            zmctCal: parseFloat(dom.cfgCalZmct.value),
+            pf: parseFloat(dom.cfgCalPf.value),
+            maxV: parseFloat(dom.cfgMaxV.value),
+            maxA: parseFloat(dom.cfgMaxA.value),
+            maxRpm: parseInt(dom.cfgMaxRpm.value, 10),
+            maxTemp: parseInt(dom.cfgMaxT.value, 10),
+            ina1Addr: parseInt(dom.cfgIna1Addr.value, 10),
+            ina2Addr: parseInt(dom.cfgIna2Addr.value, 10),
+            dummyMode: dom.cfgDummyMode ? dom.cfgDummyMode.checked : false
         };
 
         apiFetch('/api/config', {
@@ -435,26 +465,26 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         })
-        .then(r => r.json())
-        .then(data => {
-            if (data.ok) {
-                showToast('Settings saved successfully!', 'success');
-                // Update local visual limit settings dynamically
-                cfg.maxVoltage = payload.maxV;
-                cfg.maxCurrent = payload.maxA;
-                cfg.maxRPM = payload.maxRpm;
-                cfg.maxTemp = payload.maxTemp;
-            } else {
-                showToast('Failed to save: ' + (data.error || 'Unknown error'), 'error');
-            }
-        })
-        .catch(() => showToast('Failed to save configuration', 'error'));
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    showToast('Settings saved successfully!', 'success');
+                    // Update local visual limit settings dynamically
+                    cfg.maxVoltage = payload.maxV;
+                    cfg.maxCurrent = payload.maxA;
+                    cfg.maxRPM = payload.maxRpm;
+                    cfg.maxTemp = payload.maxTemp;
+                } else {
+                    showToast('Failed to save: ' + (data.error || 'Unknown error'), 'error');
+                }
+            })
+            .catch(() => showToast('Failed to save configuration', 'error'));
     });
 
     // --- Settings: Restart ---
     dom.btnRestart.addEventListener('click', () => {
         if (!confirm('Are you sure you want to reboot the device?')) return;
-        
+
         apiFetch('/api/restart', { method: 'POST' })
             .then(r => r.json())
             .then(data => {
@@ -466,6 +496,35 @@
                 }
             })
             .catch(() => showToast('Device reboot request sent', 'success'));
+    });
+
+    // --- Settings: Scan I2C Bus ---
+    dom.btnScanI2c.addEventListener('click', () => {
+        dom.btnScanI2c.disabled = true;
+        dom.sysI2cMap.textContent = 'Scanning...';
+        showToast('I2C scan started...', 'success');
+
+        apiFetch('/api/i2c-scan', { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    setTimeout(() => {
+                        loadSysInfo();
+                        showToast('I2C scan complete!', 'success');
+                        dom.btnScanI2c.disabled = false;
+                    }, 600);
+                } else {
+                    showToast('Failed to trigger I2C scan', 'error');
+                    dom.btnScanI2c.disabled = false;
+                }
+            })
+            .catch(() => {
+                setTimeout(() => {
+                    loadSysInfo();
+                    showToast('I2C scan complete (Demo Mode)', 'success');
+                    dom.btnScanI2c.disabled = false;
+                }, 600);
+            });
     });
 
     // --- Initialize ---

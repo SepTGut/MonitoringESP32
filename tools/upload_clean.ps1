@@ -10,16 +10,23 @@ if ($args.Count -gt 0) {
     $port = $args[0]
 }
 
+# Find internal PlatformIO executable first to avoid broken Python launchers
+$pioPath = "$env:USERPROFILE\.platformio\penv\Scripts\pio.exe"
+if (!(Test-Path $pioPath)) {
+    $pioPath = "pio"
+}
+
 Write-Host "====================================================" -ForegroundColor Cyan
 Write-Host "  ESP32 Wind Monitor — Clean Upload Utility" -ForegroundColor Cyan
+Write-Host "  Using PlatformIO: $pioPath" -ForegroundColor Gray
 Write-Host "====================================================" -ForegroundColor Cyan
 
 # 1. Erase all flash
 Write-Host "`n[1/3] Erasing ESP32 flash (clean all program and data)..." -ForegroundColor Yellow
 if ($port) {
-    pio run -t erase --upload-port $port
+    & $pioPath run -t erase --upload-port $port
 } else {
-    pio run -t erase
+    & $pioPath run -t erase
 }
 
 if ($LASTEXITCODE -ne 0) {
@@ -30,9 +37,9 @@ if ($LASTEXITCODE -ne 0) {
 # 2. Upload firmware
 Write-Host "`n[2/3] Compiling and uploading firmware..." -ForegroundColor Yellow
 if ($port) {
-    pio run -t upload --upload-port $port
+    & $pioPath run -t upload --upload-port $port
 } else {
-    pio run -t upload
+    & $pioPath run -t upload
 }
 
 if ($LASTEXITCODE -ne 0) {
@@ -43,9 +50,9 @@ if ($LASTEXITCODE -ne 0) {
 # 3. Upload LittleFS filesystem
 Write-Host "`n[3/3] Building and uploading LittleFS filesystem data..." -ForegroundColor Yellow
 if ($port) {
-    pio run -t uploadfs --upload-port $port
+    & $pioPath run -t uploadfs --upload-port $port
 } else {
-    pio run -t uploadfs
+    & $pioPath run -t uploadfs
 }
 
 if ($LASTEXITCODE -ne 0) {

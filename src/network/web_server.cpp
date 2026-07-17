@@ -12,6 +12,7 @@
 #include <ArduinoJson.h>
 #include "../system/data_manager.h"
 #include "../system/config_manager.h"
+#include "../system/freertos_tasks.h"
 #include "../config/config.h"
 
 // Server and WebSocket instances
@@ -65,12 +66,19 @@ void WebDashboard::begin() {
 
     // --- API: Get System Info ---
     server.on("/api/sysinfo", HTTP_GET, [](AsyncWebServerRequest* request) {
+        SensorData data = dataManager.getData();
         AsyncResponseStream* response = request->beginResponseStream("application/json");
-        StaticJsonDocument<256> doc;
+        StaticJsonDocument<512> doc;
         doc["fw"] = FW_VERSION;
         doc["heap"] = ESP.getFreeHeap();
         doc["uptime"] = esp_timer_get_time() / 1000000ULL;
         doc["clients"] = ws.count();
+
+        JsonArray i2cArr = doc.createNestedArray("i2c");
+        for (uint8_t i = 0; i < data.i2c_count; i++) {
+            i2cArr.add(data.i2c_addresses[i]);
+        }
+
         serializeJson(doc, *response);
         request->send(response);
     });
@@ -141,6 +149,12 @@ void WebDashboard::begin() {
             vTaskDelay(pdMS_TO_TICKS(1000));
             ESP.restart();
         }, "reboot_task", 2048, NULL, 1, NULL);
+    });
+
+    // --- API: Trigger On-Demand I2C Scan (POST) ---
+    server.on("/api/i2c-scan", HTTP_POST, [](AsyncWebServerRequest* request) {
+        Tasks::requestI2CScan();
+        request->send(200, "application/json", "{\"ok\":true}");
     });
 
     // --- WebSocket Handler ---

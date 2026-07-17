@@ -17,6 +17,8 @@
 #define SENSOR_POLL_MS      100     // Sensor read interval (10 Hz)
 #define WEBSOCKET_PUSH_MS   500     // Dashboard update interval (2 Hz)
 #define SERIAL_LOG_MS       1000    // Serial print interval (1 Hz)
+#define LCD_ROTATION_MS     3000    // LCD screen rotation rate (ms)
+
 
 // --- ADC Sampling ---
 #define ADC_SAMPLES         500     // Samples per RMS calculation window

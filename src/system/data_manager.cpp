@@ -97,3 +97,13 @@ void DataManager::updateRPM(uint32_t rpm) {
         xSemaphoreGive(_mutex);
     }
 }
+
+void DataManager::updateI2CAddresses(const uint8_t* addresses, uint8_t count) {
+    if (xSemaphoreTake(_mutex, portMAX_DELAY) == pdTRUE) {
+        _data.i2c_count = count < 16 ? count : 16;
+        for (uint8_t i = 0; i < _data.i2c_count; i++) {
+            _data.i2c_addresses[i] = addresses[i];
+        }
+        xSemaphoreGive(_mutex);
+    }
+}

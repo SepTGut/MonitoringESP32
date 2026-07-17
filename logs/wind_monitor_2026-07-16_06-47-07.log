@@ -1,0 +1,2631 @@
+
+--- LOGGING SESSION START: 2026-07-16 06:47:07.908712 ---
+ets Jul 29 2019 12:21:46
+
+rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3fff0030,len:184
+load:0x40078000,len:12732
+ho 0 tail 12 room 4
+load:0x40080400,len:2908
+entry 0x400805c4
+
+====================================
+  ESP32 Wind Generator Monitor
+  v1.0.0
+====================================
+[Config] Loaded configuration successfully
+[Task] Sensor task started on Core 1
+[Task] Network task started on Core 0
+[WiFi] Access Point mode
+[WiFi] SSID: ESP32-WIND-MONITOR
+[WiFi] AP IP: 192.168.4.1
+[DNS] Captive portal DNS started
+[Web] Server started on port 80
+[ZMPT101B] Initialized on GPIO 34 (offset=38.7, cal=150.0)
+[ZMPT101B] Initialized on GPIO 35 (offset=9.2, cal=150.0)
+[ZMCT103C] Initialized on GPIO 32 (offset=44.2, cal=5.0)
+[INA226] Failed to connect at address 0x40
+[INA226] Failed to connect at address 0x41
+[DS18B20] Found 0 sensor(s) on pin 4
+[RPM] Initialized on GPIO 27 (IR sensor, 1 pulse/rev)
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  10.9V
+  Current:  0.42A
+  Power:    3.9W
+  V2 (raw): 4.3V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  9.3V
+  Current:  0.35A
+  Power:    2.7W
+  V2 (raw): 5.6V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  7.4V
+  Current:  0.39A
+  Power:    2.4W
+  V2 (raw): 5.1V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  9.0V
+  Current:  0.36A
+  Power:    2.8W
+  V2 (raw): 3.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.9V
+  Current:  0.34A
+  Power:    2.6W
+  V2 (raw): 5.1V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  7.3V
+  Current:  0.38A
+  Power:    2.4W
+  V2 (raw): 4.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  9.0V
+  Current:  0.35A
+  Power:    2.7W
+  V2 (raw): 4.1V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  9.1V
+  Current:  0.35A
+  Power:    2.7W
+  V2 (raw): 5.4V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  7.3V
+  Current:  0.37A
+  Power:    2.3W
+  V2 (raw): 4.8V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.8V
+  Current:  0.34A
+  Power:    2.5W
+  V2 (raw): 3.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.8V
+  Current:  0.34A
+  Power:    2.6W
+  V2 (raw): 5.1V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  7.1V
+  Current:  0.37A
+  Power:    2.2W
+  V2 (raw): 4.8V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.7V
+  Current:  0.35A
+  Power:    2.6W
+  V2 (raw): 3.8V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.8V
+  Current:  0.33A
+  Power:    2.5W
+  V2 (raw): 5.0V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  7.4V
+  Current:  0.37A
+  Power:    2.3W
+  V2 (raw): 4.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.6V
+  Current:  0.35A
+  Power:    2.6W
+  V2 (raw): 3.6V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.6V
+  Current:  0.32A
+  Power:    2.4W
+  V2 (raw): 4.7V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  7.1V
+  Current:  0.36A
+  Power:    2.2W
+  V2 (raw): 4.6V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.5V
+  Current:  0.35A
+  Power:    2.5W
+  V2 (raw): 3.5V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.6V
+  Current:  0.32A
+  Power:    2.3W
+  V2 (raw): 4.7V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  7.1V
+  Current:  0.37A
+  Power:    2.2W
+  V2 (raw): 4.6V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.7V
+  Current:  0.35A
+  Power:    2.6W
+  V2 (raw): 3.7V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.8V
+  Current:  0.33A
+  Power:    2.5W
+  V2 (raw): 4.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  7.0V
+  Current:  0.36A
+  Power:    2.2W
+  V2 (raw): 4.7V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.8V
+  Current:  0.35A
+  Power:    2.6W
+  V2 (raw): 3.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.7V
+  Current:  0.33A
+  Power:    2.5W
+  V2 (raw): 5.1V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  7.3V
+  Current:  0.37A
+  Power:    2.3W
+  V2 (raw): 4.7V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.9V
+  Current:  0.33A
+  Power:    2.5W
+  V2 (raw): 4.6V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.7V
+  Current:  0.35A
+  Power:    2.6W
+  V2 (raw): 5.4V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.8V
+  Current:  0.36A
+  Power:    2.7W
+  V2 (raw): 4.2V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  9.5V
+  Current:  0.31A
+  Power:    2.5W
+  V2 (raw): 4.7V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  7.8V
+  Current:  0.35A
+  Power:    2.3W
+  V2 (raw): 4.5V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.4V
+  Current:  0.34A
+  Power:    2.4W
+  V2 (raw): 3.4V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.3V
+  Current:  0.32A
+  Power:    2.3W
+  V2 (raw): 4.8V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  7.5V
+  Current:  0.37A
+  Power:    2.3W
+  V2 (raw): 4.7V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  9.9V
+  Current:  0.35A
+  Power:    2.9W
+  V2 (raw): 5.5V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  10.1V
+  Current:  0.39A
+  Power:    3.3W
+  V2 (raw): 6.4V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  10.3V
+  Current:  0.39A
+  Power:    3.4W
+  V2 (raw): 4.5V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  10.0V
+  Current:  0.35A
+  Power:    3.0W
+  V2 (raw): 5.8V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.2V
+  Current:  0.42A
+  Power:    2.9W
+  V2 (raw): 5.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  10.7V
+  Current:  0.37A
+  Power:    3.4W
+  V2 (raw): 5.8V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  10.2V
+  Current:  0.40A
+  Power:    3.4W
+  V2 (raw): 6.8V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  10.3V
+  Current:  0.40A
+  Power:    3.5W
+  V2 (raw): 4.7V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  9.9V
+  Current:  0.34A
+  Power:    2.9W
+  V2 (raw): 5.7V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  6.9V
+  Current:  0.36A
+  Power:    2.1W
+  V2 (raw): 4.4V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.7V
+  Current:  0.32A
+  Power:    2.4W
+  V2 (raw): 4.6V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.7V
+  Current:  0.34A
+  Power:    2.5W
+  V2 (raw): 5.0V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.5V
+  Current:  0.35A
+  Power:    2.5W
+  V2 (raw): 3.3V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.2V
+  Current:  0.30A
+  Power:    2.1W
+  V2 (raw): 4.3V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  6.8V
+  Current:  0.36A
+  Power:    2.1W
+  V2 (raw): 4.4V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.3V
+  Current:  0.32A
+  Power:    2.3W
+  V2 (raw): 4.3V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.4V
+  Current:  0.34A
+  Power:    2.4W
+  V2 (raw): 5.3V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.3V
+  Current:  0.34A
+  Power:    2.4W
+  V2 (raw): 3.6V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.7V
+  Current:  0.30A
+  Power:    2.2W
+  V2 (raw): 4.1V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  6.9V
+  Current:  0.34A
+  Power:    2.0W
+  V2 (raw): 4.1V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  7.9V
+  Current:  0.32A
+  Power:    2.2W
+  V2 (raw): 3.7V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.1V
+  Current:  0.33A
+  Power:    2.3W
+  V2 (raw): 5.3V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.2V
+  Current:  0.35A
+  Power:    2.5W
+  V2 (raw): 4.2V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  9.6V
+  Current:  0.30A
+  Power:    2.4W
+  V2 (raw): 4.5V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  7.6V
+  Current:  0.34A
+  Power:    2.2W
+  V2 (raw): 4.3V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.1V
+  Current:  0.33A
+  Power:    2.3W
+  V2 (raw): 3.4V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.2V
+  Current:  0.32A
+  Power:    2.3W
+  V2 (raw): 5.1V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  7.9V
+  Current:  0.36A
+  Power:    2.4W
+  V2 (raw): 4.6V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  9.8V
+  Current:  0.31A
+  Power:    2.6W
+  V2 (raw): 4.6V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.2V
+  Current:  0.34A
+  Power:    2.4W
+  V2 (raw): 4.4V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.1V
+  Current:  0.33A
+  Power:    2.3W
+  V2 (raw): 3.2V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.2V
+  Current:  0.31A
+  Power:    2.1W
+  V2 (raw): 4.1V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  6.7V
+  Current:  0.35A
+  Power:    2.0W
+  V2 (raw): 4.2V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.1V
+  Current:  0.32A
+  Power:    2.2W
+  V2 (raw): 4.3V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  9.5V
+  Current:  0.34A
+  Power:    2.7W
+  V2 (raw): 4.6V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+[WS] Client #1 connected from 192.168.4.2
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  8.4V
+  Current:  0.33A
+  Power:    2.3W
+  V2 (raw): 6.7V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  9.3V
+  Current:  0.30A
+  Power:    2.3W
+  V2 (raw): 4.3V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  7.6V
+  Current:  0.34A
+  Power:    2.2W
+  V2 (raw): 4.1V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  7.2V
+  Current:  0.31A
+  Power:    1.9W
+  V2 (raw): 2.5V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  6.0V
+  Current:  0.28A
+  Power:    1.4W
+  V2 (raw): 2.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  5.3V
+  Current:  0.30A
+  Power:    1.4W
+  V2 (raw): 2.0V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  5.5V
+  Current:  0.26A
+  Power:    1.2W
+  V2 (raw): 2.0V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  5.4V
+  Current:  0.28A
+  Power:    1.3W
+  V2 (raw): 1.8V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  5.0V
+  Current:  0.30A
+  Power:    1.3W
+  V2 (raw): 1.5V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  5.3V
+  Current:  0.27A
+  Power:    1.2W
+  V2 (raw): 2.0V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  5.5V
+  Current:  0.28A
+  Power:    1.3W
+  V2 (raw): 2.0V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  5.5V
+  Current:  0.28A
+  Power:    1.3W
+  V2 (raw): 1.5V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  5.1V
+  Current:  0.27A
+  Power:    1.2W
+  V2 (raw): 1.5V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  4.8V
+  Current:  0.30A
+  Power:    1.2W
+  V2 (raw): 1.7V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  5.2V
+  Current:  0.27A
+  Power:    1.2W
+  V2 (raw): 1.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  5.4V
+  Current:  0.28A
+  Power:    1.3W
+  V2 (raw): 1.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  5.4V
+  Current:  0.28A
+  Power:    1.3W
+  V2 (raw): 1.4V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  5.1V
+  Current:  0.27A
+  Power:    1.2W
+  V2 (raw): 1.5V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  4.9V
+  Current:  0.30A
+  Power:    1.2W
+  V2 (raw): 1.8V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  5.4V
+  Current:  0.26A
+  Power:    1.2W
+  V2 (raw): 1.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  5.5V
+  Current:  0.29A
+  Power:    1.3W
+  V2 (raw): 1.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  5.3V
+  Current:  0.28A
+  Power:    1.2W
+  V2 (raw): 1.3V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  5.2V
+  Current:  0.26A
+  Power:    1.2W
+  V2 (raw): 1.5V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  4.8V
+  Current:  0.30A
+  Power:    1.2W
+  V2 (raw): 1.7V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+[WS] Client #1 disconnected
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  5.1V
+  Current:  0.27A
+  Power:    1.2W
+  V2 (raw): 1.8V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  5.2V
+  Current:  0.28A
+  Power:    1.2W
+  V2 (raw): 2.0V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  5.7V
+  Current:  0.29A
+  Power:    1.4W
+  V2 (raw): 1.6V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  7.9V
+  Current:  0.30A
+  Power:    2.0W
+  V2 (raw): 3.8V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  6.7V
+  Current:  0.36A
+  Power:    2.0W
+  V2 (raw): 4.2V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  7.7V
+  Current:  0.30A
+  Power:    2.0W
+  V2 (raw): 3.6V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  7.5V
+  Current:  0.32A
+  Power:    2.0W
+  V2 (raw): 3.7V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  7.9V
+  Current:  0.33A
+  Power:    2.2W
+  V2 (raw): 2.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  24.6V
+  Current:  0.57A
+  Power:    11.8W
+  V2 (raw): 18.1V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  21.1V
+  Current:  0.59A
+  Power:    10.5W
+  V2 (raw): 17.8V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  52.1V
+  Current:  0.58A
+  Power:    25.7W
+  V2 (raw): 24.2V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  94.1V
+  Current:  0.86A
+  Power:    68.8W
+  V2 (raw): 1.2V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  129.5V
+  Current:  1.07A
+  Power:    117.4W
+  V2 (raw): 57.0V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  127.8V
+  Current:  2.12A
+  Power:    230.7W
+  V2 (raw): 69.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  55.2V
+  Current:  1.81A
+  Power:    84.7W
+  V2 (raw): 56.4V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  54.3V
+  Current:  1.77A
+  Power:    81.6W
+  V2 (raw): 57.6V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  55.3V
+  Current:  1.83A
+  Power:    85.9W
+  V2 (raw): 58.0V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  64.1V
+  Current:  1.96A
+  Power:    107.0W
+  V2 (raw): 64.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  115.8V
+  Current:  3.92A
+  Power:    385.9W
+  V2 (raw): 121.0V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  166.3V
+  Current:  5.49A
+  Power:    776.0W
+  V2 (raw): 165.6V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  179.4V
+  Current:  5.89A
+  Power:    897.9W
+  V2 (raw): 184.6V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  202.0V
+  Current:  6.85A
+  Power:    1176.0W
+  V2 (raw): 207.0V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  147.4V
+  Current:  3.72A
+  Power:    465.6W
+  V2 (raw): 139.2V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  4.9V
+  Current:  0.29A
+  Power:    1.2W
+  V2 (raw): 1.7V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C
+  RPM: 0
+======================

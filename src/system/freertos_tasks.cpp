@@ -20,6 +20,7 @@
 #include "../sensors/rpm_sensor.h"
 #include "../sensors/zmpt101b.h"
 #include "../sensors/zmct103c.h"
+#include "../display/lcd_display.h"
 
 // Network
 #include "../network/wifi_manager.h"
@@ -27,6 +28,9 @@
 
 #include <Wire.h>
 #include <DNSServer.h>
+
+// Safe dynamic cross-core flag for I2C scans (Core 0 to Core 1)
+static volatile bool i2cScanRequested = false;
 
 // =============================================================
 //  CORE 1 — Sensor Measurement Task
@@ -36,25 +40,79 @@
 static ZMPT101B    zmpt1(PIN_ZMPT101B_1, ZMPT_CALIBRATION_1);
 static ZMPT101B    zmpt2(PIN_ZMPT101B_2, ZMPT_CALIBRATION_2);
 static ZMCT103C    zmct(PIN_ZMCT103C, ZMCT_CALIBRATION);
-static INA226Sensor ina1(INA226_ADDR_1, PIN_I2C_SDA, PIN_I2C_SCL);
-static INA226Sensor ina2(INA226_ADDR_2, PIN_I2C_SDA, PIN_I2C_SCL);
 static DS18B20Sensor tempBus(PIN_DS18B20);
 static RPMSensor   rpmSensor(PIN_RPM_INPUT);
+static LcdDisplay   lcdDisplay;
+
+// Dynamic pointer allocation for I2C INA226 modules to support auto-discovery and soft-assignment
+static INA226Sensor* ina1 = nullptr;
+static INA226Sensor* ina2 = nullptr;
 
 static void sensorTaskFunction(void* pvParameters) {
     Serial.println("[Task] Sensor task started on Core 1");
 
-    // Initialize I2C bus once before INA226 modules
+    // Initialize I2C bus once before scanning
     Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL);
 
-    // Initialize all sensors
+    Serial.println("[I2C] Scanning I2C bus for connected devices...");
+    uint8_t i2c_list[16];
+    uint8_t i2c_count = 0;
+    uint8_t lcdAddr = 0;
+
+    for (uint8_t addr = 1; addr < 127; addr++) {
+        Wire.beginTransmission(addr);
+        if (Wire.endTransmission() == 0) {
+            Serial.printf("[I2C] Found responsive device at address 0x%02X\n", addr);
+            if (i2c_count < 16) {
+                i2c_list[i2c_count++] = addr;
+            }
+            
+            // Check for LCD (0x20-0x27 or 0x38-0x3F)
+            if ((addr >= 0x20 && addr <= 0x27) || (addr >= 0x38 && addr <= 0x3F)) {
+                if (lcdAddr == 0) lcdAddr = addr;
+            }
+        }
+    }
+
+    // Save detected I2C list to DataManager (for Web Dashboard UI)
+    dataManager.updateI2CAddresses(i2c_list, i2c_count);
+
+    // Initialize LCD display with detected address (disabled if 0)
+    lcdDisplay.begin(lcdAddr);
+
+    // Initialize non-I2C sensors
     zmpt1.begin();
     zmpt2.begin();
     zmct.begin();
-    ina1.begin();
-    ina2.begin();
     tempBus.begin();
     rpmSensor.begin();
+
+    // Fetch config configuration and assign INA226 devices based on software settings
+    const SystemConfig& cfg = configManager.getConfig();
+    
+    // Check if INA226 #1 address is present on the bus
+    bool ina1Present = false;
+    bool ina2Present = false;
+    for (uint8_t i = 0; i < i2c_count; i++) {
+        if (i2c_list[i] == cfg.ina1Addr) ina1Present = true;
+        if (i2c_list[i] == cfg.ina2Addr) ina2Present = true;
+    }
+
+    if (ina1Present) {
+        Serial.printf("[INA226] Dynamic assignment: INA1 mapped to address 0x%02X\n", cfg.ina1Addr);
+        ina1 = new INA226Sensor(cfg.ina1Addr, PIN_I2C_SDA, PIN_I2C_SCL);
+        ina1->begin();
+    } else {
+        Serial.printf("[INA226] Warning: INA1 address 0x%02X NOT found on I2C bus. Sensor disabled.\n", cfg.ina1Addr);
+    }
+
+    if (ina2Present) {
+        Serial.printf("[INA226] Dynamic assignment: INA2 mapped to address 0x%02X\n", cfg.ina2Addr);
+        ina2 = new INA226Sensor(cfg.ina2Addr, PIN_I2C_SDA, PIN_I2C_SCL);
+        ina2->begin();
+    } else {
+        Serial.printf("[INA226] Warning: INA2 address 0x%02X NOT found on I2C bus. Sensor disabled.\n", cfg.ina2Addr);
+    }
 
     // Issue first DS18B20 conversion so data is ready on first read
     tempBus.requestTemperature();
@@ -63,41 +121,96 @@ static void sensorTaskFunction(void* pvParameters) {
     uint32_t lastSerialLog = 0;
 
     for (;;) {
-        const SystemConfig& cfg = configManager.getConfig();
-        TickType_t xFrequency = pdMS_TO_TICKS(cfg.sensorPollMs);
+        const SystemConfig& currentCfg = configManager.getConfig();
+        TickType_t xFrequency = pdMS_TO_TICKS(currentCfg.sensorPollMs);
+
+        // --- On-Demand I2C Scan Request ---
+        if (i2cScanRequested) {
+            i2cScanRequested = false;
+            Serial.println("[I2C] Running on-demand bus scan...");
+            uint8_t i2c_list[16];
+            uint8_t i2c_count = 0;
+            for (uint8_t addr = 1; addr < 127; addr++) {
+                Wire.beginTransmission(addr);
+                if (Wire.endTransmission() == 0) {
+                    if (i2c_count < 16) {
+                        i2c_list[i2c_count++] = addr;
+                    }
+                }
+            }
+            dataManager.updateI2CAddresses(i2c_list, i2c_count);
+            Serial.printf("[I2C] On-demand scan complete. Found %d devices.\n", i2c_count);
+        }
 
         // Update sensor calibration values dynamically at runtime
-        zmpt1.setCalibration(cfg.zmpt1Cal);
-        zmpt2.setCalibration(cfg.zmpt2Cal);
-        zmct.setCalibration(cfg.zmctCal);
+        zmpt1.setCalibration(currentCfg.zmpt1Cal);
+        zmpt2.setCalibration(currentCfg.zmpt2Cal);
+        zmct.setCalibration(currentCfg.zmctCal);
 
-        // --- Read DS18B20 (conversion requested in PREVIOUS cycle) ---
-        float temp1 = tempBus.readTemperature(0);
-        float temp2 = tempBus.readTemperature(1);
+        // --- Read/Simulate Sensors ---
+        float temp1, temp2;
+        float acVoltage1, acRaw1, acVoltage2, acRaw2, acCurrent, acRawI, acPower;
+        float dcV1, dcA1, dcP1, dcV2, dcA2, dcP2;
+        float rpm;
 
-        // --- Read AC Sensors ---
-        float acVoltage1 = zmpt1.readRMSVoltage();
-        float acRaw1     = zmpt1.readRawADC();
-        float acVoltage2 = zmpt2.readRMSVoltage();
-        float acRaw2     = zmpt2.readRawADC();
-        float acCurrent  = zmct.readRMSCurrent();
-        float acRawI     = zmct.readRawADC();
+        if (currentCfg.dummyMode) {
+            // Simulated Dummy Sensors Mode
+            static float simStep = 0.0f;
+            simStep += 0.08f;
 
-        // --- Calculate AC Power ---
-        // P = Vrms × Irms × PF (using ZMPT #1 for power calc)
-        float acPower = acVoltage1 * acCurrent * cfg.pf;
+            float windSpeed = 5.0f + 3.0f * sin(simStep * 0.3f);
+            acVoltage1 = 30.0f + 25.0f * sin(simStep * 0.5f) * (windSpeed / 8.0f);
+            acRaw1     = acVoltage1 * 10.0f; // Fake raw ADC representation
+            acVoltage2 = acVoltage1 * 0.95f + 1.5f * sin(simStep * 1.1f);
+            acRaw2     = acVoltage2 * 10.0f;
+            acCurrent  = 2.0f + 1.5f * sin(simStep * 0.7f) * (windSpeed / 8.0f);
+            if (acCurrent < 0.0f) acCurrent = 0.0f;
+            acRawI     = acCurrent * 100.0f;
+            acPower    = acVoltage1 * acCurrent * currentCfg.pf;
 
-        // --- Read DC Sensors ---
-        float dcV1 = ina1.readVoltage();
-        float dcA1 = ina1.readCurrent();
-        float dcP1 = ina1.readPower();
+            dcV1 = 12.0f + 2.0f * sin(simStep * 0.4f);
+            dcA1 = 3.0f + 2.0f * sin(simStep * 0.6f);
+            if (dcA1 < 0.0f) dcA1 = 0.0f;
+            dcP1 = dcV1 * dcA1;
 
-        float dcV2 = ina2.readVoltage();
-        float dcA2 = ina2.readCurrent();
-        float dcP2 = ina2.readPower();
+            dcV2 = 24.0f + 3.0f * sin(simStep * 0.35f);
+            dcA2 = 1.5f + 1.0f * sin(simStep * 0.55f);
+            if (dcA2 < 0.0f) dcA2 = 0.0f;
+            dcP2 = dcV2 * dcA2;
 
-        // --- Read RPM ---
-        float rpm = rpmSensor.getRPM();
+            rpm  = 800.0f + 600.0f * sin(simStep * 0.25f) * (windSpeed / 8.0f);
+            if (rpm < 0.0f) rpm = 0.0f;
+
+            temp1 = 32.0f + 4.0f * sin(simStep * 0.15f);
+            temp2 = 26.0f + 2.0f * sin(simStep * 0.1f);
+        } else {
+            // --- Read DS18B20 (conversion requested in PREVIOUS cycle) ---
+            temp1 = tempBus.readTemperature(0);
+            temp2 = tempBus.readTemperature(1);
+
+            // --- Read AC Sensors ---
+            acVoltage1 = zmpt1.readRMSVoltage();
+            acRaw1     = zmpt1.readRawADC();
+            acVoltage2 = zmpt2.readRMSVoltage();
+            acRaw2     = zmpt2.readRawADC();
+            acCurrent  = zmct.readRMSCurrent();
+            acRawI     = zmct.readRawADC();
+
+            // --- Calculate AC Power ---
+            acPower = acVoltage1 * acCurrent * currentCfg.pf;
+
+            // --- Read DC Sensors (nullptr-safe) ---
+            dcV1 = (ina1 != nullptr) ? ina1->readVoltage() : 0.0f;
+            dcA1 = (ina1 != nullptr) ? ina1->readCurrent() : 0.0f;
+            dcP1 = (ina1 != nullptr) ? ina1->readPower() : 0.0f;
+
+            dcV2 = (ina2 != nullptr) ? ina2->readVoltage() : 0.0f;
+            dcA2 = (ina2 != nullptr) ? ina2->readCurrent() : 0.0f;
+            dcP2 = (ina2 != nullptr) ? ina2->readPower() : 0.0f;
+
+            // --- Read RPM ---
+            rpm = rpmSensor.getRPM();
+        }
 
         // --- Request next DS18B20 conversion (completes during vTaskDelayUntil) ---
         tempBus.requestTemperature();
@@ -116,7 +229,7 @@ static void sensorTaskFunction(void* pvParameters) {
         // --- Serial Logging (Dynamic rate) ---
 #if ENABLE_SERIAL_LOG
         uint32_t now = millis();
-        if (now - lastSerialLog >= cfg.serialLogMs) {
+        if (now - lastSerialLog >= currentCfg.serialLogMs) {
             lastSerialLog = now;
 
             Serial.println("======================");
@@ -143,6 +256,9 @@ static void sensorTaskFunction(void* pvParameters) {
             Serial.println("======================");
         }
 #endif
+
+        // --- Update LCD Display (with dynamic screen rotation) ---
+        lcdDisplay.update(dataManager.getData());
 
         // Wait for next cycle
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
@@ -220,4 +336,8 @@ void Tasks::startNetworkTask() {
         NULL,           // Task handle
         0               // Core 0 (Protocol Core)
     );
+}
+
+void Tasks::requestI2CScan() {
+    i2cScanRequested = true;
 }

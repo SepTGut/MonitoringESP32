@@ -31,3 +31,7 @@
 
 // --- DS18B20 OneWire Bus ---
 #define PIN_DS18B20         4       // Both sensors on same bus
+
+// --- I2C LCD Display ---
+#define LCD_I2C_ADDR        0x27    // Standard PCF8574 LCD I2C Address (sometimes 0x3F)
+

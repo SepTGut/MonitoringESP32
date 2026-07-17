@@ -36,6 +36,10 @@ void ConfigManager::loadDefaults() {
     _config.maxA     = DEFAULT_MAX_A;
     _config.maxRpm   = DEFAULT_MAX_RPM;
     _config.maxTemp  = DEFAULT_MAX_TEMP;
+
+    _config.ina1Addr = 0x40; // Default INA226 #1
+    _config.ina2Addr = 0x41; // Default INA226 #2
+    _config.dummyMode = false; // Simulated dummy sensors mode disabled by default
 }
 
 bool ConfigManager::begin() {
@@ -155,6 +159,16 @@ void ConfigManager::updateFromJson(const JsonVariant& json) {
     if (json["maxTemp"].is<uint32_t>()) {
         _config.maxTemp = json["maxTemp"];
     }
+
+    if (json["ina1Addr"].is<uint8_t>()) {
+        _config.ina1Addr = json["ina1Addr"];
+    }
+    if (json["ina2Addr"].is<uint8_t>()) {
+        _config.ina2Addr = json["ina2Addr"];
+    }
+    if (json["dummyMode"].is<bool>()) {
+        _config.dummyMode = json["dummyMode"];
+    }
 }
 
 void ConfigManager::serialize(JsonDocument& doc) const {
@@ -177,4 +191,8 @@ void ConfigManager::serialize(JsonDocument& doc) const {
     doc["maxA"]       = _config.maxA;
     doc["maxRpm"]     = _config.maxRpm;
     doc["maxTemp"]    = _config.maxTemp;
+
+    doc["ina1Addr"]   = _config.ina1Addr;
+    doc["ina2Addr"]   = _config.ina2Addr;
+    doc["dummyMode"]  = _config.dummyMode;
 }

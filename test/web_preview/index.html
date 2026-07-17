@@ -138,6 +138,26 @@
 
                 <!-- Metric Cards Grid -->
                 <div class="metrics-grid">
+                    <!-- Live LCD Display Preview -->
+                    <div class="metric-card card-lcd">
+                        <div class="metric-header" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 1.25rem; height: 1.25rem; color: var(--accent-blue);">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                                <line x1="2" y1="10" x2="22" y2="10"/>
+                                <line x1="12" y1="17" x2="12" y2="21"/>
+                                <line x1="7" y1="21" x2="17" y2="21"/>
+                            </svg>
+                            <h3 style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; margin: 0;">I2C LCD 16x2 Live Preview</h3>
+                        </div>
+                        <div class="lcd-screen">
+                            <div class="lcd-line" id="lcd-line-0">  WIND MONITOR  </div>
+                            <div class="lcd-line" id="lcd-line-1">   Booting...   </div>
+                        </div>
+                        <div class="lcd-footer">
+                            <span id="lcd-screen-title">BOOTING</span>
+                            <span class="lcd-dot-indicator" id="lcd-dot">● SCANNING</span>
+                        </div>
+                    </div>
 
                     <!-- AC Voltage #1 (for power) -->
                     <div class="metric-card" data-type="ac">

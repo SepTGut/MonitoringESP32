@@ -37,6 +37,10 @@ struct SensorData {
 
     // --- RPM ---
     uint32_t rpm;
+
+    // --- I2C Auto-Discovery ---
+    uint8_t i2c_addresses[16];
+    uint8_t i2c_count;
 };
 
 // Thread-safe data manager using FreeRTOS mutex
@@ -58,6 +62,7 @@ public:
     void updateTemperature1(float tempC);
     void updateTemperature2(float tempC);
     void updateRPM(uint32_t rpm);
+    void updateI2CAddresses(const uint8_t* addresses, uint8_t count);
 
 private:
     SensorData _data;
