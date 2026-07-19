@@ -91,6 +91,13 @@ void DataManager::updateTemperature2(float tempC) {
     }
 }
 
+void DataManager::updateInternalTemp(float tempC) {
+    if (xSemaphoreTake(_mutex, portMAX_DELAY) == pdTRUE) {
+        _data.temperature_esp = tempC;
+        xSemaphoreGive(_mutex);
+    }
+}
+
 void DataManager::updateRPM(uint32_t rpm) {
     if (xSemaphoreTake(_mutex, portMAX_DELAY) == pdTRUE) {
         _data.rpm = rpm;

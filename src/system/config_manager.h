@@ -6,6 +6,8 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
 
 struct SystemConfig {
     // WiFi AP Mode
@@ -55,8 +57,8 @@ public:
     // Save to /config.json
     bool save();
 
-    // Get the current configuration
-    const SystemConfig& getConfig() const { return _config; }
+    // Get an atomic snapshot of the current configuration.
+    SystemConfig getConfig() const;
 
     // Update settings from a JSON payload
     void updateFromJson(const JsonVariant& json);
@@ -67,6 +69,7 @@ public:
 private:
     SystemConfig _config;
     const char*  _filename = "/config.json";
+    SemaphoreHandle_t _mutex;
 
     // Load defaults from config.h
     void loadDefaults();

@@ -4,11 +4,13 @@
 
 #include "config_manager.h"
 #include "../config/config.h"
+#include "../config/pin_config.h"
 #include <LittleFS.h>
 
 ConfigManager configManager;
 
 ConfigManager::ConfigManager() {
+    _mutex = xSemaphoreCreateMutex();
     loadDefaults();
 }
 
@@ -37,9 +39,18 @@ void ConfigManager::loadDefaults() {
     _config.maxRpm   = DEFAULT_MAX_RPM;
     _config.maxTemp  = DEFAULT_MAX_TEMP;
 
-    _config.ina1Addr = 0x40; // Default INA226 #1
-    _config.ina2Addr = 0x41; // Default INA226 #2
+    _config.ina1Addr = INA226_ADDR_1; // Default INA226 #1 (from pin_config.h)
+    _config.ina2Addr = INA226_ADDR_2; // Default INA226 #2 (from pin_config.h)
     _config.dummyMode = false; // Simulated dummy sensors mode disabled by default
+}
+
+SystemConfig ConfigManager::getConfig() const {
+    SystemConfig config = {};
+    if (xSemaphoreTake(_mutex, portMAX_DELAY) == pdTRUE) {
+        config = _config;
+        xSemaphoreGive(_mutex);
+    }
+    return config;
 }
 
 bool ConfigManager::begin() {
@@ -77,7 +88,27 @@ bool ConfigManager::load() {
     }
 
     updateFromJson(doc.as<JsonVariant>());
-    Serial.println("[Config] Loaded configuration successfully");
+
+    // Self-healing: if loaded SSID is corrupted or empty, reset to defaults immediately
+    bool valid = true;
+    if (strlen(_config.apSSID) == 0) {
+        valid = false;
+    } else {
+        for (size_t i = 0; i < strlen(_config.apSSID); i++) {
+            if (!isprint((unsigned char)_config.apSSID[i])) {
+                valid = false;
+                break;
+            }
+        }
+    }
+
+    if (!valid) {
+        Serial.println("[Config] Loaded configuration contains invalid or corrupted SSID. Resetting to defaults.");
+        loadDefaults();
+        save();
+    } else {
+        Serial.println("[Config] Loaded configuration successfully");
+    }
     return true;
 }
 
@@ -103,96 +134,109 @@ bool ConfigManager::save() {
 }
 
 void ConfigManager::updateFromJson(const JsonVariant& json) {
-    if (json["apSsid"].is<const char*>()) {
-        strncpy(_config.apSSID, json["apSsid"], sizeof(_config.apSSID) - 1);
+    if (xSemaphoreTake(_mutex, portMAX_DELAY) != pdTRUE) {
+        return;
+    }
+    
+    if (json.containsKey("apSsid") && json["apSsid"].is<const char*>()) {
+        strncpy(_config.apSSID, json["apSsid"].as<const char*>(), sizeof(_config.apSSID) - 1);
         _config.apSSID[sizeof(_config.apSSID) - 1] = '\0';
     }
-    if (json["apPass"].is<const char*>()) {
-        strncpy(_config.apPass, json["apPass"], sizeof(_config.apPass) - 1);
+    if (json.containsKey("apPass") && json["apPass"].is<const char*>()) {
+        strncpy(_config.apPass, json["apPass"].as<const char*>(), sizeof(_config.apPass) - 1);
         _config.apPass[sizeof(_config.apPass) - 1] = '\0';
     }
 
-    if (json["staEnabled"].is<bool>()) {
-        _config.staEnabled = json["staEnabled"];
+    if (json.containsKey("staEnabled")) {
+        _config.staEnabled = json["staEnabled"].as<bool>();
     }
-    if (json["staSsid"].is<const char*>()) {
-        strncpy(_config.staSSID, json["staSsid"], sizeof(_config.staSSID) - 1);
+    if (json.containsKey("staSsid") && json["staSsid"].is<const char*>()) {
+        strncpy(_config.staSSID, json["staSsid"].as<const char*>(), sizeof(_config.staSSID) - 1);
         _config.staSSID[sizeof(_config.staSSID) - 1] = '\0';
     }
-    if (json["staPass"].is<const char*>()) {
-        strncpy(_config.staPass, json["staPass"], sizeof(_config.staPass) - 1);
+    if (json.containsKey("staPass") && json["staPass"].is<const char*>()) {
+        strncpy(_config.staPass, json["staPass"].as<const char*>(), sizeof(_config.staPass) - 1);
         _config.staPass[sizeof(_config.staPass) - 1] = '\0';
     }
 
-    if (json["pollMs"].is<uint32_t>()) {
-        _config.sensorPollMs = json["pollMs"];
+    if (json.containsKey("pollMs")) {
+        _config.sensorPollMs = json["pollMs"].as<uint32_t>();
     }
-    if (json["wsPushMs"].is<uint32_t>()) {
-        _config.wsPushMs = json["wsPushMs"];
+    if (json.containsKey("wsPushMs")) {
+        _config.wsPushMs = json["wsPushMs"].as<uint32_t>();
     }
-    if (json["logMs"].is<uint32_t>()) {
-        _config.serialLogMs = json["logMs"];
-    }
-
-    if (json["zmpt1Cal"].is<float>()) {
-        _config.zmpt1Cal = json["zmpt1Cal"];
-    }
-    if (json["zmpt2Cal"].is<float>()) {
-        _config.zmpt2Cal = json["zmpt2Cal"];
-    }
-    if (json["zmctCal"].is<float>()) {
-        _config.zmctCal = json["zmctCal"];
-    }
-    if (json["pf"].is<float>()) {
-        _config.pf = json["pf"];
+    if (json.containsKey("logMs")) {
+        _config.serialLogMs = json["logMs"].as<uint32_t>();
     }
 
-    if (json["maxV"].is<float>()) {
-        _config.maxV = json["maxV"];
+    if (json.containsKey("zmpt1Cal")) {
+        _config.zmpt1Cal = json["zmpt1Cal"].as<float>();
     }
-    if (json["maxA"].is<float>()) {
-        _config.maxA = json["maxA"];
+    if (json.containsKey("zmpt2Cal")) {
+        _config.zmpt2Cal = json["zmpt2Cal"].as<float>();
     }
-    if (json["maxRpm"].is<uint32_t>()) {
-        _config.maxRpm = json["maxRpm"];
+    if (json.containsKey("zmctCal")) {
+        _config.zmctCal = json["zmctCal"].as<float>();
     }
-    if (json["maxTemp"].is<uint32_t>()) {
-        _config.maxTemp = json["maxTemp"];
+    if (json.containsKey("pf")) {
+        _config.pf = json["pf"].as<float>();
     }
 
-    if (json["ina1Addr"].is<uint8_t>()) {
-        _config.ina1Addr = json["ina1Addr"];
+    if (json.containsKey("maxV")) {
+        _config.maxV = json["maxV"].as<float>();
     }
-    if (json["ina2Addr"].is<uint8_t>()) {
-        _config.ina2Addr = json["ina2Addr"];
+    if (json.containsKey("maxA")) {
+        _config.maxA = json["maxA"].as<float>();
     }
-    if (json["dummyMode"].is<bool>()) {
-        _config.dummyMode = json["dummyMode"];
+    if (json.containsKey("maxRpm")) {
+        _config.maxRpm = json["maxRpm"].as<uint32_t>();
     }
+    if (json.containsKey("maxTemp")) {
+        _config.maxTemp = json["maxTemp"].as<uint32_t>();
+    }
+
+    if (json.containsKey("ina1Addr")) {
+        _config.ina1Addr = json["ina1Addr"].as<uint8_t>();
+    }
+    if (json.containsKey("ina2Addr")) {
+        _config.ina2Addr = json["ina2Addr"].as<uint8_t>();
+    }
+    if (json.containsKey("dummyMode")) {
+        _config.dummyMode = json["dummyMode"].as<bool>();
+    }
+
+    // Prevent invalid HTTP payloads from turning the task loops into busy loops.
+    if (_config.sensorPollMs < 1) _config.sensorPollMs = 1;
+    if (_config.wsPushMs < 20) _config.wsPushMs = 20;
+    if (_config.serialLogMs < 20) _config.serialLogMs = 20;
+    _config.pf = constrain(_config.pf, 0.0f, 1.0f);
+    
+    xSemaphoreGive(_mutex);
 }
 
 void ConfigManager::serialize(JsonDocument& doc) const {
-    doc["apSsid"]     = _config.apSSID;
-    doc["apPass"]     = _config.apPass;
-    doc["staEnabled"] = _config.staEnabled;
-    doc["staSsid"]    = _config.staSSID;
-    doc["staPass"]    = _config.staPass;
+    const SystemConfig config = getConfig();
+    doc["apSsid"]     = config.apSSID;
+    doc["apPass"]     = config.apPass;
+    doc["staEnabled"] = config.staEnabled;
+    doc["staSsid"]    = config.staSSID;
+    doc["staPass"]    = config.staPass;
 
-    doc["pollMs"]     = _config.sensorPollMs;
-    doc["wsPushMs"]   = _config.wsPushMs;
-    doc["logMs"]      = _config.serialLogMs;
+    doc["pollMs"]     = config.sensorPollMs;
+    doc["wsPushMs"]   = config.wsPushMs;
+    doc["logMs"]      = config.serialLogMs;
 
-    doc["zmpt1Cal"]   = _config.zmpt1Cal;
-    doc["zmpt2Cal"]   = _config.zmpt2Cal;
-    doc["zmctCal"]    = _config.zmctCal;
-    doc["pf"]         = _config.pf;
+    doc["zmpt1Cal"]   = config.zmpt1Cal;
+    doc["zmpt2Cal"]   = config.zmpt2Cal;
+    doc["zmctCal"]    = config.zmctCal;
+    doc["pf"]         = config.pf;
 
-    doc["maxV"]       = _config.maxV;
-    doc["maxA"]       = _config.maxA;
-    doc["maxRpm"]     = _config.maxRpm;
-    doc["maxTemp"]    = _config.maxTemp;
+    doc["maxV"]       = config.maxV;
+    doc["maxA"]       = config.maxA;
+    doc["maxRpm"]     = config.maxRpm;
+    doc["maxTemp"]    = config.maxTemp;
 
-    doc["ina1Addr"]   = _config.ina1Addr;
-    doc["ina2Addr"]   = _config.ina2Addr;
-    doc["dummyMode"]  = _config.dummyMode;
+    doc["ina1Addr"]   = config.ina1Addr;
+    doc["ina2Addr"]   = config.ina2Addr;
+    doc["dummyMode"]  = config.dummyMode;
 }

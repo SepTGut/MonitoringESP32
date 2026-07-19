@@ -85,6 +85,10 @@
                         resolve({
                             json: () => Promise.resolve({ ok: true })
                         });
+                    } else if (url === '/api/i2c-scan') {
+                        resolve({
+                            json: () => Promise.resolve({ ok: true })
+                        });
                     }
                 }, 150);
             });
@@ -117,6 +121,7 @@
         rpm: $('val-rpm'),
         temp1: $('val-temp1'),
         temp2: $('val-temp2'),
+        tempEsp: $('val-temp-esp'),
 
         // Progress bars
         barAcVolt1: $('bar-acvolt1'),
@@ -129,6 +134,7 @@
         barRpm: $('bar-rpm'),
         barTemp1: $('bar-temp1'),
         barTemp2: $('bar-temp2'),
+        barTempEsp: $('bar-temp-esp'),
 
         // Connection status
         wsDot: $('ws-dot'),
@@ -167,6 +173,7 @@
         cfgMaxT: $('cfg-max-t'),
         cfgIna1Addr: $('cfg-ina1-addr'),
         cfgIna2Addr:   $('cfg-ina2-addr'),
+        cfgDummyMode:  $('cfg-dummy-mode'),
         btnSaveCfg:    $('btn-save-cfg'),
         btnRestart:    $('btn-restart'),
         btnScanI2c:    $('btn-scan-i2c'),
@@ -262,12 +269,13 @@
             const rpm = Math.max(0, 800 + 600 * Math.sin(simStep * 0.25) * (windSpeed / 8.0));
             const t1 = 32.0 + 4.0 * Math.sin(simStep * 0.15);
             const t2 = 26.0 + 2.0 * Math.sin(simStep * 0.1);
+            const tEsp = 45.0 + 5.0 * Math.sin(simStep * 0.2);
 
             updateDashboard({
                 acV: acV, acA: Math.max(0, acA), acP: acP, acV2: acV2,
                 dcV1: dcV1, dcA1: Math.max(0, dcA1), dcP1: dcP1,
                 dcV2: dcV2, dcA2: Math.max(0, dcA2), dcP2: dcP2,
-                rpm: rpm, t1: t1, t2: t2,
+                rpm: rpm, t1: t1, t2: t2, tEsp: tEsp,
                 uptime: Math.floor(performance.now() / 1000)
             });
         }, demoConfigStore.wsPushMs || 500);
@@ -343,6 +351,7 @@
         setText(dom.rpm, data.rpm != null ? Math.round(data.rpm).toString() : '0');
         setText(dom.temp1, fmt(data.t1, 1));
         setText(dom.temp2, fmt(data.t2, 1));
+        setText(dom.tempEsp, fmt(data.tEsp, 1));
 
         // Progress bars
         setBar(dom.barAcVolt1, data.acV, cfg.maxACVoltage);
@@ -355,6 +364,7 @@
         setBar(dom.barRpm, data.rpm, cfg.maxRPM);
         setBar(dom.barTemp1, data.t1, cfg.maxTemp);
         setBar(dom.barTemp2, data.t2, cfg.maxTemp);
+        setBar(dom.barTempEsp, data.tEsp, cfg.maxTemp);
 
         // Uptime
         if (data.uptime != null) {
@@ -411,6 +421,7 @@
 
                 if (data.ina1Addr != null) dom.cfgIna1Addr.value = data.ina1Addr;
                 if (data.ina2Addr != null) dom.cfgIna2Addr.value = data.ina2Addr;
+                if (data.dummyMode != null && dom.cfgDummyMode) dom.cfgDummyMode.checked = data.dummyMode;
             })
             .catch(() => showToast('Failed to load settings', 'error'));
     }
@@ -454,7 +465,8 @@
             maxRpm: parseInt(dom.cfgMaxRpm.value, 10),
             maxTemp: parseInt(dom.cfgMaxT.value, 10),
             ina1Addr: parseInt(dom.cfgIna1Addr.value, 10),
-            ina2Addr: parseInt(dom.cfgIna2Addr.value, 10)
+            ina2Addr: parseInt(dom.cfgIna2Addr.value, 10),
+            dummyMode: dom.cfgDummyMode ? dom.cfgDummyMode.checked : false
         };
 
         apiFetch('/api/config', {

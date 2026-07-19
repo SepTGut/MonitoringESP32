@@ -5,7 +5,7 @@
 #include "filters.h"
 
 MovingAverage::MovingAverage(uint8_t windowSize)
-    : _size(windowSize), _index(0), _sum(0.0f), _filled(false) {
+    : _size(windowSize == 0 ? 1 : windowSize), _index(0), _sum(0.0f), _filled(false) {
     _buffer = new float[_size];
     memset(_buffer, 0, sizeof(float) * _size);
 }

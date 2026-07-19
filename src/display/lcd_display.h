@@ -30,6 +30,8 @@ private:
     uint8_t            _currentScreen;
     uint32_t           _lastRotateTime;
     uint32_t           _lastUpdateTime;
+    float              _animPos;        // Propeller animation position accumulator
+    uint32_t           _lastAnimTime;   // Timestamp of last animation update frame
 
     // Redraw screen contents based on active rotation state
     void drawScreen(uint8_t screen, const SensorData& data);

@@ -29,8 +29,17 @@
 #include <Wire.h>
 #include <DNSServer.h>
 
-// Safe dynamic cross-core flag for I2C scans (Core 0 to Core 1)
+// Cross-core I2C scan request state (Core 0 to Core 1).
 static volatile bool i2cScanRequested = false;
+static portMUX_TYPE i2cScanMux = portMUX_INITIALIZER_UNLOCKED;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+uint8_t temprature_sens_read();
+#ifdef __cplusplus
+}
+#endif
 
 // =============================================================
 //  CORE 1 — Sensor Measurement Task
@@ -125,8 +134,13 @@ static void sensorTaskFunction(void* pvParameters) {
         TickType_t xFrequency = pdMS_TO_TICKS(currentCfg.sensorPollMs);
 
         // --- On-Demand I2C Scan Request ---
-        if (i2cScanRequested) {
-            i2cScanRequested = false;
+        bool runI2cScan = false;
+        portENTER_CRITICAL(&i2cScanMux);
+        runI2cScan = i2cScanRequested;
+        i2cScanRequested = false;
+        portEXIT_CRITICAL(&i2cScanMux);
+
+        if (runI2cScan) {
             Serial.println("[I2C] Running on-demand bus scan...");
             uint8_t i2c_list[16];
             uint8_t i2c_count = 0;
@@ -148,7 +162,7 @@ static void sensorTaskFunction(void* pvParameters) {
         zmct.setCalibration(currentCfg.zmctCal);
 
         // --- Read/Simulate Sensors ---
-        float temp1, temp2;
+        float temp1, temp2, tempEsp;
         float acVoltage1, acRaw1, acVoltage2, acRaw2, acCurrent, acRawI, acPower;
         float dcV1, dcA1, dcP1, dcV2, dcA2, dcP2;
         float rpm;
@@ -183,10 +197,12 @@ static void sensorTaskFunction(void* pvParameters) {
 
             temp1 = 32.0f + 4.0f * sin(simStep * 0.15f);
             temp2 = 26.0f + 2.0f * sin(simStep * 0.1f);
+            tempEsp = 45.0f + 5.0f * sin(simStep * 0.2f);
         } else {
             // --- Read DS18B20 (conversion requested in PREVIOUS cycle) ---
             temp1 = tempBus.readTemperature(0);
             temp2 = tempBus.readTemperature(1);
+            tempEsp = (temprature_sens_read() - 32.0f) / 1.8f;
 
             // --- Read AC Sensors ---
             acVoltage1 = zmpt1.readRMSVoltage();
@@ -213,7 +229,9 @@ static void sensorTaskFunction(void* pvParameters) {
         }
 
         // --- Request next DS18B20 conversion (completes during vTaskDelayUntil) ---
-        tempBus.requestTemperature();
+        if (!currentCfg.dummyMode) {
+            tempBus.requestTemperature();
+        }
 
         // --- Update DataManager (thread-safe) ---
         dataManager.updateACVoltage(acVoltage1, acRaw1);
@@ -224,6 +242,7 @@ static void sensorTaskFunction(void* pvParameters) {
         dataManager.updateDC2(dcV2, dcA2, dcP2);
         dataManager.updateTemperature1(temp1);
         dataManager.updateTemperature2(temp2);
+        dataManager.updateInternalTemp(tempEsp);
         dataManager.updateRPM((uint32_t)rpm);
 
         // --- Serial Logging (Dynamic rate) ---
@@ -251,7 +270,7 @@ static void sensorTaskFunction(void* pvParameters) {
             Serial.printf("  Current:  %.2fA\n", dcA2);
             Serial.printf("  Power:    %.2fW\n", dcP2);
             Serial.println();
-            Serial.printf("  Temperature: %.1f°C / %.1f°C\n", temp1, temp2);
+            Serial.printf("  Temperature: %.1f°C / %.1f°C (Internal CPU: %.1f°C)\n", temp1, temp2, tempEsp);
             Serial.printf("  RPM: %d\n", (int)rpm);
             Serial.println("======================");
         }
@@ -318,7 +337,7 @@ void Tasks::startSensorTask() {
     xTaskCreatePinnedToCore(
         sensorTaskFunction,
         "SensorTask",
-        4096,           // Stack size (bytes)
+        4096 * 2,       // Stack size (bytes) — generous for I2C scan + Serial.printf + LCD
         NULL,           // Parameters
         1,              // Priority
         NULL,           // Task handle
@@ -339,5 +358,7 @@ void Tasks::startNetworkTask() {
 }
 
 void Tasks::requestI2CScan() {
+    portENTER_CRITICAL(&i2cScanMux);
     i2cScanRequested = true;
+    portEXIT_CRITICAL(&i2cScanMux);
 }

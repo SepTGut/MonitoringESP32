@@ -83,6 +83,10 @@
                         resolve({
                             json: () => Promise.resolve({ ok: true })
                         });
+                    } else if (url === '/api/i2c-scan') {
+                        resolve({
+                            json: () => Promise.resolve({ ok: true })
+                        });
                     }
                 }, 150);
             });
@@ -115,6 +119,7 @@
         rpm: $('val-rpm'),
         temp1: $('val-temp1'),
         temp2: $('val-temp2'),
+        tempEsp: $('val-temp-esp'),
 
         // Progress bars
         barAcVolt1: $('bar-acvolt1'),
@@ -127,6 +132,7 @@
         barRpm: $('bar-rpm'),
         barTemp1: $('bar-temp1'),
         barTemp2: $('bar-temp2'),
+        barTempEsp: $('bar-temp-esp'),
 
         // Connection status
         wsDot: $('ws-dot'),
@@ -266,12 +272,13 @@
             const rpm = Math.max(0, 800 + 600 * Math.sin(simStep * 0.25) * (windSpeed / 8.0));
             const t1 = 32.0 + 4.0 * Math.sin(simStep * 0.15);
             const t2 = 26.0 + 2.0 * Math.sin(simStep * 0.1);
+            const tEsp = 45.0 + 5.0 * Math.sin(simStep * 0.2);
 
             updateDashboard({
                 acV: acV, acA: Math.max(0, acA), acP: acP, acV2: acV2,
                 dcV1: dcV1, dcA1: Math.max(0, dcA1), dcP1: dcP1,
                 dcV2: dcV2, dcA2: Math.max(0, dcA2), dcP2: dcP2,
-                rpm: rpm, t1: t1, t2: t2,
+                rpm: rpm, t1: t1, t2: t2, tEsp: tEsp,
                 uptime: Math.floor(performance.now() / 1000)
             });
         }, demoConfigStore.wsPushMs || 500);
@@ -349,6 +356,7 @@
         setText(dom.rpm, data.rpm != null ? Math.round(data.rpm).toString() : '0');
         setText(dom.temp1, fmt(data.t1, 1));
         setText(dom.temp2, fmt(data.t2, 1));
+        setText(dom.tempEsp, fmt(data.tEsp, 1));
 
         // Progress bars
         setBar(dom.barAcVolt1, data.acV, cfg.maxACVoltage);
@@ -361,6 +369,7 @@
         setBar(dom.barRpm, data.rpm, cfg.maxRPM);
         setBar(dom.barTemp1, data.t1, cfg.maxTemp);
         setBar(dom.barTemp2, data.t2, cfg.maxTemp);
+        setBar(dom.barTempEsp, data.tEsp, cfg.maxTemp);
 
         // Uptime
         if (data.uptime != null) {
@@ -396,12 +405,15 @@
         let l1 = "";
         let title = "";
 
+        const propChars = ['|', '/', '-', '\\'];
+        const animFrame = propChars[Math.floor(Date.now() / 100) % 4];
+
         switch (lcdCurrentScreen) {
             case 0:
                 title = "AC OVERVIEW";
                 const acV = sensorData.acV != null ? sensorData.acV.toFixed(1) : "0.0";
                 const acA = sensorData.acA != null ? sensorData.acA.toFixed(2) : "0.00";
-                l0 = `AC:  ${acV.padStart(5)}V ${acA.padStart(5)}A`;
+                l0 = `⚡AC:${acV.padStart(5)}V ${acA.padStart(5)}A`;
                 
                 const acP = sensorData.acP != null ? Math.round(sensorData.acP).toString() : "0";
                 const pf = dom.cfgCalPf && dom.cfgCalPf.value ? parseFloat(dom.cfgCalPf.value).toFixed(2) : "0.85";
@@ -412,21 +424,22 @@
                 title = "DC CHANNELS";
                 const dcV1 = sensorData.dcV1 != null ? sensorData.dcV1.toFixed(2) : "0.00";
                 const dcA1 = sensorData.dcA1 != null ? sensorData.dcA1.toFixed(2) : "0.00";
-                l0 = `DC1: ${dcV1.padStart(5)}V ${dcA1.padStart(5)}A`;
+                l0 = `🔋D1:${dcV1.padStart(5)}V ${dcA1.padStart(5)}A`;
 
                 const dcV2 = sensorData.dcV2 != null ? sensorData.dcV2.toFixed(2) : "0.00";
                 const dcA2 = sensorData.dcA2 != null ? sensorData.dcA2.toFixed(2) : "0.00";
-                l1 = `DC2: ${dcV2.padStart(5)}V ${dcA2.padStart(5)}A`;
+                l1 = `🔋D2:${dcV2.padStart(5)}V ${dcA2.padStart(5)}A`;
                 break;
 
             case 2:
                 title = "SPEED & TEMPS";
-                const rpm = sensorData.rpm != null ? Math.round(sensorData.rpm) : "0";
-                l0 = `Speed: ${rpm.toString().padStart(5)} RPM`;
+                const rpm = sensorData.rpm != null ? Math.round(sensorData.rpm) : 0;
+                const tEsp = sensorData.tEsp != null ? Math.round(sensorData.tEsp) : 0;
+                l0 = `${animFrame} ${rpm.toString().padStart(4)} RPM`;
 
-                const t1 = sensorData.t1 != null ? sensorData.t1.toFixed(1) : "0.0";
-                const t2 = sensorData.t2 != null ? sensorData.t2.toFixed(1) : "0.0";
-                l1 = `T: ${t1.padStart(5)}C / ${t2.padStart(5)}C`;
+                const t1 = sensorData.t1 != null ? Math.round(sensorData.t1).toString() : "0";
+                const t2 = sensorData.t2 != null ? Math.round(sensorData.t2).toString() : "0";
+                l1 = `🌡️${tEsp}C Ext:${t1}/${t2}C`;
                 break;
 
             case 3:

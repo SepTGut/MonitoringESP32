@@ -34,12 +34,14 @@ data = {
     "dc2_power": 0.0,
     "temp1": 0.0,
     "temp2": 0.0,
+    "temp_esp": 0.0,
     "rpm": 0
 }
 
 # Regex patterns for parsing log formats
 re_val = re.compile(r"Voltage:\s*([\d.-]+)V|Current:\s*([\d.-]+)A|Power:\s*([\d.-]+)W|V2 \(raw\):\s*([\d.-]+)V")
-re_temp = re.compile(r"Temperature:\s*([\d.-]+)°C\s*/\s*([\d.-]+)°C")
+re_temp = re.compile(r"Temperature:\s*([\d.-]+)°C\s*/\s*([\d.-]+)°C\s*\(Internal CPU:\s*([\d.-]+)°C\)")
+re_temp_fallback = re.compile(r"Temperature:\s*([\d.-]+)°C\s*/\s*([\d.-]+)°C")
 re_rpm = re.compile(r"RPM:\s*(\d+)")
 
 def parse_line(line, state):
@@ -89,11 +91,19 @@ def parse_line(line, state):
             data["ac_voltage2"] = float(groups[3])
         return
 
-    # Match Temperature readings
+    # Match Temperature readings (3 temperatures: ext1, ext2, internal CPU)
     temp_match = re_temp.search(cleaned)
     if temp_match:
         data["temp1"] = float(temp_match.group(1))
         data["temp2"] = float(temp_match.group(2))
+        data["temp_esp"] = float(temp_match.group(3))
+        return
+
+    # Fallback: 2-temperature format (legacy, no CPU temp)
+    temp_fb = re_temp_fallback.search(cleaned)
+    if temp_fb:
+        data["temp1"] = float(temp_fb.group(1))
+        data["temp2"] = float(temp_fb.group(2))
         return
 
     # Match RPM speed
@@ -113,12 +123,22 @@ def render_ui(port, log_path):
     C_GREEN = "\033[1;32m"
     C_AMBER = "\033[1;33m"
     C_PURPLE = "\033[1;35m"
+    C_RED = "\033[1;31m"
     C_RESET = "\033[0m"
     
     # Calculate colors/indicators based on loads
     ac_pwr_color = C_GREEN if data["ac_power"] > 0 else C_RESET
     dc1_pwr_color = C_GREEN if data["dc1_power"] > 0 else C_RESET
     dc2_pwr_color = C_GREEN if data["dc2_power"] > 0 else C_RESET
+
+    # CPU temperature warning color
+    cpu_temp = data["temp_esp"]
+    if cpu_temp >= 70:
+        cpu_color = C_RED
+    elif cpu_temp >= 55:
+        cpu_color = C_AMBER
+    else:
+        cpu_color = C_GREEN
     
     print(f"{C_CYAN}======================================================================{C_RESET}")
     print(f"           {C_BLUE}WIND TURBINE GENERATOR REAL-TIME MONITOR (CLI){C_RESET}")
@@ -144,7 +164,8 @@ def render_ui(port, log_path):
     # 3. Mechanical & Env Section
     print(f"  {C_AMBER}MECHANICAL SPEED & TEMPERATURE{C_RESET}")
     print(f"    Rotor Speed : {C_GREEN}{data['rpm']:>6d} RPM{C_RESET}")
-    print(f"    Temperatures: Sensor 1: {C_GREEN}{data['temp1']:>5.1f} °C{C_RESET}   |   Sensor 2: {C_GREEN}{data['temp2']:>5.1f} °C{C_RESET}")
+    print(f"    External    : Sensor 1: {C_GREEN}{data['temp1']:>5.1f} °C{C_RESET}   |   Sensor 2: {C_GREEN}{data['temp2']:>5.1f} °C{C_RESET}")
+    print(f"    CPU (ESP32) : {cpu_color}{data['temp_esp']:>5.1f} °C{C_RESET}")
     print(f"{C_CYAN}======================================================================{C_RESET}")
     print("  Press Ctrl+C to disconnect and exit.")
     
@@ -189,7 +210,7 @@ def main():
     port = select_port(ports)
     baud_rate = 115200
     
-    log_dir = "logs"
+    log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
         

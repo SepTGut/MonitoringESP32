@@ -31,6 +31,25 @@ void onWsEvent(AsyncWebSocket* server, AsyncWebSocketClient* client,
 }
 
 void WebDashboard::begin() {
+    // Add global CORS headers to allow local development web tools (like VS Code Live Server) to talk to the ESP32 APIs
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "content-type");
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+
+    // Handle CORS preflight options requests
+    server.on("/api/sysinfo", HTTP_OPTIONS, [](AsyncWebServerRequest *request) {
+        request->send(200);
+    });
+    server.on("/api/config", HTTP_OPTIONS, [](AsyncWebServerRequest *request) {
+        request->send(200);
+    });
+    server.on("/api/restart", HTTP_OPTIONS, [](AsyncWebServerRequest *request) {
+        request->send(200);
+    });
+    server.on("/api/i2c-scan", HTTP_OPTIONS, [](AsyncWebServerRequest *request) {
+        request->send(200);
+    });
+
     // Mount LittleFS
     if (!LittleFS.begin(true)) {
         Serial.println("[Web] Error mounting LittleFS");
@@ -106,6 +125,7 @@ void WebDashboard::begin() {
         doc["rpm"]  = data.rpm;
         doc["t1"]   = data.temperature1;
         doc["t2"]   = data.temperature2;
+        doc["tEsp"] = data.temperature_esp;
 
         doc["uptime"] = esp_timer_get_time() / 1000000ULL;
 
@@ -124,6 +144,11 @@ void WebDashboard::begin() {
 
     // --- API: Save Settings Config (JSON POST) ---
     AsyncCallbackJsonWebHandler* saveConfigHandler = new AsyncCallbackJsonWebHandler("/api/config", [](AsyncWebServerRequest* request, JsonVariant& json) {
+        // Print the received JSON payload for debugging
+        String jsonStr;
+        serializeJson(json, jsonStr);
+        Serial.printf("[Web] Received config save POST: %s\n", jsonStr.c_str());
+
         configManager.updateFromJson(json);
         bool ok = configManager.save();
 
@@ -204,6 +229,7 @@ void WebDashboard::pushData() {
         doc["rpm"]  = data.rpm;
         doc["t1"]   = data.temperature1;
         doc["t2"]   = data.temperature2;
+        doc["tEsp"] = data.temperature_esp;
 
         doc["uptime"] = esp_timer_get_time() / 1000000ULL;
 

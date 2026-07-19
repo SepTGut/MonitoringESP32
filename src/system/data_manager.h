@@ -34,6 +34,7 @@ struct SensorData {
     // --- Temperature ---
     float temperature1;     // DS18B20 #1 (°C)
     float temperature2;     // DS18B20 #2 (°C)
+    float temperature_esp;  // Internal CPU temp (°C)
 
     // --- RPM ---
     uint32_t rpm;
@@ -61,6 +62,7 @@ public:
     void updateDC2(float voltage, float current, float power);
     void updateTemperature1(float tempC);
     void updateTemperature2(float tempC);
+    void updateInternalTemp(float tempC);
     void updateRPM(uint32_t rpm);
     void updateI2CAddresses(const uint8_t* addresses, uint8_t count);
 
