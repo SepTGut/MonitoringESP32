@@ -809,3 +809,60 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* --- Setup Required Banner --- */
+.setup-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.25rem;
+    margin-bottom: 1rem;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    border-radius: 0.75rem;
+    color: var(--accent-amber);
+    font-size: 0.875rem;
+    line-height: 1.4;
+    animation: bannerPulse 3s ease-in-out infinite;
+}
+.setup-banner-icon { font-size: 1.25rem; flex-shrink: 0; }
+.setup-banner-text strong { color: #fbbf24; }
+
+@keyframes bannerPulse {
+    0%, 100% { border-color: rgba(245, 158, 11, 0.35); }
+    50% { border-color: rgba(245, 158, 11, 0.6); }
+}
+
+/* --- Sensor Health Badges --- */
+.health-badge {
+    display: inline;
+    font-size: 0.7rem;
+    vertical-align: middle;
+    margin-left: 0.2rem;
+}
+.health-badge.unhealthy {
+    color: var(--accent-rose);
+    animation: healthFlash 1.5s ease-in-out infinite;
+}
+
+@keyframes healthFlash {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* --- Unhealthy Sensor Card --- */
+.metric-card.sensor-unhealthy {
+    border-color: rgba(244, 63, 94, 0.35);
+    box-shadow: 0 0 12px rgba(244, 63, 94, 0.1);
+}
+.metric-card.sensor-unhealthy .metric-bar-fill {
+    background: var(--accent-rose) !important;
+}
+
+/* --- Power Mode Label --- */
+.power-mode-label {
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    vertical-align: middle;
+}

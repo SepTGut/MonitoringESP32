@@ -67,8 +67,8 @@ void LcdDisplay::begin(uint8_t addr) {
     _enabled = true;
 
     // Show initial splash screen
-    printLine(0, "  WIND MONITOR  ", "");
-    printLine(1, "   Booting...   ", "");
+    printLine(0, "  WIND MONITOR  ");
+    printLine(1, "   Booting...   ");
     delay(1000);
 }
 
@@ -113,22 +113,19 @@ void LcdDisplay::update(const SensorData& data) {
     }
 }
 
-void LcdDisplay::printLine(uint8_t row, const String& label, const String& value) {
+void LcdDisplay::printLine(uint8_t row, const char* line) {
     if (!_enabled || _lcd == nullptr) return;
 
-    String line = label + value;
-    
-    // Pad to exactly 16 characters to wipe out any residue
-    while (line.length() < 16) {
-        line += " ";
-    }
-    
-    if (line.length() > 16) {
-        line = line.substring(0, 16);
-    }
+    // Pad or truncate to exactly 16 characters to wipe residue
+    char padded[17];
+    size_t len = strlen(line);
+    if (len > 16) len = 16;
+    memcpy(padded, line, len);
+    for (size_t i = len; i < 16; i++) padded[i] = ' ';
+    padded[16] = '\0';
 
     _lcd->setCursor(0, row);
-    _lcd->print(line);
+    _lcd->print(padded);
 }
 
 void LcdDisplay::drawScreen(uint8_t screen, const SensorData& data) {
@@ -139,11 +136,11 @@ void LcdDisplay::drawScreen(uint8_t screen, const SensorData& data) {
             // Screen 0: AC Overview
             // Line 0: [bolt]AC: [ac_voltage]V [ac_current]A
             snprintf(buf, sizeof(buf), "\x06" "AC:%5.1fV %4.2fA", data.ac_voltage, data.ac_current);
-            printLine(0, "", buf);
+            printLine(0, buf);
             
             // Line 1: Pwr: [ac_power]W PF[pf]
             snprintf(buf, sizeof(buf), "Pwr:%4.0fW PF%0.2f", data.ac_power, configManager.getConfig().pf);
-            printLine(1, "", buf);
+            printLine(1, buf);
             break;
         }
  
@@ -151,34 +148,39 @@ void LcdDisplay::drawScreen(uint8_t screen, const SensorData& data) {
             // Screen 1: DC Channels (Details for DC1 & DC2)
             // Line 0: [battery]D1: [dc1_voltage]V [dc1_current]A
             snprintf(buf, sizeof(buf), "\x05" "D1:%5.2fV %4.2fA", data.ina1_voltage, data.ina1_current);
-            printLine(0, "", buf);
+            printLine(0, buf);
             
             // Line 1: [battery]D2: [dc2_voltage]V [dc2_current]A
             snprintf(buf, sizeof(buf), "\x05" "D2:%5.2fV %4.2fA", data.ina2_voltage, data.ina2_current);
-            printLine(1, "", buf);
+            printLine(1, buf);
             break;
         }
 
         case 2: {
             // Screen 2: Rotor & Temperatures (RPM + 3 Temperatures)
             // Line 0: [propeller placeholder] [rpm] RPM
-            snprintf(buf, sizeof(buf), "\x00" " %4lu RPM", (unsigned long)data.rpm);
-            printLine(0, "", buf);
+            snprintf(buf, sizeof(buf), "  %4lu RPM", (unsigned long)data.rpm);
+            printLine(0, buf);
             
             // Line 1: [thermometer] [tEsp]C Ext: [t1]/[t2]C
             snprintf(buf, sizeof(buf), "\x04" "%2.0fC Ext:%2.0f/%2.0fC", data.temperature_esp, data.temperature1, data.temperature2);
-            printLine(1, "", buf);
+            printLine(1, buf);
             break;
         }
 
         case 3: {
             // Screen 3: WiFi Details (AP/STA dynamic SSID & IP)
+            char line[17];
             if (WiFi.status() == WL_CONNECTED) {
-                printLine(0, "STA: ", WiFi.SSID());
-                printLine(1, "IP : ", WiFi.localIP().toString());
+                snprintf(line, sizeof(line), "STA: %-10.10s", WiFi.SSID().c_str());
+                printLine(0, line);
+                snprintf(line, sizeof(line), "IP : %-10.10s", WiFi.localIP().toString().c_str());
+                printLine(1, line);
             } else {
-                printLine(0, "AP : ", configManager.getConfig().apSSID);
-                printLine(1, "IP : ", WiFi.softAPIP().toString());
+                snprintf(line, sizeof(line), "AP : %-10.10s", configManager.getConfig().apSSID);
+                printLine(0, line);
+                snprintf(line, sizeof(line), "IP : %-10.10s", WiFi.softAPIP().toString().c_str());
+                printLine(1, line);
             }
             break;
         }

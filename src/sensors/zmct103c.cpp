@@ -13,20 +13,22 @@
 // =============================================================
 
 #include "zmct103c.h"
+#include "ads1115_sensor.h"
 #include "../config/config.h"
 
 // Exponential moving average weight for offset tracking (0.0–1.0).
 // Lower = smoother but slower to adapt. 0.001 ≈ 1000-sample time constant.
 static const float OFFSET_ALPHA = 0.001f;
 
-// ADC RMS noise floor (in ADC units). Readings below this are clamped to 0.
-// Typical ESP32 ADC idle noise is ~20-40 LSB RMS.
-static const float ADC_NOISE_FLOOR = 6.0f;
+// Noise floor dead-band (in mV). Readings below this are clamped to 0.
+// Prevents floating pin / ambient EM noise from producing false AC current readings.
+static const float ADC_NOISE_FLOOR_MV = 45.0f;
+static const float AC_MIN_CURRENT_CUTOFF = 0.05f; // Minimum valid AC current (A)
 
 ZMCT103C::ZMCT103C(uint8_t pin, float calibration)
     : _pin(pin),
       _calibration(calibration),
-      _offset(2048.0f),
+      _offset(1650.0f),         // ESP32 ADC midpoint (~1.65V / 1650mV)
       _lastRawAdc(0.0f),
       _filter(FILTER_WINDOW_SIZE) {
 }
@@ -38,31 +40,45 @@ void ZMCT103C::begin() {
     }
 
     pinMode(_pin, INPUT);
+    analogSetAttenuation(ADC_11db);
+    analogReadResolution(12);
 
-    // Auto-calibrate DC offset at idle (initial seed for continuous tracking)
-    float sum = 0.0f;
-    for (int i = 0; i < 1000; i++) {
-        sum += analogRead(_pin);
-        delayMicroseconds(100);
-    }
-    _offset = sum / 1000.0f;
+    // Auto-calibrate DC offset at idle using eFuse calibrated millivolts
+    calibrateZeroOffset();
 
-    Serial.printf("[ZMCT103C] Initialized on GPIO %d (offset=%.1f, cal=%.1f)\n",
+    Serial.printf("[ZMCT103C] Initialized on GPIO %d (eFuse offset=%.1fmV, cal=%.1f)\n",
                   _pin, _offset, _calibration);
 }
 
-float ZMCT103C::calculateRMS() {
+float ZMCT103C::calibrateZeroOffset(ADS1115Sensor* ads, int8_t adsChannel) {
+    const bool useAds = (ads != nullptr && ads->isEnabled() && adsChannel >= 0 && adsChannel <= 3);
+    float sum = 0.0f;
+    const int count = 1000;
+    for (int i = 0; i < count; i++) {
+        sum += useAds ? ads->readMilliVolts((uint8_t)adsChannel)
+                      : (float)analogReadMilliVolts(_pin);
+        delayMicroseconds(100);
+    }
+    _offset = sum / (float)count;
+    Serial.printf("[ZMCT103C] Calibrated zero baseline offset: %.2f mV\n", _offset);
+    return _offset;
+}
+
+float ZMCT103C::calculateRMS(ADS1115Sensor* ads, int8_t adsChannel) {
     float sumSquares = 0.0f;
     float sumSamples = 0.0f;
     uint32_t sampleCount = 0;
     uint32_t startMicros = micros();
     uint32_t windowMicros = ADC_SAMPLE_WINDOW * 1000UL;
 
+    const bool useAds = (ads != nullptr && ads->isEnabled() && adsChannel >= 0 && adsChannel <= 3);
+
     while ((micros() - startMicros) < windowMicros && sampleCount < ADC_SAMPLES) {
-        float sample = (float)analogRead(_pin);
-        float centered = sample - _offset;
+        float sampleMv = useAds ? ads->readMilliVolts((uint8_t)adsChannel)
+                                : (float)analogReadMilliVolts(_pin);
+        float centered = sampleMv - _offset;
         sumSquares += centered * centered;
-        sumSamples += sample;
+        sumSamples += sampleMv;
         sampleCount++;
     }
 
@@ -72,31 +88,33 @@ float ZMCT103C::calculateRMS() {
     }
 
     // Continuously track DC offset using exponential moving average.
-    // This adapts to thermal drift without needing a recalibration cycle.
     float measuredMean = sumSamples / (float)sampleCount;
     _offset += OFFSET_ALPHA * (measuredMean - _offset);
 
     _lastRawAdc = sumSquares / (float)sampleCount;
 
-    float rms = sqrtf(_lastRawAdc);
+    float rmsMv = sqrtf(_lastRawAdc);
 
-    // Noise floor dead-band: clamp near-zero readings to exactly 0
-    if (rms < ADC_NOISE_FLOOR) {
+    // Noise floor dead-band: clamp floating pin noise and idle noise to exactly 0
+    if (rmsMv < ADC_NOISE_FLOOR_MV) {
         return 0.0f;
     }
 
-    // Convert ADC units to burden voltage: (rms / 4095) × 3.3V
-    float adcVoltage = rms * 3.3f / 4095.0f;
+    // Convert mV to burden voltage (V)
+    float adcVoltage = rmsMv / 1000.0f;
 
     // Apply calibration to get actual AC current
-    // Calibration absorbs: turns ratio (1000:1) + burden resistor value
-    return adcVoltage * _calibration;
+    float acCurrent = adcVoltage * _calibration;
+
+    // Minimum cutoff guard: ignore residual noise below 0.05A AC
+    return (acCurrent >= AC_MIN_CURRENT_CUTOFF) ? acCurrent : 0.0f;
 }
 
-float ZMCT103C::readRMSCurrent() {
-    if (_pin >= 40) return 0.0f;
+float ZMCT103C::readRMSCurrent(ADS1115Sensor* ads, int8_t adsChannel) {
+    const bool useAds = (ads != nullptr && ads->isEnabled() && adsChannel >= 0 && adsChannel <= 3);
+    if (!useAds && _pin >= 40) return 0.0f;
 
-    float raw = calculateRMS();
+    float raw = calculateRMS(ads, adsChannel);
     return _filter.update(raw);
 }
 

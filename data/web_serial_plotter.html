@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ESP32 Web Serial Logger & Real-Time Waveform Plotter</title>
+  <style>
+    :root {
+      --bg-base: #0b0f19;
+      --bg-surface: #111827;
+      --bg-card: rgba(17, 24, 39, 0.75);
+      --bg-card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent-blue: #38bdf8;
+      --accent-cyan: #22d3ee;
+      --accent-green: #10b981;
+      --accent-yellow: #f59e0b;
+      --accent-purple: #a855f7;
+      --accent-red: #ef4444;
+      --accent-pink: #ec4899;
+      --radius-lg: 12px;
+      --radius-md: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--bg-base); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+    header { background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--bg-card-border); padding: 0.85rem 1.5rem; display: flex; align-items: center; justify-content: space-between; sticky; top: 0; z-index: 100; }
+    .brand { display: flex; align-items: center; gap: 0.75rem; }
+    .brand-icon { width: 34px; height: 34px; background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; }
+    .brand-title { font-size: 1.15rem; font-weight: 700; color: #fff; }
+    .brand-subtitle { font-size: 0.75rem; color: var(--accent-cyan); font-weight: 500; }
+    .connection-bar { display: flex; align-items: center; gap: 0.75rem; }
+    .select-input, .btn-action { background: rgba(31, 41, 55, 0.8); border: 1px solid var(--bg-card-border); color: var(--text-main); padding: 0.5rem 0.85rem; border-radius: var(--radius-md); font-size: 0.85rem; outline: none; }
+    .btn-action { font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; }
+    .btn-connect { background: linear-gradient(135deg, #0284c7, #2563eb); border: none; color: white; }
+    .btn-disconnect { background: linear-gradient(135deg, #dc2626, #b91c1c); border: none; color: white; }
+    .status-badge { display: flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; }
+    .status-badge.connected { background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.3); color: #6ee7b7; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-red); }
+    .status-badge.connected .status-dot { background: var(--accent-green); }
+    main { padding: 1.25rem; display: flex; flex-direction: column; gap: 1.25rem; max-width: 1600px; margin: 0 auto; width: 100%; }
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+    .metric-card { background: var(--bg-card); backdrop-filter: blur(8px); border: 1px solid var(--bg-card-border); border-radius: var(--radius-lg); padding: 1rem; position: relative; overflow: hidden; }
+    .metric-title { font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; display: flex; justify-content: space-between; }
+    .metric-value { font-size: 1.65rem; font-weight: 700; font-family: monospace; }
+    .metric-sub { font-size: 0.75rem; color: var(--text-muted); }
+    .card-accent-line { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .plotter-workspace { display: grid; grid-template-columns: 3fr 1fr; gap: 1.25rem; }
+    @media (max-width: 1024px) { .plotter-workspace { grid-template-columns: 1fr; } }
+    .chart-container, .controls-panel, .terminal-container { background: var(--bg-card); backdrop-filter: blur(8px); border: 1px solid var(--bg-card-border); border-radius: var(--radius-lg); padding: 1.25rem; }
+    canvas#plotCanvas { width: 100%; height: 380px; background: rgba(10, 15, 25, 0.95); border-radius: var(--radius-md); display: block; }
+    .channel-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .channel-item { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem; background: rgba(31, 41, 55, 0.5); border-radius: 6px; font-size: 0.8rem; }
+    .channel-color { width: 12px; height: 12px; border-radius: 3px; }
+    .terminal-box { background: #050811; border-radius: 6px; height: 200px; overflow-y: auto; padding: 0.75rem; font-family: monospace; font-size: 0.78rem; color: #38bdf8; }
+    .terminal-line.plot { color: #34d399; }
+    .terminal-line.err { color: #f87171; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">⚡</div>
+      <div>
+        <div class="brand-title">Web Serial Plotter</div>
+        <div class="brand-subtitle">ESP32 Wind Turbine Live Telemetry Visualizer</div>
+      </div>
+    </div>
+
+    <div class="connection-bar">
+      <div class="status-badge" id="statusBadge"><div class="status-dot"></div><span id="statusText">DISCONNECTED</span></div>
+      <select id="baudSelect" class="select-input">
+        <option value="115200" selected>115200 Baud</option>
+        <option value="9600">9600 Baud</option>
+      </select>
+      <button id="btnConnect" class="btn-action btn-connect"><span>🔌</span> Connect USB Serial</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="metrics-grid">
+      <div class="metric-card"><div class="card-accent-line" style="background: var(--accent-blue)"></div><div class="metric-title"><span>ZMPT101B #1</span><span>AC V1</span></div><div class="metric-value" id="valZ1" style="color: var(--accent-blue)">0.0 mV</div><div class="metric-sub" id="subZ1">Raw: 0</div></div>
+      <div class="metric-card"><div class="card-accent-line" style="background: var(--accent-cyan)"></div><div class="metric-title"><span>ZMPT101B #2</span><span>AC V2</span></div><div class="metric-value" id="valZ2" style="color: var(--accent-cyan)">0.0 mV</div><div class="metric-sub" id="subZ2">Raw: 0</div></div>
+      <div class="metric-card"><div class="card-accent-line" style="background: var(--accent-yellow)"></div><div class="metric-title"><span>ZMCT103C</span><span>Current</span></div><div class="metric-value" id="valZI" style="color: var(--accent-yellow)">0.0 mV</div><div class="metric-sub" id="subZI">Raw: 0</div></div>
+      <div class="metric-card"><div class="card-accent-line" style="background: var(--accent-purple)"></div><div class="metric-title"><span>MAX9814</span><span>Mic Vpp</span></div><div class="metric-value" id="valMic" style="color: var(--accent-purple)">0.0 mV</div><div class="metric-sub" id="subMic">Bias: 0 mV</div></div>
+      <div class="metric-card"><div class="card-accent-line" style="background: var(--accent-green)"></div><div class="metric-title"><span>INA226 DC</span><span>Power</span></div><div class="metric-value" id="valInaW" style="color: var(--accent-green)">0.00 W</div><div class="metric-sub" id="subIna">0.00V | 0.00A</div></div>
+      <div class="metric-card"><div class="card-accent-line" style="background: var(--accent-pink)"></div><div class="metric-title"><span>Rotor Speed</span><span>RPM</span></div><div class="metric-value" id="valRpm" style="color: var(--accent-pink)">0 RPM</div><div class="metric-sub" id="subPulses">Pulses: 0</div></div>
+    </div>
+
+    <div class="plotter-workspace">
+      <div class="chart-container">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+          <div style="font-weight: 600;">Real-Time Waveform Plotter</div>
+          <div><button id="btnPauseChart" class="btn-action" style="padding: 0.25rem 0.5rem;">⏸ Pause</button></div>
+        </div>
+        <canvas id="plotCanvas"></canvas>
+      </div>
+
+      <div class="controls-panel">
+        <div style="font-weight: 600; font-size: 0.85rem; margin-bottom: 0.5rem;">Channels</div>
+        <div class="channel-list" id="channelList"></div>
+      </div>
+    </div>
+
+    <div class="terminal-container">
+      <div style="font-weight: 600; font-size: 0.85rem; margin-bottom: 0.5rem;">Serial Console</div>
+      <div class="terminal-box" id="terminalBox"></div>
+    </div>
+  </main>
+
+  <script>
+    const channels = [
+      { id: 'raw_z1', name: 'ZMPT1 #1', color: '#38bdf8', enabled: true },
+      { id: 'raw_z2', name: 'ZMPT1 #2', color: '#22d3ee', enabled: true },
+      { id: 'raw_zi', name: 'ZMCT103C', color: '#f59e0b', enabled: true },
+      { id: 'mic_vpp', name: 'MAX9814 Vpp', color: '#a855f7', enabled: true },
+      { id: 'ina1_w', name: 'INA226 Power', color: '#10b981', enabled: true },
+      { id: 'rpm', name: 'RPM', color: '#ec4899', enabled: true }
+    ];
+
+    let port = null, reader = null, isConnected = false, isPaused = false, dataBuffer = [];
+    const canvas = document.getElementById('plotCanvas'), ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = canvas.clientWidth * window.devicePixelRatio;
+      canvas.height = canvas.clientHeight * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    document.getElementById('btnConnect').addEventListener('click', async () => {
+      if (isConnected) {
+        if (reader) await reader.cancel();
+        if (port) await port.close();
+        isConnected = false;
+        document.getElementById('statusText').textContent = 'DISCONNECTED';
+        return;
+      }
+      try {
+        port = await navigator.serial.requestPort();
+        await port.open({ baudRate: parseInt(document.getElementById('baudSelect').value) });
+        isConnected = true;
+        document.getElementById('statusBadge').classList.add('connected');
+        document.getElementById('statusText').textContent = 'CONNECTED';
+        readStream();
+      } catch (e) { alert(e.message); }
+    });
+
+    async function readStream() {
+      const textDecoder = new TextDecoderStream();
+      port.readable.pipeTo(textDecoder.writable);
+      reader = textDecoder.readable.getReader();
+      let textBuffer = '';
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (value) {
+          textBuffer += value;
+          let lines = textBuffer.split('\n');
+          textBuffer = lines.pop();
+          lines.forEach(parseLine);
+        }
+      }
+    }
+
+    function parseLine(line) {
+      if (!line) return;
+      const box = document.getElementById('terminalBox');
+      const div = document.createElement('div');
+      div.className = 'terminal-line ' + (line.startsWith('RAW_PLOT:') ? 'plot' : '');
+      div.textContent = line;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+
+      if (isPaused) return;
+      let record = { timestamp: Date.now() };
+      if (line.startsWith('RAW_PLOT:')) {
+        line.substring(9).split(',').forEach(p => {
+          let [k, v] = p.split('=');
+          if (k && v !== undefined) record[k.trim()] = parseFloat(v);
+        });
+      }
+
+      if (record.zmpt1_mv !== undefined) document.getElementById('valZ1').textContent = record.zmpt1_mv.toFixed(1) + ' mV';
+      if (record.zmpt2_mv !== undefined) document.getElementById('valZ2').textContent = record.zmpt2_mv.toFixed(1) + ' mV';
+      if (record.zmct_mv !== undefined) document.getElementById('valZI').textContent = record.zmct_mv.toFixed(1) + ' mV';
+      if (record.mic_vpp !== undefined) document.getElementById('valMic').textContent = record.mic_vpp.toFixed(1) + ' mV';
+      if (record.ina1_w !== undefined) document.getElementById('valInaW').textContent = record.ina1_w.toFixed(2) + ' W';
+      if (record.rpm !== undefined) document.getElementById('valRpm').textContent = Math.round(record.rpm) + ' RPM';
+
+      dataBuffer.push(record);
+      if (dataBuffer.length > 600) dataBuffer.shift();
+    }
+
+    function drawChart() {
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      ctx.clearRect(0, 0, w, h);
+      if (dataBuffer.length >= 2) {
+        let maxY = 100;
+        channels.forEach(ch => {
+          if (ch.enabled) dataBuffer.forEach(d => { if (d[ch.id] > maxY) maxY = d[ch.id]; });
+        });
+        maxY *= 1.1;
+
+        channels.forEach(ch => {
+          if (!ch.enabled) return;
+          ctx.strokeStyle = ch.color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          dataBuffer.forEach((d, i) => {
+            let x = (i / (dataBuffer.length - 1)) * w;
+            let y = h - ((d[ch.id] || 0) / maxY) * (h - 20) - 10;
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+          });
+          ctx.stroke();
+        });
+      }
+      requestAnimationFrame(drawChart);
+    }
+    requestAnimationFrame(drawChart);
+  </script>
+</body>
+</html>

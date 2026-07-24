@@ -1,0 +1,158 @@
+=== Unified Serial Logger Session Started at 2026-07-24 20:33:06.071920 ===
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ic_mv=1850.0,mic_vpp=1647.0
+
+ets Jul 29 2019 12:21:46
+
+rst:0x1 (POWERON_RESET),boot:0x17 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3fff0030,len:184
+load:0x40078000,len:12732
+ho 0 tail 12 room 4
+load:0x40080400,len:2908
+entry 0x400805c4
+
+============================================================
+         ESP32 WIND MONITOR — HARDWARE DIAGNOSTIC TEST
+============================================================
+[Init] ADS1115 not detected on I2C bus
+[Init] INA226 #1 initialized @ 0x44
+[Init] INA226 #2 initialized @ 0x45
+[Init] DS18B20 found 2 sensor(s) on GPIO 4
+[Init] RPM pulse sensor attached on GPIO 27
+[Init] MAX9814 microphone attached on GPIO 33
+[Init] 16x2 I2C LCD initialized
+============================================================
+[Setup Complete] Starting 1Hz diagnostic measurement loop...
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw: 269 | eFuse:1181.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw: 463 | eFuse:1171.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:   0 | eFuse: 494.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  29.8 °C [OK]                              │
+│  DS18B20 #2 :  28.9 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+├─ [6] MAX9814 Microphone Sound Sensor (GPIO 33) ───────────┤
+│  Raw:2975 | Bias:2426.0mV | Sound Vpp Level:2158.0mV         │
+└───────────────────────────────────────────────────────────┘
+RAW_PLOT:raw_z1=269,raw_z2=463,raw_zi=0,zmpt1_mv=1181.0,zmpt2_mv=1171.0,zmct_mv=494.0,ads0=0.000,ads1=0.000,ads2=0.000,ads3=0.000,ina1_v=0.00,ina1_a=0.00,ina1_w=0.00,ina2_v=0.00,ina2_a=0.00,ina2_w=0.00,rpm=0,temp1=29.8,temp2=28.9,temp_esp=53.3,raw_mic=2975,mic_mv=2426.0,mic_vpp=2158.0

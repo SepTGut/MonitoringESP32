@@ -1,0 +1,276 @@
+=== Unified Serial Logger Session Started at 2026-07-24 20:58:50.161029 ===
+ets Jul 29 2019 12:21:46
+
+rst:0x1 (POWERON_RESET),boot:0x17 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3fff0030,len:184
+load:0x40078000,len:12732
+ho 0 tail 12 room 4
+load:0x40080400,len:2908
+entry 0x400805c4
+
+============================================================
+         ESP32 WIND MONITOR — HARDWARE DIAGNOSTIC TEST
+============================================================
+[Init] ADS1115 not detected on I2C bus
+[Init] INA226 #1 initialized @ 0x44
+[Init] INA226 #2 initialized @ 0x45
+[Init] DS18B20 found 2 sensor(s) on GPIO 4
+[Init] RPM pulse sensor attached on GPIO 27
+[Init] MAX9814 microphone attached on GPIO 33
+[Init] 16x2 I2C LCD initialized
+============================================================
+[Setup Complete] Starting 1Hz diagnostic measurement loop...
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:   0 | eFuse: 142.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:   0 | eFuse: 142.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw: 173 | eFuse: 183.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.6 °C [OK]                              │
+│  DS18B20 #2 :  28.8 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+├─ [6] MAX9814 Microphone Sound Sensor (GPIO 33) ───────────┤
+│  Raw:  96 | Bias: 194.0mV | Sound Vpp Level: 528.0mV         │
+└───────────────────────────────────────────────────────────┘
+RAW_PLOT:raw_z1=0,raw_z2=0,raw_zi=173,zmpt1_mv=142.0,zmpt2_mv=142.0,zmct_mv=183.0,ads0=0.000,ads1=0.000,ads2=0.000,ads3=0.000,ina1_v=0.00,ina1_a=0.00,ina1_w=0.00,ina2_v=0.00,ina2_a=0.00,ina2_w=0.00,rpm=0,temp1=30.6,temp2=28.8,temp_esp=53.3,raw_mic=96,mic_mv=194.0,mic_vpp=528.0
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:3307 | eFuse:2579.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2789 | eFuse:2178.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:2013 | eFuse:1352.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.01V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.6 °C [OK]                              │
+│  DS18B20 #2 :  28.8 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+├─ [6] MAX9814 Microphone Sound Sensor (GPIO 33) ───────────┤
+│  Raw: 414 | Bias: 472.0mV | Sound Vpp Level: 538.0mV         │
+└───────────────────────────────────────────────────────────┘
+RAW_PLOT:raw_z1=3307,raw_z2=2789,raw_zi=2013,zmpt1_mv=2579.0,zmpt2_mv=2178.0,zmct_mv=1352.0,ads0=0.000,ads1=0.000,ads2=0.000,ads3=0.000,ina1_v=0.01,ina1_a=0.00,ina1_w=0.00,ina2_v=0.00,ina2_a=0.00,ina2_w=0.00,rpm=0,temp1=30.6,temp2=28.8,temp_esp=53.3,raw_mic=414,mic_mv=472.0,mic_vpp=538.0
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw: 328 | eFuse: 924.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:   0 | eFuse: 369.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:   0 | eFuse: 262.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.6 °C [OK]                              │
+│  DS18B20 #2 :  28.8 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+├─ [6] MAX9814 Microphone Sound Sensor (GPIO 33) ───────────┤
+│  Raw:2384 | Bias:1974.0mV | Sound Vpp Level:1726.0mV         │
+└───────────────────────────────────────────────────────────┘
+RAW_PLOT:raw_z1=328,raw_z2=0,raw_zi=0,zmpt1_mv=924.0,zmpt2_mv=369.0,zmct_mv=262.0,ads0=0.000,ads1=0.000,ads2=0.000,ads3=0.000,ina1_v=0.00,ina1_a=0.00,ina1_w=0.00,ina2_v=0.00,ina2_a=0.00,ina2_w=0.00,rpm=0,temp1=30.6,temp2=28.8,temp_esp=53.3,raw_mic=2384,mic_mv=1974.0,mic_vpp=1726.0
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:   0 | eFuse: 142.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:   0 | eFuse: 142.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:  14 | eFuse: 142.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.6 °C [OK]                              │
+│  DS18B20 #2 :  28.8 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+├─ [6] MAX9814 Microphone Sound Sensor (GPIO 33) ───────────┤
+│  Raw: 490 | Bias: 487.0mV | Sound Vpp Level: 530.0mV         │
+└───────────────────────────────────────────────────────────┘
+RAW_PLOT:raw_z1=0,raw_z2=0,raw_zi=14,zmpt1_mv=142.0,zmpt2_mv=142.0,zmct_mv=142.0,ads0=0.000,ads1=0.000,ads2=0.000,ads3=0.000,ina1_v=0.00,ina1_a=0.00,ina1_w=0.00,ina2_v=0.00,ina2_a=0.00,ina2_w=0.00,rpm=0,temp1=30.6,temp2=28.8,temp_esp=53.3,raw_mic=490,mic_mv=487.0,mic_vpp=530.0
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2669 | eFuse:1384.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2275 | eFuse:1186.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:1883 | eFuse: 932.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.01V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.01V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.6 °C [OK]                              │
+│  DS18B20 #2 :  28.8 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+├─ [6] MAX9814 Microphone Sound Sensor (GPIO 33) ───────────┤
+│  Raw:  32 | Bias: 170.0mV | Sound Vpp Level: 598.0mV         │
+└───────────────────────────────────────────────────────────┘
+RAW_PLOT:raw_z1=2669,raw_z2=2275,raw_zi=1883,zmpt1_mv=1384.0,zmpt2_mv=1186.0,zmct_mv=932.0,ads0=0.000,ads1=0.000,ads2=0.000,ads3=0.000,ina1_v=0.01,ina1_a=0.00,ina1_w=0.00,ina2_v=0.01,ina2_a=0.00,ina2_w=0.00,rpm=0,temp1=30.6,temp2=28.8,temp_esp=53.3,raw_mic=32,mic_mv=170.0,mic_vpp=598.0
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2058 | eFuse:2440.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:1945 | eFuse:2230.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:1023 | eFuse:1089.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.6 °C [OK]                              │
+│  DS18B20 #2 :  28.8 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+├─ [6] MAX9814 Microphone Sound Sensor (GPIO 33) ───────────┤
+│  Raw:2110 | Bias:1796.0mV | Sound Vpp Level:1591.0mV         │
+└───────────────────────────────────────────────────────────┘
+RAW_PLOT:raw_z1=2058,raw_z2=1945,raw_zi=1023,zmpt1_mv=2440.0,zmpt2_mv=2230.0,zmct_mv=1089.0,ads0=0.000,ads1=0.000,ads2=0.000,ads3=0.000,ina1_v=0.00,ina1_a=0.00,ina1_w=0.00,ina2_v=0.00,ina2_a=0.00,ina2_w=0.00,rpm=0,temp1=30.6,temp2=28.8,temp_esp=53.3,raw_mic=2110,mic_mv=1796.0,mic_vpp=1591.0
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:   0 | eFuse: 142.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:   0 | eFuse: 142.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:   0 | eFuse: 142.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.6 °C [OK]                              │
+│  DS18B20 #2 :  28.8 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+├─ [6] MAX9814 Microphone Sound Sensor (GPIO 33) ───────────┤
+│  Raw:1887 | Bias:1543.0mV | Sound Vpp Level:1269.0mV         │
+└───────────────────────────────────────────────────────────┘
+RAW_PLOT:raw_z1=0,raw_z2=0,raw_zi=0,zmpt1_mv=142.0,zmpt2_mv=142.0,zmct_mv=142.0,ads0=0.000,ads1=0.000,ads2=0.000,ads3=0.000,ina1_v=0.00,ina1_a=0.00,ina1_w=0.00,ina2_v=0.00,ina2_a=0.00,ina2_w=0.00,rpm=0,temp1=30.6,temp2=28.8,temp_esp=53.3,raw_mic=1887,mic_mv=1543.0,mic_vpp=1269.0
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw: 793 | eFuse: 422.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw: 641 | eFuse: 361.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw: 835 | eFuse: 443.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.01V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.01V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.6 °C [OK]                              │
+│  DS18B20 #2 :  28.8 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+├─ [6] MAX9814 Microphone Sound Sensor (GPIO 33) ───────────┤
+│  Raw:   0 | Bias: 142.0mV | Sound Vpp Level: 600.0mV         │
+└───────────────────────────────────────────────────────────┘
+RAW_PLOT:raw_z1=793,raw_z2=641,raw_zi=835,zmpt1_mv=422.0,zmpt2_mv=361.0,zmct_mv=443.0,ads0=0.000,ads1=0.000,ads2=0.000,ads3=0.000,ina1_v=0.01,ina1_a=0.00,ina1_w=0.00,ina2_v=0.01,ina2_a=0.00,ina2_w=0.00,rpm=0,temp1=30.6,temp2=28.8,temp_esp=53.3,raw_mic=0,mic_mv=142.0,mic_vpp=600.0
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:3335 | eFuse:2830.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:3100 | eFuse:2628.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:2035 | eFuse:1492.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.6 °C [OK]                              │
+│  DS18B20 #2 :  28.8 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+├─ [6] MAX9814 Microphone Sound Sensor (GPIO 33) ───────────┤
+│  Raw: 859 | Bias: 813.0mV | Sound Vpp Level: 678.0mV         │
+└───────────────────────────────────────────────────────────┘
+RAW_PLOT:raw_z1=3335,raw_z2=3100,raw_zi=2035,zmpt1_mv=2830.0,zmpt2_mv=2628.0,zmct_mv=1492.0,ads0=0.000,ads1=0.000,ads2=0.000,ads3=0.000,ina1_v=0.00,ina1_a=0.00,ina1_w=0.00,ina2_v=0.00,ina2_a=0.00,ina2_w=0.00,rpm=0,temp1=30.6,temp2=28.8,temp_esp=53.3,raw_mic=859,mic_mv=813.0,mic_vpp=678.0
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:   0 | eFuse: 142.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:   0 | eFuse: 142.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:   0 | eFuse: 142.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.6 °C [OK]                              │
+│  DS18B20 #2 :  28.8 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+├─ [6] MAX9814 Microphone Sound Sensor (GPIO 33) ───────────┤
+│  Raw:2758 | Bias:2230.0mV | Sound Vpp Level:1973.0mV         │
+└───────────────────────────────────────────────────────────┘
+RAW_PLOT:raw_z1=0,raw_z2=0,raw_zi=0,zmpt1_mv=142.0,zmpt2_mv=142.0,zmct_mv=142.0,ads0=0.000,ads1=0.000,ads2=0.000,ads3=0.000,ina1_v=0.00,ina1_a=0.00,ina1_w=0.00,ina2_v=0.00,ina2_a=0.00,ina2_w=0.00,rpm=0,temp1=30.6,temp2=28.8,temp_esp=53.3,raw_mic=2758,mic_mv=2230.0,mic_vpp=1973.0
+

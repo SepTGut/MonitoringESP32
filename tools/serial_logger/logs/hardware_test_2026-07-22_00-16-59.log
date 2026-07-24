@@ -1,0 +1,707 @@
+--- HARDWARE TEST SESSION START: 2026-07-22 00:16:59.626460 ---
+ets Jul 29 2019 12:21:46
+
+rst:0x1 (POWERON_RESET),boot:0x17 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3fff0030,len:184
+load:0x40078000,len:12732
+ho 0 tail 12 room 4
+load:0x40080400,len:2908
+entry 0x400805c4
+
+============================================================
+         ESP32 WIND MONITOR — HARDWARE DIAGNOSTIC TEST
+============================================================
+[Init] ADS1115 not detected on I2C bus
+[Init] INA226 #1 initialized @ 0x44
+[Init] INA226 #2 initialized @ 0x45
+[Init] DS18B20 found 2 sensor(s) on GPIO 4
+[Init] RPM pulse sensor attached on GPIO 27
+[Init] 16x2 I2C LCD initialized
+============================================================
+[Setup Complete] Starting 1Hz diagnostic measurement loop...
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2645 | eFuse:2308.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2642 | eFuse:2301.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:1767 | eFuse:1587.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.5 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2661 | eFuse:2302.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2639 | eFuse:2301.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:1764 | eFuse:1590.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2649 | eFuse:2268.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2650 | eFuse:2298.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:1769 | eFuse:1580.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.01V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2618 | eFuse:2302.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2647 | eFuse:2307.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:1767 | eFuse:1586.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.01V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2651 | eFuse:2298.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2645 | eFuse:2302.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:1767 | eFuse:1582.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2651 | eFuse:2296.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2646 | eFuse:2307.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:1762 | eFuse:1584.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.03V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.01V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2655 | eFuse:2301.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2648 | eFuse:2303.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:1769 | eFuse:1577.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2659 | eFuse:2300.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2655 | eFuse:2293.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:1770 | eFuse:1603.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.01V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.01V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2661 | eFuse:2307.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2642 | eFuse:2298.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:1775 | eFuse:1600.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2614 | eFuse:2303.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2642 | eFuse:2298.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:1755 | eFuse:1574.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.01V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.02V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2657 | eFuse:2310.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2651 | eFuse:2301.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:1755 | eFuse:1575.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2620 | eFuse:2322.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2645 | eFuse:2301.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:1751 | eFuse:1566.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.01V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2650 | eFuse:2293.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2646 | eFuse:2304.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:1755 | eFuse:1581.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2653 | eFuse:2293.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2650 | eFuse:2296.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:1746 | eFuse:1565.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2642 | eFuse:2310.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2647 | eFuse:2303.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:1739 | eFuse:1566.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2655 | eFuse:2296.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2653 | eFuse:2307.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:1744 | eFuse:1562.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:3344 | eFuse:2331.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:4095 | eFuse:2313.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:4095 | eFuse:3145.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2662 | eFuse:2302.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2663 | eFuse:2313.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:4095 | eFuse:3145.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2659 | eFuse:2303.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2655 | eFuse:2310.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:4095 | eFuse:3145.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.01V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.02V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2653 | eFuse:2310.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2654 | eFuse:2312.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:4095 | eFuse:3145.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.01V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.01V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2641 | eFuse:2293.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2649 | eFuse:2304.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:4095 | eFuse:3145.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.01V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.01V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2650 | eFuse:2296.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2653 | eFuse:2303.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:4095 | eFuse:3145.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.01V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.02V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.3 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2654 | eFuse:2308.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2654 | eFuse:2305.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:4095 | eFuse:3145.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2653 | eFuse:2297.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2650 | eFuse:2305.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:4095 | eFuse:3145.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.01V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.3 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2640 | eFuse:2296.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2655 | eFuse:2307.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:4095 | eFuse:3145.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2672 | eFuse:2299.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2653 | eFuse:2303.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:4095 | eFuse:3145.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.01V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.01V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.3 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2617 | eFuse:2270.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2595 | eFuse:2257.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:4095 | eFuse:3145.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2601 | eFuse:2251.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2597 | eFuse:2262.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:4095 | eFuse:3145.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.01V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.2 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2608 | eFuse:2230.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2603 | eFuse:2259.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:4095 | eFuse:3145.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.01V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.3 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2612 | eFuse:2262.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2593 | eFuse:2260.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:4095 | eFuse:3145.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.01V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.3 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│              HARDWARE SENSOR DIAGNOSTIC REPORT            │
+├───────────────────────────────────────────────────────────┤
+│ I2C Bus Scan: 0x27 0x44 0x45                                       │
+├─ [1] Internal ESP32 ADC (eFuse Vref Calibrated) ─────────┤
+│  (Note: Unconnected/floating pins float ~1400-1800mV with noise) │
+│  ZMPT101B #1 (GPIO 34): Raw:2597 | eFuse:2262.0mV | Offset:1650mV│
+│  ZMPT101B #2 (GPIO 35): Raw:2597 | eFuse:2259.0mV | Offset:1650mV│
+│  ZMCT103C    (GPIO 32): Raw:4095 | eFuse:3145.0mV | Offset:1650mV│
+├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤
+│  Status: NOT CONNECTED                                    │
+├─ [3] INA226 DC Power Sensors ─────────────────────────────┤
+│  INA226 #1 (0x44):  0.00V |  0.00A |   0.00W [OK]        │
+│  INA226 #2 (0x45):  0.00V |  0.00A |   0.00W [OK]        │
+├─ [4] Temperature Sensors ─────────────────────────────────┤
+│  DS18B20 #1 :  30.3 °C [OK]                              │
+│  DS18B20 #2 :  29.6 °C [OK]                              │
+│  ESP32 CPU  :  53.3 °C                                   │
+├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+│  Total Pulses: 0        | Speed:     0 RPM                    │
+└───────────────────────────────────────────────────────────┘
+

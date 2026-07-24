@@ -7,7 +7,7 @@
 #include <Arduino.h>
 
 // --- FIRMWARE VERSION ---
-#define FW_VERSION          "v1.0.0"
+#define FW_VERSION          "v1.1.0"
 
 // --- WiFi Configuration ---
 #define WIFI_AP_SSID        "ESP32-WIND-MONITOR"
@@ -23,6 +23,11 @@
 // --- ADC Sampling ---
 #define ADC_SAMPLES         500     // Samples per RMS calculation window
 #define ADC_SAMPLE_WINDOW   25      // Sampling window in ms (≥1 full 50Hz cycle)
+// NOTE: ADC_SAMPLE_WINDOW must be ≥20ms to capture one complete 50Hz AC cycle.
+// The sample-count cap (ADC_SAMPLES) must not terminate the window before
+// 20ms has elapsed. At typical ESP32 ADC throughput (~100kHz in Arduino
+// analogRead mode), 500 samples take ~5ms, so the window timer dominates.
+// If ADC throughput increases (e.g. DMA), verify the window is still met.
 
 // --- ZMPT101B Calibration ---
 //  Adjust these based on known reference voltage measurements.
@@ -44,6 +49,9 @@
 #define INA226_MAX_CURRENT  10.0f   // Maximum expected current (A)
 #define INA226_SHUNT_OHM    0.01f   // Shunt resistor value (Ω)
 
+// --- ADS1115 Configuration ---
+#define DEFAULT_ADS1115_ADDR 0x48   // Default ADS1115 I2C Address (ADDR -> GND)
+
 // --- RPM Configuration ---
 #define RPM_PULSES_PER_REV  1       // Pulses per revolution (IR sensor)
 #define RPM_TIMEOUT_MS      1000    // Zero RPM if no pulse for this duration
@@ -53,8 +61,13 @@
 #define FILTER_WINDOW_SIZE  10      // Moving average window size
 
 // --- Display Limits (for progress bars) ---
-#define DEFAULT_MAX_V       80.0f   // Max voltage display scale
-#define DEFAULT_MAX_A       30.0f   // Max current display scale
+// DC limits (INA226 channels)
+#define DEFAULT_MAX_V       80.0f   // Max DC voltage display scale
+#define DEFAULT_MAX_A       30.0f   // Max DC current display scale
+// AC limits (ZMPT101B / ZMCT103C channels)
+#define DEFAULT_MAX_AC_V    250.0f  // Max AC voltage display scale
+#define DEFAULT_MAX_AC_A    30.0f   // Max AC current display scale
+// General
 #define DEFAULT_MAX_RPM     3000    // Max RPM display scale
 #define DEFAULT_MAX_TEMP    100     // Max temperature display scale
 

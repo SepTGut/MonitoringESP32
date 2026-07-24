@@ -24,8 +24,13 @@ void setup() {
     configManager.begin();
 
     // Start FreeRTOS tasks on both cores
-    Tasks::startSensorTask();   // Core 1 — Measurements
-    Tasks::startNetworkTask();  // Core 0 — Communication
+    const bool sensorTaskStarted = Tasks::startSensorTask();
+    const bool networkTaskStarted = Tasks::startNetworkTask();
+
+    if (!sensorTaskStarted || !networkTaskStarted) {
+        Serial.println("[Task] Startup failed; keeping Arduino loop alive for recovery");
+        return;
+    }
 
     // Delete the Arduino loop task — we don't need it
     vTaskDelete(NULL);

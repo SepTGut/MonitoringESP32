@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ESP32 Web Serial Logger & Real-Time Waveform Plotter</title>
+  <meta name="description" content="Browser-based Web Serial API plotter and diagnostic logger for ESP32 wind turbine monitoring sensors." />
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-base: #0b0f19;
+      --bg-surface: #111827;
+      --bg-card: rgba(17, 24, 39, 0.75);
+      --bg-card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent-blue: #38bdf8;
+      --accent-cyan: #22d3ee;
+      --accent-green: #10b981;
+      --accent-yellow: #f59e0b;
+      --accent-purple: #a855f7;
+      --accent-red: #ef4444;
+      --accent-pink: #ec4899;
+      --radius-lg: 12px;
+      --radius-md: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation Header */
+    header {
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--bg-card-border);
+      padding: 0.85rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: white;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #fff, var(--text-muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-subtitle {
+      font-size: 0.75rem;
+      color: var(--accent-cyan);
+      font-weight: 500;
+    }
+
+    .connection-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .select-input, .btn-action {
+      background: rgba(31, 41, 55, 0.8);
+      border: 1px solid var(--bg-card-border);
+      color: var(--text-main);
+      padding: 0.5rem 0.85rem;
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .select-input:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+    }
+
+    .btn-action {
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .btn-connect {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      border: none;
+      color: white;
+      box-shadow: 0 2px 10px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-connect:hover {
+      background: linear-gradient(135deg, #0369a1, #1d4ed8);
+    }
+
+    .btn-disconnect {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      border: none;
+      color: white;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+
+    .status-badge.connected {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.3);
+      color: #6ee7b7;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-red);
+    }
+
+    .status-badge.connected .status-dot {
+      background: var(--accent-green);
+      box-shadow: 0 0 8px var(--accent-green);
+    }
+
+    /* Main Container Grid */
+    main {
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Live Sensor Metric Cards Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    .metric-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--bg-card-border);
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .metric-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .metric-value {
+      font-size: 1.65rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 0.25rem;
+    }
+
+    .metric-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .card-accent-line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+    }
+
+    /* Plotter Workspace Layout */
+    .plotter-workspace {
+      display: grid;
+      grid-template-columns: 3fr 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 1024px) {
+      .plotter-workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .chart-container {
+      background: var(--bg-card);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--bg-card-border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .chart-title-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .chart-title {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .chart-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    canvas#plotCanvas {
+      width: 100%;
+      height: 380px;
+      background: rgba(10, 15, 25, 0.95);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      display: block;
+    }
+
+    /* Channel Selector Controls Panel */
+    .controls-panel {
+      background: var(--bg-card);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--bg-card-border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .panel-section-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .channel-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .channel-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.75rem;
+      background: rgba(31, 41, 55, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: var(--radius-md);
+      font-size: 0.8rem;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s ease;
+    }
+
+    .channel-item:hover {
+      background: rgba(31, 41, 55, 0.8);
+    }
+
+    .channel-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .channel-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+
+    .channel-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+    }
+
+    /* Terminal Console & Log View */
+    .terminal-container {
+      background: var(--bg-card);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--bg-card-border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .terminal-box {
+      background: #050811;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-md);
+      height: 200px;
+      overflow-y: auto;
+      padding: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      line-height: 1.45;
+      color: #38bdf8;
+    }
+
+    .terminal-line {
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .terminal-line.plot { color: #34d399; }
+    .terminal-line.err { color: #f87171; }
+    .terminal-line.sys { color: #f3f4f6; }
+
+    .terminal-input-bar {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .terminal-input {
+      flex: 1;
+      background: #050811;
+      border: 1px solid var(--bg-card-border);
+      color: var(--text-main);
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--radius-md);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+    }
+
+    .terminal-input:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+    }
+
+    /* Quick Action Buttons */
+    .quick-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .btn-sm {
+      padding: 0.35rem 0.65rem;
+      font-size: 0.75rem;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header Navigation -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">⚡</div>
+      <div>
+        <div class="brand-title">SerialPlotter Web Engine</div>
+        <div class="brand-subtitle">ESP32 Wind Turbine Live Telemetry & Waveform Visualizer</div>
+      </div>
+    </div>
+
+    <div class="connection-bar">
+      <div class="status-badge" id="statusBadge">
+        <div class="status-dot"></div>
+        <span id="statusText">DISCONNECTED</span>
+      </div>
+
+      <select id="baudSelect" class="select-input">
+        <option value="115200" selected>115200 Baud</option>
+        <option value="9600">9600 Baud</option>
+        <option value="57600">57600 Baud</option>
+        <option value="230400">230400 Baud</option>
+        <option value="460800">460800 Baud</option>
+        <option value="921600">921600 Baud</option>
+      </select>
+
+      <button id="btnConnect" class="btn-action btn-connect">
+        <span>🔌</span> Connect USB Serial
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Application Body -->
+  <main>
+
+    <!-- Top Live Metric Cards Grid -->
+    <div class="metrics-grid">
+      <!-- Card 1: ZMPT101B #1 -->
+      <div class="metric-card">
+        <div class="card-accent-line" style="background: var(--accent-blue)"></div>
+        <div class="metric-title">
+          <span>ZMPT101B #1 (GPIO 34)</span>
+          <span style="color: var(--accent-blue)">AC V1</span>
+        </div>
+        <div class="metric-value" id="valZ1" style="color: var(--accent-blue)">0.0 mV</div>
+        <div class="metric-sub" id="subZ1">Raw: 0 counts</div>
+      </div>
+
+      <!-- Card 2: ZMPT101B #2 -->
+      <div class="metric-card">
+        <div class="card-accent-line" style="background: var(--accent-cyan)"></div>
+        <div class="metric-title">
+          <span>ZMPT101B #2 (GPIO 35)</span>
+          <span style="color: var(--accent-cyan)">AC V2</span>
+        </div>
+        <div class="metric-value" id="valZ2" style="color: var(--accent-cyan)">0.0 mV</div>
+        <div class="metric-sub" id="subZ2">Raw: 0 counts</div>
+      </div>
+
+      <!-- Card 3: ZMCT103C -->
+      <div class="metric-card">
+        <div class="card-accent-line" style="background: var(--accent-yellow)"></div>
+        <div class="metric-title">
+          <span>ZMCT103C (GPIO 32)</span>
+          <span style="color: var(--accent-yellow)">AC Current</span>
+        </div>
+        <div class="metric-value" id="valZI" style="color: var(--accent-yellow)">0.0 mV</div>
+        <div class="metric-sub" id="subZI">Raw: 0 counts</div>
+      </div>
+
+      <!-- Card 4: MAX9814 Microphone -->
+      <div class="metric-card">
+        <div class="card-accent-line" style="background: var(--accent-purple)"></div>
+        <div class="metric-title">
+          <span>MAX9814 (GPIO 33)</span>
+          <span style="color: var(--accent-purple)">Sound Level</span>
+        </div>
+        <div class="metric-value" id="valMic" style="color: var(--accent-purple)">0.0 mV Vpp</div>
+        <div class="metric-sub" id="subMic">DC Bias: 0.0 mV</div>
+      </div>
+
+      <!-- Card 5: INA226 DC Power -->
+      <div class="metric-card">
+        <div class="card-accent-line" style="background: var(--accent-green)"></div>
+        <div class="metric-title">
+          <span>INA226 DC #1 (0x44)</span>
+          <span style="color: var(--accent-green)">DC Power</span>
+        </div>
+        <div class="metric-value" id="valInaW" style="color: var(--accent-green)">0.00 W</div>
+        <div class="metric-sub" id="subIna">0.00 V | 0.00 A</div>
+      </div>
+
+      <!-- Card 6: Rotor Speed RPM -->
+      <div class="metric-card">
+        <div class="card-accent-line" style="background: var(--accent-pink)"></div>
+        <div class="metric-title">
+          <span>IR Pulse Sensor (GPIO 27)</span>
+          <span style="color: var(--accent-pink)">Rotor Speed</span>
+        </div>
+        <div class="metric-value" id="valRpm" style="color: var(--accent-pink)">0 RPM</div>
+        <div class="metric-sub" id="subPulses">Pulses: 0</div>
+      </div>
+    </div>
+
+    <!-- Plotter Workspace (Chart + Controls) -->
+    <div class="plotter-workspace">
+      
+      <!-- Chart Area -->
+      <div class="chart-container">
+        <div class="chart-header">
+          <div class="chart-title-group">
+            <div class="chart-title">Real-Time Waveform Plotter</div>
+          </div>
+
+          <div class="chart-controls">
+            <label style="font-size: 0.8rem; color: var(--text-muted)">Window:</label>
+            <select id="timeWindowSelect" class="select-input" style="padding: 0.25rem 0.5rem;">
+              <option value="5">5 Seconds</option>
+              <option value="10" selected>10 Seconds</option>
+              <option value="30">30 Seconds</option>
+              <option value="60">60 Seconds</option>
+            </select>
+
+            <button id="btnPauseChart" class="btn-action btn-sm">⏸ Pause</button>
+            <button id="btnClearChart" class="btn-action btn-sm">🧹 Clear</button>
+          </div>
+        </div>
+
+        <!-- Real-Time HTML5 Canvas Plotter -->
+        <canvas id="plotCanvas"></canvas>
+      </div>
+
+      <!-- Side Controls Panel & Channel Selectors -->
+      <div class="controls-panel">
+        <div class="panel-section-title">Telemetry Channels</div>
+
+        <div class="channel-list" id="channelList">
+          <!-- Dynamically Generated Channel Toggles -->
+        </div>
+
+        <div class="panel-section-title" style="margin-top: 1rem;">Export & Actions</div>
+        <div class="quick-actions">
+          <button id="btnExportCsv" class="btn-action btn-sm" style="flex: 1;">📥 Export CSV</button>
+          <button id="btnCalibrateAdc" class="btn-action btn-sm" style="flex: 1; background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: rgba(245, 158, 11, 0.4);">
+            🎯 Calibrate ADC Zero
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terminal Console Area -->
+    <div class="terminal-container">
+      <div class="terminal-header">
+        <div class="chart-title" style="font-size: 0.9rem;">Raw Serial Terminal Console</div>
+        <div class="chart-controls">
+          <label style="font-size: 0.8rem; color: var(--text-muted); cursor: pointer;">
+            <input type="checkbox" id="chkAutoScroll" checked /> Auto-Scroll
+          </label>
+          <button id="btnClearTerminal" class="btn-action btn-sm">Clear Terminal</button>
+        </div>
+      </div>
+
+      <div class="terminal-box" id="terminalBox">
+        <div class="terminal-line sys">[System] SerialPlotter.io Web Engine ready. Click "Connect USB Serial" to start telemetry.</div>
+      </div>
+
+      <div class="terminal-input-bar">
+        <input type="text" id="terminalInput" class="terminal-input" placeholder="Type serial command (e.g. HELP, CALIBRATE, STATUS)..." />
+        <button id="btnSendCmd" class="btn-action btn-connect">Send</button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Web Serial Plotter JS Engine -->
+  <script>
+    // --- Telemetry & Chart Configuration ---
+    const channels = [
+      { id: 'raw_z1', name: 'ZMPT1 #1 (GPIO 34)', color: '#38bdf8', enabled: true, unit: 'mV', val: 0 },
+      { id: 'raw_z2', name: 'ZMPT1 #2 (GPIO 35)', color: '#22d3ee', enabled: true, unit: 'mV', val: 0 },
+      { id: 'raw_zi', name: 'ZMCT103C (GPIO 32)', color: '#f59e0b', enabled: true, unit: 'mV', val: 0 },
+      { id: 'mic_vpp', name: 'MAX9814 Sound Vpp', color: '#a855f7', enabled: true, unit: 'mV', val: 0 },
+      { id: 'ina1_w', name: 'INA226 DC Power', color: '#10b981', enabled: true, unit: 'W', val: 0 },
+      { id: 'rpm', name: 'Rotor Speed (RPM)', color: '#ec4899', enabled: true, unit: 'RPM', val: 0 }
+    ];
+
+    let port = null;
+    let reader = null;
+    let isConnected = false;
+    let isPaused = false;
+    let dataBuffer = [];
+    const maxDataPoints = 1200;
+
+    // --- DOM Element References ---
+    const btnConnect = document.getElementById('btnConnect');
+    const baudSelect = document.getElementById('baudSelect');
+    const statusBadge = document.getElementById('statusBadge');
+    const statusText = document.getElementById('statusText');
+    const canvas = document.getElementById('plotCanvas');
+    const ctx = canvas.getContext('2d');
+    const channelList = document.getElementById('channelList');
+    const terminalBox = document.getElementById('terminalBox');
+    const chkAutoScroll = document.getElementById('chkAutoScroll');
+    const btnPauseChart = document.getElementById('btnPauseChart');
+    const btnClearChart = document.getElementById('btnClearChart');
+    const btnClearTerminal = document.getElementById('btnClearTerminal');
+    const btnExportCsv = document.getElementById('btnExportCsv');
+    const btnCalibrateAdc = document.getElementById('btnCalibrateAdc');
+    const terminalInput = document.getElementById('terminalInput');
+    const btnSendCmd = document.getElementById('btnSendCmd');
+
+    // --- Initialize Channel Selectors ---
+    function initChannelControls() {
+      channelList.innerHTML = '';
+      channels.forEach(ch => {
+        const item = document.createElement('div');
+        item.className = 'channel-item';
+        item.innerHTML = `
+          <div class="channel-info">
+            <input type="checkbox" id="chk_${ch.id}" ${ch.enabled ? 'checked' : ''} />
+            <div class="channel-color" style="background: ${ch.color}"></div>
+            <span>${ch.name}</span>
+          </div>
+          <span class="channel-value" id="lbl_${ch.id}" style="color: ${ch.color}">0.0</span>
+        `;
+        item.querySelector('input').addEventListener('change', (e) => {
+          ch.enabled = e.target.checked;
+        });
+        channelList.appendChild(item);
+      });
+    }
+
+    // --- Canvas Resize & High DPI Handling ---
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // --- Web Serial API Connection Handler ---
+    btnConnect.addEventListener('click', async () => {
+      if (isConnected) {
+        disconnectSerial();
+        return;
+      }
+
+      if (!('serial' in navigator)) {
+        alert('Web Serial API is not supported in this browser. Please use Google Chrome, Microsoft Edge, or Opera.');
+        return;
+      }
+
+      try {
+        const baudRate = parseInt(baudSelect.value);
+        port = await navigator.serial.requestPort();
+        await port.open({ baudRate: baudRate });
+        
+        isConnected = true;
+        updateConnectionUI(true);
+        appendTerminalLine('[System] Connected to ESP32 USB Serial Port at ' + baudRate + ' baud.', 'sys');
+
+        readSerialStream();
+      } catch (err) {
+        appendTerminalLine('[Error] Failed to open serial port: ' + err.message, 'err');
+      }
+    });
+
+    async function disconnectSerial() {
+      if (reader) {
+        await reader.cancel();
+      }
+      if (port) {
+        await port.close();
+      }
+      isConnected = false;
+      updateConnectionUI(false);
+      appendTerminalLine('[System] Disconnected from USB Serial Port.', 'sys');
+    }
+
+    function updateConnectionUI(connected) {
+      if (connected) {
+        statusBadge.classList.add('connected');
+        statusText.textContent = 'CONNECTED';
+        btnConnect.innerHTML = '<span>❌</span> Disconnect';
+        btnConnect.classList.remove('btn-connect');
+        btnConnect.classList.add('btn-disconnect');
+      } else {
+        statusBadge.classList.remove('connected');
+        statusText.textContent = 'DISCONNECTED';
+        btnConnect.innerHTML = '<span>🔌</span> Connect USB Serial';
+        btnConnect.classList.remove('btn-disconnect');
+        btnConnect.classList.add('btn-connect');
+      }
+    }
+
+    // --- Serial Stream Reader Loop ---
+    async function readSerialStream() {
+      const textDecoder = new TextDecoderStream();
+      const readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
+      reader = textDecoder.readable.getReader();
+
+      let textBuffer = '';
+
+      try {
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          if (value) {
+            textBuffer += value;
+            let lines = textBuffer.split('\n');
+            textBuffer = lines.pop(); // Keep last partial line
+
+            for (let line of lines) {
+              parseLine(line.trim());
+            }
+          }
+        }
+      } catch (err) {
+        appendTerminalLine('[Serial Error] ' + err.message, 'err');
+      } finally {
+        reader.releaseLock();
+      }
+    }
+
+    // --- Line Parser (RAW_PLOT, JSON, CSV, Diagnostic Text) ---
+    function parseLine(line) {
+      if (!line) return;
+
+      appendTerminalLine(line, line.startsWith('RAW_PLOT:') ? 'plot' : 'sys');
+
+      if (isPaused) return;
+
+      const now = Date.now();
+      let record = { timestamp: now };
+
+      if (line.startsWith('RAW_PLOT:')) {
+        let content = line.substring(9);
+        let pairs = content.split(',');
+        pairs.forEach(pair => {
+          let [k, v] = pair.split('=');
+          if (k && v !== undefined) {
+            record[k.trim()] = parseFloat(v);
+          }
+        });
+      } else if (line.startsWith('{') && line.endsWith('}')) {
+        try {
+          let json = JSON.parse(line);
+          Object.assign(record, json);
+        } catch (e) {}
+      }
+
+      // Update Channel Values & Data Buffer
+      channels.forEach(ch => {
+        if (record[ch.id] !== undefined) {
+          ch.val = record[ch.id];
+          let lbl = document.getElementById('lbl_' + ch.id);
+          if (lbl) lbl.textContent = ch.val.toFixed(1);
+        }
+      });
+
+      // Update Top Metric Cards
+      if (record.zmpt1_mv !== undefined) document.getElementById('valZ1').textContent = record.zmpt1_mv.toFixed(1) + ' mV';
+      if (record.raw_z1 !== undefined) document.getElementById('subZ1').textContent = 'Raw: ' + Math.round(record.raw_z1) + ' counts';
+
+      if (record.zmpt2_mv !== undefined) document.getElementById('valZ2').textContent = record.zmpt2_mv.toFixed(1) + ' mV';
+      if (record.raw_z2 !== undefined) document.getElementById('subZ2').textContent = 'Raw: ' + Math.round(record.raw_z2) + ' counts';
+
+      if (record.zmct_mv !== undefined) document.getElementById('valZI').textContent = record.zmct_mv.toFixed(1) + ' mV';
+      if (record.raw_zi !== undefined) document.getElementById('subZI').textContent = 'Raw: ' + Math.round(record.raw_zi) + ' counts';
+
+      if (record.mic_vpp !== undefined) document.getElementById('valMic').textContent = record.mic_vpp.toFixed(1) + ' mV Vpp';
+      if (record.mic_mv !== undefined) document.getElementById('subMic').textContent = 'Bias: ' + record.mic_mv.toFixed(1) + ' mV';
+
+      if (record.ina1_w !== undefined) document.getElementById('valInaW').textContent = record.ina1_w.toFixed(2) + ' W';
+      if (record.ina1_v !== undefined && record.ina1_a !== undefined) {
+        document.getElementById('subIna').textContent = record.ina1_v.toFixed(2) + 'V | ' + record.ina1_a.toFixed(2) + 'A';
+      }
+
+      if (record.rpm !== undefined) document.getElementById('valRpm').textContent = Math.round(record.rpm) + ' RPM';
+      if (record.pulses !== undefined) document.getElementById('subPulses').textContent = 'Pulses: ' + record.pulses;
+
+      dataBuffer.push(record);
+      if (dataBuffer.length > maxDataPoints) {
+        dataBuffer.shift();
+      }
+    }
+
+    // --- High-Performance Canvas 2D Waveform Renderer ---
+    function drawChart() {
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Grid Lines
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.lineWidth = 1;
+
+      for (let y = 0; y < h; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+      for (let x = 0; x < w; x += 60) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+
+      if (dataBuffer.length < 2) {
+        requestAnimationFrame(drawChart);
+        return;
+      }
+
+      // Calculate Dynamic Y Max
+      let maxY = 100;
+      channels.forEach(ch => {
+        if (ch.enabled) {
+          dataBuffer.forEach(d => {
+            if (d[ch.id] !== undefined && d[ch.id] > maxY) {
+              maxY = d[ch.id];
+            }
+          });
+        }
+      });
+      maxY *= 1.1; // 10% padding
+
+      // Draw Channel Lines
+      channels.forEach(ch => {
+        if (!ch.enabled) return;
+
+        ctx.strokeStyle = ch.color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+
+        let pointsCount = dataBuffer.length;
+        let stepX = w / (pointsCount - 1);
+
+        for (let i = 0; i < pointsCount; i++) {
+          let val = dataBuffer[i][ch.id] || 0;
+          let x = i * stepX;
+          let y = h - (val / maxY) * (h - 20) - 10;
+
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      });
+
+      requestAnimationFrame(drawChart);
+    }
+    requestAnimationFrame(drawChart);
+
+    // --- Terminal Helpers ---
+    function appendTerminalLine(text, type) {
+      const line = document.createElement('div');
+      line.className = 'terminal-line ' + (type || '');
+      line.textContent = text;
+      terminalBox.appendChild(line);
+
+      if (chkAutoScroll.checked) {
+        terminalBox.scrollTop = terminalBox.scrollHeight;
+      }
+    }
+
+    btnClearTerminal.addEventListener('click', () => {
+      terminalBox.innerHTML = '';
+    });
+
+    btnPauseChart.addEventListener('click', () => {
+      isPaused = !isPaused;
+      btnPauseChart.textContent = isPaused ? '▶ Resume' : '⏸ Pause';
+    });
+
+    btnClearChart.addEventListener('click', () => {
+      dataBuffer = [];
+    });
+
+    // --- Send Command to Serial ---
+    async function sendSerialCommand(cmd) {
+      if (!port || !port.writable) return;
+      const encoder = new TextEncoder();
+      const writer = port.writable.getWriter();
+      await writer.write(encoder.encode(cmd + '\n'));
+      writer.releaseLock();
+      appendTerminalLine('> ' + cmd, 'sys');
+    }
+
+    btnSendCmd.addEventListener('click', () => {
+      let cmd = terminalInput.value.trim();
+      if (cmd) {
+        sendSerialCommand(cmd);
+        terminalInput.value = '';
+      }
+    });
+
+    terminalInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        btnSendCmd.click();
+      }
+    });
+
+    btnCalibrateAdc.addEventListener('click', () => {
+      if (confirm('Run zero-point baseline calibration? Ensure AC power is OFF.')) {
+        sendSerialCommand('CALIBRATE');
+      }
+    });
+
+    // --- Export CSV Handler ---
+    btnExportCsv.addEventListener('click', () => {
+      if (dataBuffer.length === 0) {
+        alert('No telemetry data collected yet.');
+        return;
+      }
+
+      let csv = 'Timestamp,' + channels.map(c => c.name).join(',') + '\n';
+      dataBuffer.forEach(row => {
+        let line = [new Date(row.timestamp).toISOString()];
+        channels.forEach(ch => {
+          line.push(row[ch.id] !== undefined ? row[ch.id] : '');
+        });
+        csv += line.join(',') + '\n';
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `telemetry_export_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`;
+      a.click();
+    });
+
+    initChannelControls();
+  </script>
+</body>
+</html>

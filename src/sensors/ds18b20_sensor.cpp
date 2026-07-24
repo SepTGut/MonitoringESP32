@@ -27,16 +27,17 @@ void DS18B20Sensor::requestTemperature() {
     _sensors.requestTemperatures();
 }
 
-float DS18B20Sensor::readTemperature(uint8_t index) {
-    if (_pin >= 40) return 0.0f;
+bool DS18B20Sensor::readTemperature(uint8_t index, float& tempC) {
+    if (_pin >= 40) return false;
 
     float temp = _sensors.getTempCByIndex(index);
 
     // DallasTemperature returns -127°C if sensor is disconnected
     if (temp == DEVICE_DISCONNECTED_C) {
-        return 0.0f;
+        return false;
     }
-    return temp;
+    tempC = temp;
+    return true;
 }
 
 uint8_t DS18B20Sensor::getDeviceCount() {

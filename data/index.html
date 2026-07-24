@@ -74,6 +74,14 @@
 
             <!-- ===== Dashboard Page ===== -->
             <section class="page active" id="page-dashboard">
+                <!-- Setup Required Banner -->
+                <div class="setup-banner" id="setup-banner" style="display:none;">
+                    <div class="setup-banner-icon">⚠️</div>
+                    <div class="setup-banner-text">
+                        <strong>Setup Required</strong> — Replace the temporary AP password in Settings before normal operation.
+                    </div>
+                </div>
+
                 <div class="page-header">
                     <h2>Live Dashboard</h2>
                     <span class="page-subtitle" id="uptime-label">Uptime: --</span>
@@ -94,7 +102,7 @@
                             </div>
                         </div>
                         <div class="hero-meta">
-                            <h3>AC Power</h3>
+                            <h3>AC Power <span class="power-mode-label" id="power-mode-label">(Est.)</span></h3>
                             <p class="hero-desc">Generator AC output (Vrms × Irms × PF)</p>
                         </div>
                     </div>
@@ -140,28 +148,28 @@
                 <div class="metrics-grid">
 
                     <!-- AC Voltage #1 (for power) -->
-                    <div class="metric-card" data-type="ac">
+                    <div class="metric-card" data-type="ac" data-sensor="acV1" id="card-acvolt1">
                         <div class="metric-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M2 12c2-4 4-8 6-8s4 8 6 8 4-8 6-8"/>
                             </svg>
                         </div>
                         <div class="metric-body">
-                            <span class="metric-label">AC Voltage</span>
+                            <span class="metric-label">AC Voltage <span class="health-badge" id="health-acV1"></span></span>
                             <span class="metric-value"><span id="val-acvolt1">0.0</span> <small>V</small></span>
                         </div>
                         <div class="metric-bar"><div class="metric-bar-fill" id="bar-acvolt1"></div></div>
                     </div>
 
                     <!-- AC Current -->
-                    <div class="metric-card" data-type="accur">
+                    <div class="metric-card" data-type="accur" data-sensor="acI" id="card-accur">
                         <div class="metric-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
                             </svg>
                         </div>
                         <div class="metric-body">
-                            <span class="metric-label">AC Current</span>
+                            <span class="metric-label">AC Current <span class="health-badge" id="health-acI"></span></span>
                             <span class="metric-value"><span id="val-accur">0.00</span> <small>A</small></span>
                         </div>
                         <div class="metric-bar"><div class="metric-bar-fill" id="bar-accur"></div></div>
@@ -369,15 +377,15 @@
                         <div class="settings-card-body">
                             <div class="form-group">
                                 <label for="cfg-poll-ms">Sensor Poll Interval</label>
-                                <input type="number" id="cfg-poll-ms" min="50" max="5000">
+                                <input type="number" id="cfg-poll-ms" min="100" max="60000">
                             </div>
                             <div class="form-group">
                                 <label for="cfg-push-ms">WebSocket Push Interval</label>
-                                <input type="number" id="cfg-push-ms" min="100" max="10000">
+                                <input type="number" id="cfg-push-ms" min="100" max="60000">
                             </div>
                             <div class="form-group">
                                 <label for="cfg-log-ms">Serial Log Interval</label>
-                                <input type="number" id="cfg-log-ms" min="100" max="10000">
+                                <input type="number" id="cfg-log-ms" min="250" max="60000">
                             </div>
                         </div>
                     </div>
@@ -436,6 +444,14 @@
                                 <input type="number" id="cfg-max-a" min="1">
                             </div>
                             <div class="form-group">
+                                <label for="cfg-max-ac-v">Max AC Voltage (V)</label>
+                                <input type="number" id="cfg-max-ac-v" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="cfg-max-ac-a">Max AC Current (A)</label>
+                                <input type="number" id="cfg-max-ac-a" min="1">
+                            </div>
+                            <div class="form-group">
                                 <label for="cfg-max-rpm">Max Speed (RPM)</label>
                                 <input type="number" id="cfg-max-rpm" min="100">
                             </div>
@@ -443,6 +459,41 @@
                                 <label for="cfg-max-t">Max Temperature (°C)</label>
                                 <input type="number" id="cfg-max-t" min="10">
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- ADC Configuration (Internal vs ADS1115) -->
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                            </svg>
+                            <h3>ADC Mode & Configuration</h3>
+                        </div>
+                        <div class="settings-card-body">
+                            <div class="form-checkbox">
+                                <input type="checkbox" id="cfg-use-ads1115">
+                                <label for="cfg-use-ads1115">Use External ADS1115 (16-bit I2C ADC)</label>
+                            </div>
+                            <div class="form-group" style="margin-top: 0.75rem;">
+                                <label for="cfg-ads-addr">ADS1115 I2C Address</label>
+                                <select id="cfg-ads-addr">
+                                    <option value="72">0x48 (ADDR -> GND, Default)</option>
+                                    <option value="73">0x49 (ADDR -> VCC)</option>
+                                    <option value="74">0x4A (ADDR -> SDA)</option>
+                                    <option value="75">0x4B (ADDR -> SCL)</option>
+                                </select>
+                            </div>
+                            <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem; line-height: 1.4;">
+                                Internal ESP32 ADC uses eFuse Vref factory calibration. Enabling ADS1115 routes AC sensors through A0 (AC Voltage 1), A1 (AC Voltage 2), and A2 (AC Current) with 16-bit I2C precision.
+                            </p>
+                            <div class="info-row" style="margin-top: 0.75rem;">
+                                <span class="info-label">Current Baseline Offsets</span>
+                                <span class="info-value" id="sys-adc-offsets">Z1: 1650mV | Z2: 1650mV | I: 1650mV</span>
+                            </div>
+                            <button id="btn-calibrate-adc" class="btn btn-outline" style="margin-top: 0.75rem; width: 100%;">
+                                Calibrate ADC Zero-Point (0V / 0A)
+                            </button>
                         </div>
                     </div>
 
@@ -526,8 +577,16 @@
                                 <span class="info-value" id="sys-fw">--</span>
                             </div>
                             <div class="info-row">
+                                <span class="info-label">ADC Mode</span>
+                                <span class="info-value" id="sys-adc-mode">Internal (eFuse Calibrated)</span>
+                            </div>
+                            <div class="info-row">
                                 <span class="info-label">Free Heap</span>
                                 <span class="info-value" id="sys-heap">-- KB</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Min Free Heap</span>
+                                <span class="info-value" id="sys-min-heap">-- KB</span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Uptime</span>
@@ -536,6 +595,22 @@
                             <div class="info-row">
                                 <span class="info-label">WS Clients</span>
                                 <span class="info-value" id="sys-clients">0</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Cycle Time</span>
+                                <span class="info-value" id="sys-cycle-ms">-- ms</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Overruns</span>
+                                <span class="info-value" id="sys-overruns">0</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Sensor Stack Free</span>
+                                <span class="info-value" id="sys-sensor-stack">-- B</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Network Stack Free</span>
+                                <span class="info-value" id="sys-network-stack">-- B</span>
                             </div>
                         </div>
                     </div>

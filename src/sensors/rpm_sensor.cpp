@@ -8,14 +8,13 @@
 // Static volatile variables shared with ISR
 volatile uint32_t RPMSensor::_pulseCount = 0;
 volatile uint32_t RPMSensor::_lastPulseTime = 0;
+static portMUX_TYPE rpmMux = portMUX_INITIALIZER_UNLOCKED;
 
 void IRAM_ATTR RPMSensor::handleInterrupt() {
-    // Software debounce: ignore pulses too close together
-    uint32_t now = micros();
-    if (now - _lastPulseTime >= RPM_MIN_INTERVAL_US) {
-        _pulseCount++;
-        _lastPulseTime = now;
-    }
+    portENTER_CRITICAL_ISR(&rpmMux);
+    _pulseCount++;
+    _lastPulseTime = micros();
+    portEXIT_CRITICAL_ISR(&rpmMux);
 }
 
 RPMSensor::RPMSensor(uint8_t pin)
@@ -29,7 +28,7 @@ void RPMSensor::begin() {
     }
 
     pinMode(_pin, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(_pin), handleInterrupt, RISING);
+    attachInterrupt(digitalPinToInterrupt(_pin), handleInterrupt, FALLING);
 
     _pulseCount = 0;
     _lastPulseCount = 0;
@@ -44,7 +43,12 @@ float RPMSensor::getRPM() {
     if (_pin >= 40) return 0.0f;
 
     uint32_t currentMillis = millis();
-    uint32_t currentPulses = _pulseCount;
+    uint32_t currentPulses;
+    uint32_t lastPulseTime;
+    portENTER_CRITICAL(&rpmMux);
+    currentPulses = _pulseCount;
+    lastPulseTime = _lastPulseTime;
+    portEXIT_CRITICAL(&rpmMux);
 
     // Protection: avoid calculation if interval is too short
     uint32_t timeDelta = currentMillis - _lastCalcTime;
@@ -60,7 +64,7 @@ float RPMSensor::getRPM() {
     _lastPulseCount = currentPulses;
 
     // Zero out RPM if no pulses received for timeout period
-    uint32_t timeSinceLastPulse = (micros() - _lastPulseTime) / 1000;
+    uint32_t timeSinceLastPulse = (micros() - lastPulseTime) / 1000;
     if (timeSinceLastPulse > RPM_TIMEOUT_MS) {
         rpm = 0.0f;
     }

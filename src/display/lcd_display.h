@@ -36,6 +36,6 @@ private:
     // Redraw screen contents based on active rotation state
     void drawScreen(uint8_t screen, const SensorData& data);
 
-    // Cleans and prints text to prevent screen residues
-    void printLine(uint8_t row, const String& label, const String& value);
+    // Write a pre-formatted line to the LCD. line must be <= 16 chars.
+    void printLine(uint8_t row, const char* line);
 };

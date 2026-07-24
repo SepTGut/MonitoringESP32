@@ -14,10 +14,31 @@
 #include "../system/config_manager.h"
 #include "../system/freertos_tasks.h"
 #include "../config/config.h"
+#include <esp_task_wdt.h>
 
 // Server and WebSocket instances
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
+
+static void serializeSensorData(JsonDocument& doc, const SensorData& data) {
+    doc["acV"] = data.ac_voltage; doc["acV2"] = data.ac_voltage2;
+    doc["acA"] = data.ac_current; doc["acP"] = data.ac_power;
+    doc["dcV1"] = data.ina1_voltage; doc["dcA1"] = data.ina1_current; doc["dcP1"] = data.ina1_power;
+    doc["dcV2"] = data.ina2_voltage; doc["dcA2"] = data.ina2_current; doc["dcP2"] = data.ina2_power;
+    doc["rpm"] = data.rpm; doc["t1"] = data.temperature1; doc["t2"] = data.temperature2; doc["tEsp"] = data.temperature_esp;
+    doc["sequence"] = data.sequence; doc["cycleMs"] = data.cycleMs; doc["overruns"] = data.overruns;
+    doc["powerMode"] = "estimated";
+    JsonObject health = doc.createNestedObject("health");
+    health["acV1"] = (data.health & SensorData::HEALTH_AC_V1) != 0;
+    health["acV2"] = (data.health & SensorData::HEALTH_AC_V2) != 0;
+    health["acI"] = (data.health & SensorData::HEALTH_AC_I) != 0;
+    health["ina1"] = (data.health & SensorData::HEALTH_INA1) != 0;
+    health["ina2"] = (data.health & SensorData::HEALTH_INA2) != 0;
+    health["temp1"] = (data.health & SensorData::HEALTH_TEMP1) != 0;
+    health["temp2"] = (data.health & SensorData::HEALTH_TEMP2) != 0;
+    health["cpuTemp"] = (data.health & SensorData::HEALTH_CPU_TEMP) != 0;
+    health["rpm"] = (data.health & SensorData::HEALTH_RPM) != 0;
+}
 
 // WebSocket event handler
 void onWsEvent(AsyncWebSocket* server, AsyncWebSocketClient* client,
@@ -31,25 +52,6 @@ void onWsEvent(AsyncWebSocket* server, AsyncWebSocketClient* client,
 }
 
 void WebDashboard::begin() {
-    // Add global CORS headers to allow local development web tools (like VS Code Live Server) to talk to the ESP32 APIs
-    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
-    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "content-type");
-    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-
-    // Handle CORS preflight options requests
-    server.on("/api/sysinfo", HTTP_OPTIONS, [](AsyncWebServerRequest *request) {
-        request->send(200);
-    });
-    server.on("/api/config", HTTP_OPTIONS, [](AsyncWebServerRequest *request) {
-        request->send(200);
-    });
-    server.on("/api/restart", HTTP_OPTIONS, [](AsyncWebServerRequest *request) {
-        request->send(200);
-    });
-    server.on("/api/i2c-scan", HTTP_OPTIONS, [](AsyncWebServerRequest *request) {
-        request->send(200);
-    });
-
     // Mount LittleFS
     if (!LittleFS.begin(true)) {
         Serial.println("[Web] Error mounting LittleFS");
@@ -87,11 +89,21 @@ void WebDashboard::begin() {
     server.on("/api/sysinfo", HTTP_GET, [](AsyncWebServerRequest* request) {
         SensorData data = dataManager.getData();
         AsyncResponseStream* response = request->beginResponseStream("application/json");
-        StaticJsonDocument<512> doc;
+        StaticJsonDocument<1024> doc;
         doc["fw"] = FW_VERSION;
         doc["heap"] = ESP.getFreeHeap();
+        doc["minHeap"] = ESP.getMinFreeHeap();
         doc["uptime"] = esp_timer_get_time() / 1000000ULL;
         doc["clients"] = ws.count();
+        doc["cycleMs"] = data.cycleMs;
+        doc["overruns"] = data.overruns;
+        doc["adcMode"] = configManager.getConfig().useAds1115 ? "ADS1115 (16-bit I2C)" : "Internal (eFuse Calibrated)";
+
+        // Task stack high water marks (minimum free stack in words → bytes)
+        TaskHandle_t sensorHandle = Tasks::getSensorTaskHandle();
+        TaskHandle_t networkHandle = Tasks::getNetworkTaskHandle();
+        if (sensorHandle) doc["sensorStackFree"] = uxTaskGetStackHighWaterMark(sensorHandle) * 4;
+        if (networkHandle) doc["networkStackFree"] = uxTaskGetStackHighWaterMark(networkHandle) * 4;
 
         JsonArray i2cArr = doc.createNestedArray("i2c");
         for (uint8_t i = 0; i < data.i2c_count; i++) {
@@ -107,27 +119,12 @@ void WebDashboard::begin() {
         SensorData data = dataManager.getData();
 
         AsyncResponseStream* response = request->beginResponseStream("application/json");
-        StaticJsonDocument<512> doc;
+        StaticJsonDocument<1024> doc;
 
-        doc["acV"]  = data.ac_voltage;
-        doc["acV2"] = data.ac_voltage2;
-        doc["acA"]  = data.ac_current;
-        doc["acP"]  = data.ac_power;
-
-        doc["dcV1"] = data.ina1_voltage;
-        doc["dcA1"] = data.ina1_current;
-        doc["dcP1"] = data.ina1_power;
-
-        doc["dcV2"] = data.ina2_voltage;
-        doc["dcA2"] = data.ina2_current;
-        doc["dcP2"] = data.ina2_power;
-
-        doc["rpm"]  = data.rpm;
-        doc["t1"]   = data.temperature1;
-        doc["t2"]   = data.temperature2;
-        doc["tEsp"] = data.temperature_esp;
+        serializeSensorData(doc, data);
 
         doc["uptime"] = esp_timer_get_time() / 1000000ULL;
+        doc["setupRequired"] = configManager.getConfig().setupRequired;
 
         serializeJson(doc, *response);
         request->send(response);
@@ -144,18 +141,25 @@ void WebDashboard::begin() {
 
     // --- API: Save Settings Config (JSON POST) ---
     AsyncCallbackJsonWebHandler* saveConfigHandler = new AsyncCallbackJsonWebHandler("/api/config", [](AsyncWebServerRequest* request, JsonVariant& json) {
-        // Print the received JSON payload for debugging
-        String jsonStr;
-        serializeJson(json, jsonStr);
-        Serial.printf("[Web] Received config save POST: %s\n", jsonStr.c_str());
-
-        configManager.updateFromJson(json);
+        String error, field;
+        bool restartRequired = false;
+        if (!configManager.updateFromJson(json, error, field, restartRequired)) {
+            StaticJsonDocument<192> errorDoc;
+            errorDoc["ok"] = false; errorDoc["error"] = error; errorDoc["field"] = field;
+            String body; serializeJson(errorDoc, body);
+            request->send(400, "application/json", body);
+            return;
+        }
+        // Audit log — never log passwords or request bodies
+        Serial.printf("[Web] Configuration update accepted (restartRequired=%s)\n",
+                      restartRequired ? "true" : "false");
         bool ok = configManager.save();
 
         AsyncResponseStream* response = request->beginResponseStream("application/json");
         StaticJsonDocument<128> doc;
         if (ok) {
             doc["ok"] = true;
+            doc["restartRequired"] = restartRequired;
         } else {
             doc["ok"] = false;
             doc["error"] = "Failed to save configuration file";
@@ -167,6 +171,12 @@ void WebDashboard::begin() {
 
     // --- API: Restart ESP32 (POST) ---
     server.on("/api/restart", HTTP_POST, [](AsyncWebServerRequest* request) {
+        // Block restart if setup has not been completed
+        if (configManager.getConfig().setupRequired) {
+            request->send(403, "application/json",
+                "{\"ok\":false,\"error\":\"Complete setup before restarting\"}");
+            return;
+        }
         request->send(200, "application/json", "{\"ok\":true}");
         
         // Spawn a background task to delay and restart, giving time to deliver response
@@ -179,6 +189,12 @@ void WebDashboard::begin() {
     // --- API: Trigger On-Demand I2C Scan (POST) ---
     server.on("/api/i2c-scan", HTTP_POST, [](AsyncWebServerRequest* request) {
         Tasks::requestI2CScan();
+        request->send(200, "application/json", "{\"ok\":true}");
+    });
+
+    // --- API: Trigger ADC Zero-Point Calibration (POST) ---
+    server.on("/api/adc-calibrate", HTTP_POST, [](AsyncWebServerRequest* request) {
+        Tasks::requestAdcCalibration();
         request->send(200, "application/json", "{\"ok\":true}");
     });
 
@@ -211,29 +227,13 @@ void WebDashboard::pushData() {
     if (ws.count() > 0) {
         SensorData data = dataManager.getData();
 
-        StaticJsonDocument<512> doc;
+        StaticJsonDocument<1024> doc;
 
-        doc["acV"]  = data.ac_voltage;
-        doc["acV2"] = data.ac_voltage2;
-        doc["acA"]  = data.ac_current;
-        doc["acP"]  = data.ac_power;
-
-        doc["dcV1"] = data.ina1_voltage;
-        doc["dcA1"] = data.ina1_current;
-        doc["dcP1"] = data.ina1_power;
-
-        doc["dcV2"] = data.ina2_voltage;
-        doc["dcA2"] = data.ina2_current;
-        doc["dcP2"] = data.ina2_power;
-
-        doc["rpm"]  = data.rpm;
-        doc["t1"]   = data.temperature1;
-        doc["t2"]   = data.temperature2;
-        doc["tEsp"] = data.temperature_esp;
+        serializeSensorData(doc, data);
 
         doc["uptime"] = esp_timer_get_time() / 1000000ULL;
 
-        char buffer[512];
+        char buffer[1024];
         size_t len = serializeJson(doc, buffer);
         ws.textAll(buffer, len);
     }

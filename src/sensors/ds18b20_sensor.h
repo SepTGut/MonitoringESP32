@@ -18,7 +18,7 @@ public:
     void requestTemperature();
 
     // Read temperature by bus index (call after conversion completes)
-    float readTemperature(uint8_t index = 0);
+    bool readTemperature(uint8_t index, float& tempC);
 
     // Number of sensors detected on the bus
     uint8_t getDeviceCount();

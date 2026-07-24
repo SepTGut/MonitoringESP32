@@ -13,19 +13,22 @@
 // =============================================================
 
 #include "zmpt101b.h"
+#include "ads1115_sensor.h"
 #include "../config/config.h"
 
 // Exponential moving average weight for offset tracking (0.0–1.0).
 // Lower = smoother but slower to adapt. 0.001 ≈ 1000-sample time constant.
 static const float OFFSET_ALPHA = 0.001f;
 
-// ADC RMS noise floor (in ADC units). Readings below this are clamped to 0.
-static const float ADC_NOISE_FLOOR = 6.0f;
+// Noise floor dead-band (in mV). Readings below this are clamped to 0.
+// Prevents floating pin / ambient EM noise from producing false AC readings.
+static const float ADC_NOISE_FLOOR_MV = 45.0f;
+static const float AC_MIN_VOLTAGE_CUTOFF = 3.0f; // Minimum valid AC voltage (V)
 
 ZMPT101B::ZMPT101B(uint8_t pin, float calibration)
     : _pin(pin),
       _calibration(calibration),
-      _offset(2048.0f),         // ESP32 12-bit ADC midpoint (3.3V / 2)
+      _offset(1650.0f),         // ESP32 ADC midpoint (~1.65V / 1650mV)
       _lastRawAdc(0.0f),
       _filter(FILTER_WINDOW_SIZE) {
 }
@@ -37,32 +40,46 @@ void ZMPT101B::begin() {
     }
 
     pinMode(_pin, INPUT);
+    analogSetAttenuation(ADC_11db);
+    analogReadResolution(12);
 
-    // Auto-calibrate DC offset at idle (initial seed for continuous tracking)
-    float sum = 0.0f;
-    for (int i = 0; i < 1000; i++) {
-        sum += analogRead(_pin);
-        delayMicroseconds(100);
-    }
-    _offset = sum / 1000.0f;
+    // Auto-calibrate DC offset at idle using eFuse calibrated millivolts
+    calibrateZeroOffset();
 
-    Serial.printf("[ZMPT101B] Initialized on GPIO %d (offset=%.1f, cal=%.1f)\n",
+    Serial.printf("[ZMPT101B] Initialized on GPIO %d (eFuse offset=%.1fmV, cal=%.1f)\n",
                   _pin, _offset, _calibration);
 }
 
-float ZMPT101B::calculateRMS() {
+float ZMPT101B::calibrateZeroOffset(ADS1115Sensor* ads, int8_t adsChannel) {
+    const bool useAds = (ads != nullptr && ads->isEnabled() && adsChannel >= 0 && adsChannel <= 3);
+    float sum = 0.0f;
+    const int count = 1000;
+    for (int i = 0; i < count; i++) {
+        sum += useAds ? ads->readMilliVolts((uint8_t)adsChannel)
+                      : (float)analogReadMilliVolts(_pin);
+        delayMicroseconds(100);
+    }
+    _offset = sum / (float)count;
+    Serial.printf("[ZMPT101B] Calibrated zero baseline offset: %.2f mV\n", _offset);
+    return _offset;
+}
+
+float ZMPT101B::calculateRMS(ADS1115Sensor* ads, int8_t adsChannel) {
     float sumSquares = 0.0f;
     float sumSamples = 0.0f;
     uint32_t sampleCount = 0;
     uint32_t startMicros = micros();
     uint32_t windowMicros = ADC_SAMPLE_WINDOW * 1000UL;
 
+    const bool useAds = (ads != nullptr && ads->isEnabled() && adsChannel >= 0 && adsChannel <= 3);
+
     // Sample for the configured window duration
     while ((micros() - startMicros) < windowMicros && sampleCount < ADC_SAMPLES) {
-        float sample = (float)analogRead(_pin);
-        float centered = sample - _offset;  // Remove DC offset
+        float sampleMv = useAds ? ads->readMilliVolts((uint8_t)adsChannel)
+                                : (float)analogReadMilliVolts(_pin);
+        float centered = sampleMv - _offset;  // Remove DC offset in mV
         sumSquares += centered * centered;
-        sumSamples += sample;
+        sumSamples += sampleMv;
         sampleCount++;
     }
 
@@ -72,31 +89,34 @@ float ZMPT101B::calculateRMS() {
     }
 
     // Continuously track DC offset using exponential moving average.
-    // This adapts to thermal drift without needing a recalibration cycle.
     float measuredMean = sumSamples / (float)sampleCount;
     _offset += OFFSET_ALPHA * (measuredMean - _offset);
 
-    _lastRawAdc = sumSquares / (float)sampleCount;  // Mean squared (diagnostic)
+    _lastRawAdc = sumSquares / (float)sampleCount;  // Mean squared (diagnostic in mV^2)
 
-    // True RMS = sqrt( mean of squared samples )
-    float rms = sqrtf(_lastRawAdc);
+    // True RMS in mV = sqrt( mean of squared samples )
+    float rmsMv = sqrtf(_lastRawAdc);
 
-    // Noise floor dead-band: clamp near-zero readings to exactly 0
-    if (rms < ADC_NOISE_FLOOR) {
+    // Noise floor dead-band: clamp floating pin noise and idle noise to exactly 0
+    if (rmsMv < ADC_NOISE_FLOOR_MV) {
         return 0.0f;
     }
 
-    // Convert ADC units to voltage: (rms / 4095) × 3.3V
-    float adcVoltage = rms * 3.3f / 4095.0f;
+    // Convert mV to Volts
+    float adcVoltage = rmsMv / 1000.0f;
 
     // Apply calibration to get actual AC voltage
-    return adcVoltage * _calibration;
+    float acVoltage = adcVoltage * _calibration;
+
+    // Minimum cutoff guard: ignore residual noise below 3V AC
+    return (acVoltage >= AC_MIN_VOLTAGE_CUTOFF) ? acVoltage : 0.0f;
 }
 
-float ZMPT101B::readRMSVoltage() {
-    if (_pin >= 40) return 0.0f;
+float ZMPT101B::readRMSVoltage(ADS1115Sensor* ads, int8_t adsChannel) {
+    const bool useAds = (ads != nullptr && ads->isEnabled() && adsChannel >= 0 && adsChannel <= 3);
+    if (!useAds && _pin >= 40) return 0.0f;
 
-    float raw = calculateRMS();
+    float raw = calculateRMS(ads, adsChannel);
     return _filter.update(raw);  // Apply moving average smoothing
 }
 

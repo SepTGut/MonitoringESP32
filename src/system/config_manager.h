@@ -24,15 +24,22 @@ struct SystemConfig {
     uint32_t wsPushMs;
     uint32_t serialLogMs;
 
-    // Calibration Multipliers
+    // Calibration Multipliers & Baseline Zero Offsets (mV)
     float zmpt1Cal;
     float zmpt2Cal;
     float zmctCal;
+    float zmpt1OffsetMv;
+    float zmpt2OffsetMv;
+    float zmctOffsetMv;
     float pf;
 
-    // Display Limits
+    // Display Limits — DC (INA226)
     float maxV;
     float maxA;
+    // Display Limits — AC (ZMPT/ZMCT)
+    float maxAcV;
+    float maxAcA;
+    // Display Limits — General
     uint32_t maxRpm;
     uint32_t maxTemp;
 
@@ -40,8 +47,13 @@ struct SystemConfig {
     uint8_t ina1Addr;
     uint8_t ina2Addr;
 
+    // External ADS1115 16-Bit ADC Options
+    bool useAds1115;
+    uint8_t adsAddr;
+
     // Simulation/Dummy Mode
     bool dummyMode;
+    bool setupRequired;
 };
 
 class ConfigManager {
@@ -61,10 +73,14 @@ public:
     SystemConfig getConfig() const;
 
     // Update settings from a JSON payload
-    void updateFromJson(const JsonVariant& json);
+    bool updateFromJson(const JsonVariant& json, String& error, String& field,
+                        bool& restartRequired, bool allowSetupCompletion = true);
+
+    // Update zero-point baseline offsets and save to LittleFS (thread-safe)
+    bool updateOffsets(float o1, float o2, float oi);
 
     // Serialize current config to JSON
-    void serialize(JsonDocument& doc) const;
+    void serialize(JsonDocument& doc, bool includeSecrets = false) const;
 
 private:
     SystemConfig _config;

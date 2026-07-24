@@ -1,5 +1,35 @@
 # Development Log
 
+## 2026-07-21
+
+### Added (Hardening Release v1.1.0)
+- **CORS Protection**: Removed wildcard CORS headers in web server to restrict API access to the device's origin.
+- **Password Audit Logging**: Updated configuration save logs to redact passwords and request bodies, logging only status and flags.
+- **Task Stack & Heap Diagnostics**: Added `minHeap`, `sensorStackFree`, and `networkStackFree` high-water mark metrics to `/api/sysinfo` for field diagnostics.
+- **Setup-Required Guard**: Blocked `/api/restart` with HTTP 403 when initial setup is incomplete. Added prominent `setupRequired` warning banner on the web dashboard.
+- **AC Display Limits**: Added configurable `maxAcV` (default 250V) and `maxAcA` (default 30A) fields to `SystemConfig` and web settings, decoupling AC display ranges from DC limits.
+- **LCD Memory Optimization**: Replaced `String` concatenation in `LcdDisplay` with fixed 17-byte `char` buffers to eliminate heap fragmentation in the 10Hz measurement task.
+- **Sensor Health Indicators**: Integrated health bitmask badge indicators into dashboard metric cards, rendering warning badges on sensor failure instead of misleading numeric zeros.
+- **Inline Settings Validation**: Added client-side form validation matching firmware constraints before settings submission.
+- **Estimated Power Labeling**: Added "(Est.)" indicator label to AC Power hero card to reflect calculation via RMS voltage, current, and configurable power factor.
+- **Code Quality & Bug Fixes**:
+  - Fixed variable shadowing bug in `ConfigManager::load()` where `DeserializationError` and `String` both used `error`.
+  - Fixed format string null byte bug in `lcd_display.cpp` rotor speed line.
+  - Converted health bitmask flags in `/api/data` JSON output to explicit booleans.
+- **ESP32 Internal ADC Fix (eFuse Vref Calibration)**: Replaced raw `analogRead()` in `ZMPT101B` and `ZMCT103C` with `analogReadMilliVolts()`, utilizing ESP32 factory eFuse calibration curves to eliminate internal ADC non-linearity and Vref voltage variations.
+- **External ADS1115 16-Bit I2C ADC Support**: Added `robtillaart/ADS1X15 @ ^0.4.2` library dependency, new `ADS1115Sensor` driver wrapper, and configurable `useAds1115` & `adsAddr` options to `SystemConfig`. AC sensors automatically route through ADS1115 channels A0 (AC Voltage 1), A1 (AC Voltage 2), and A2 (AC Current) with 16-bit precision when enabled.
+- **ADC Configuration Settings UI**: Integrated "ADC Mode & Configuration" settings card into the web portal with toggle switch, I2C address selector (`0x48`-`0x4B`), and dynamic ADC mode display in System Information.
+- **Standalone Hardware Sensor Test Firmware**: Added `test/hardware_test/` standalone PlatformIO diagnostic project featuring real-time I2C bus scanner, internal eFuse ADC (mV), 16-bit ADS1115 ADC (mV), INA226 voltage/current/power, DS18B20 temperatures, CPU die temp, RPM pulse counter, and 16x2 LCD status output with 1Hz serial report generation.
+- **Dedicated Hardware Test Serial Dashboard Reader**: Created `tools/serial_logger/hardware_test_reader.py` with automatic port selection, session log file archiving to `tools/serial_logger/logs/`, and an in-place redrawn live console dashboard UI (matching `serial_reader.py`) for I2C discovery, internal eFuse ADC (mV), 16-bit ADS1115 (mV), INA226 DC power, DS18B20 temps, and RPM rotor metrics.
+- **Floating Pin Noise Floor Clamping**: Increased `ADC_NOISE_FLOOR_MV` to 45.0mV and added minimum cutoff guards (`3.0V` AC and `0.05A` AC) in `ZMPT101B` and `ZMCT103C`. This prevents unconnected/floating ESP32 analog input pins (which float at ~1.65V with ambient EM noise) from producing fluctuating false AC voltage and current readings.
+- **ESP32 Silicon eFuse Linearity & Auto Zero-Point Calibration System**: Integrated factory eFuse Vref/linearity lookup tables into `ZMPT101B` and `ZMCT103C`, added 1000-sample `calibrateZeroOffset()` routine to measure hardware baseline DC midpoint voltages, exposed `POST /api/adc-calibrate` REST endpoint, and integrated a "Calibrate ADC Zero-Point" button on the web portal to save zero-point offsets directly to LittleFS (`/config.json`).
+
+## 2026-07-24
+- **IR RPM Sensor Signal Edge & Debounce Update**: Changed RPM hardware interrupt trigger edge from `RISING` to `FALLING` and removed software debounce filtering in both main firmware (`src/sensors/rpm_sensor.cpp`) and standalone hardware diagnostic test (`test/hardware_test/src/main.cpp`).
+- **Dual-Window Serial Dashboard & Waveform Plotter (`serial_logger`)**: Updated `serial_logger.py` to automatically open **2 separate console windows** upon launch (Window 1: Serial Dashboard Table, Window 2: Live Raw Sensor Waveform Plotter). Utilizes a background local TCP socket server (`127.0.0.1:8888`) to broadcast serial data lines from the master serial connection to the secondary plotter window without COM port lock errors. Integrated with `tools/test_hardware.py` and `tools/erase_and_monitor.py`.
+- **MAX9814 Microphone Sound Level Sensor Support (GPIO 33)**: Added MAX9814 electret microphone sampling (bias mV + 25ms Vpp sound amplitude level measurement) on GPIO 33 in `test/hardware_test/src/main.cpp`, with display in both Dashboard and Plotter windows in `serial_logger.py`.
+- **Browser-Native Web Serial Logger & Plotter Web App**: Created `tools/web_serial_plotter/index.html` (reference `serialplotter.io`) leveraging browser-native Web Serial API (`navigator.serial`). Features real-time 60fps HTML5 Canvas waveform plotting, live sensor metrics cards, terminal console, CSV data export, zero-point calibration triggers, and launcher script `tools/open_web_plotter.py`. Also deployed to `data/web_serial_plotter.html` for ESP32 LittleFS web serving.
+
 ## 2026-07-19
 
 ### Fixed (Code Review)

@@ -10,6 +10,11 @@
 
 // Central data structure holding all sensor readings
 struct SensorData {
+    enum Health : uint16_t {
+        HEALTH_AC_V1 = 1 << 0, HEALTH_AC_V2 = 1 << 1, HEALTH_AC_I = 1 << 2,
+        HEALTH_INA1 = 1 << 3, HEALTH_INA2 = 1 << 4, HEALTH_TEMP1 = 1 << 5,
+        HEALTH_TEMP2 = 1 << 6, HEALTH_CPU_TEMP = 1 << 7, HEALTH_RPM = 1 << 8
+    };
     // --- RAW ADC values ---
     float zmpt1_adc;        // ZMPT101B #1 raw
     float zmpt2_adc;        // ZMPT101B #2 raw
@@ -42,6 +47,10 @@ struct SensorData {
     // --- I2C Auto-Discovery ---
     uint8_t i2c_addresses[16];
     uint8_t i2c_count;
+    uint16_t health;
+    uint32_t sequence;
+    uint32_t cycleMs;
+    uint32_t overruns;
 };
 
 // Thread-safe data manager using FreeRTOS mutex
@@ -53,17 +62,8 @@ public:
     // Get atomic copy of all sensor data
     SensorData getData();
 
-    // Individual thread-safe update methods
-    void updateACVoltage(float voltage, float rawAdc);
-    void updateACVoltage2(float voltage, float rawAdc);
-    void updateACCurrent(float current, float rawAdc);
-    void updateACPower(float power);
-    void updateDC1(float voltage, float current, float power);
-    void updateDC2(float voltage, float current, float power);
-    void updateTemperature1(float tempC);
-    void updateTemperature2(float tempC);
-    void updateInternalTemp(float tempC);
-    void updateRPM(uint32_t rpm);
+    // Publish a complete measurement frame atomically.
+    void publish(const SensorData& data);
     void updateI2CAddresses(const uint8_t* addresses, uint8_t count);
 
 private:

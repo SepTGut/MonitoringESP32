@@ -16,6 +16,7 @@
 
 // Sensors
 #include "../sensors/ina226_sensor.h"
+#include "../sensors/ads1115_sensor.h"
 #include "../sensors/ds18b20_sensor.h"
 #include "../sensors/rpm_sensor.h"
 #include "../sensors/zmpt101b.h"
@@ -32,6 +33,13 @@
 // Cross-core I2C scan request state (Core 0 to Core 1).
 static volatile bool i2cScanRequested = false;
 static portMUX_TYPE i2cScanMux = portMUX_INITIALIZER_UNLOCKED;
+
+static volatile bool adcCalRequested = false;
+static portMUX_TYPE adcCalMux = portMUX_INITIALIZER_UNLOCKED;
+
+// Task handles for stack watermark diagnostics
+static TaskHandle_t sensorTaskHandle = NULL;
+static TaskHandle_t networkTaskHandle = NULL;
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,9 +61,10 @@ static DS18B20Sensor tempBus(PIN_DS18B20);
 static RPMSensor   rpmSensor(PIN_RPM_INPUT);
 static LcdDisplay   lcdDisplay;
 
-// Dynamic pointer allocation for I2C INA226 modules to support auto-discovery and soft-assignment
+// Dynamic pointer allocation for I2C INA226 modules and optional ADS1115 module
 static INA226Sensor* ina1 = nullptr;
 static INA226Sensor* ina2 = nullptr;
+static ADS1115Sensor* ads  = nullptr;
 
 static void sensorTaskFunction(void* pvParameters) {
     Serial.println("[Task] Sensor task started on Core 1");
@@ -97,7 +106,7 @@ static void sensorTaskFunction(void* pvParameters) {
     rpmSensor.begin();
 
     // Fetch config configuration and assign INA226 devices based on software settings
-    const SystemConfig& cfg = configManager.getConfig();
+    SystemConfig cfg = configManager.getConfig();
     
     // Check if INA226 #1 address is present on the bus
     bool ina1Present = false;
@@ -123,6 +132,20 @@ static void sensorTaskFunction(void* pvParameters) {
         Serial.printf("[INA226] Warning: INA2 address 0x%02X NOT found on I2C bus. Sensor disabled.\n", cfg.ina2Addr);
     }
 
+    if (cfg.useAds1115) {
+        bool adsPresent = false;
+        for (uint8_t i = 0; i < i2c_count; i++) {
+            if (i2c_list[i] == cfg.adsAddr) adsPresent = true;
+        }
+        if (adsPresent) {
+            Serial.printf("[ADS1115] Dynamic assignment: 16-bit ADC mapped to address 0x%02X\n", cfg.adsAddr);
+            ads = new ADS1115Sensor(cfg.adsAddr);
+            ads->begin();
+        } else {
+            Serial.printf("[ADS1115] Warning: ADS1115 address 0x%02X NOT found on I2C bus. Falling back to internal ADC.\n", cfg.adsAddr);
+        }
+    }
+
     // Issue first DS18B20 conversion so data is ready on first read
     tempBus.requestTemperature();
 
@@ -130,7 +153,7 @@ static void sensorTaskFunction(void* pvParameters) {
     uint32_t lastSerialLog = 0;
 
     for (;;) {
-        const SystemConfig& currentCfg = configManager.getConfig();
+        SystemConfig currentCfg = configManager.getConfig();
         TickType_t xFrequency = pdMS_TO_TICKS(currentCfg.sensorPollMs);
 
         // --- On-Demand I2C Scan Request ---
@@ -156,17 +179,42 @@ static void sensorTaskFunction(void* pvParameters) {
             Serial.printf("[I2C] On-demand scan complete. Found %d devices.\n", i2c_count);
         }
 
-        // Update sensor calibration values dynamically at runtime
+        // Sync calibration multipliers and baseline zero offsets from config
         zmpt1.setCalibration(currentCfg.zmpt1Cal);
         zmpt2.setCalibration(currentCfg.zmpt2Cal);
         zmct.setCalibration(currentCfg.zmctCal);
 
+        if (currentCfg.zmpt1OffsetMv >= 500.0f) zmpt1.setOffset(currentCfg.zmpt1OffsetMv);
+        if (currentCfg.zmpt2OffsetMv >= 500.0f) zmpt2.setOffset(currentCfg.zmpt2OffsetMv);
+        if (currentCfg.zmctOffsetMv >= 500.0f)  zmct.setOffset(currentCfg.zmctOffsetMv);
+
+        // Check if dynamic ADC zero-point calibration was requested from Core 0
+        bool runCal = false;
+        portENTER_CRITICAL(&adcCalMux);
+        if (adcCalRequested) {
+            runCal = true;
+            adcCalRequested = false;
+        }
+        portEXIT_CRITICAL(&adcCalMux);
+
+        if (runCal) {
+            Serial.println("[ADC Cal] Executing zero-point baseline offset calibration on Core 1...");
+            float o1 = zmpt1.calibrateZeroOffset(currentCfg.useAds1115 ? ads : nullptr, 0);
+            float o2 = zmpt2.calibrateZeroOffset(currentCfg.useAds1115 ? ads : nullptr, 1);
+            float oi = zmct.calibrateZeroOffset(currentCfg.useAds1115 ? ads : nullptr, 2);
+            configManager.updateOffsets(o1, o2, oi);
+            Serial.printf("[ADC Cal] Baseline zero offsets saved: ZMPT1=%.1fmV, ZMPT2=%.1fmV, ZMCT=%.1fmV\n", o1, o2, oi);
+        }
+
         // --- Read/Simulate Sensors ---
-        float temp1, temp2, tempEsp;
+        const uint32_t cycleStartedAt = millis();
+        float temp1 = 0.0f, temp2 = 0.0f, tempEsp = 0.0f;
         float acVoltage1, acRaw1, acVoltage2, acRaw2, acCurrent, acRawI, acPower;
         float dcV1, dcA1, dcP1, dcV2, dcA2, dcP2;
         float rpm;
 
+        bool temp1Valid = false;
+        bool temp2Valid = false;
         if (currentCfg.dummyMode) {
             // Simulated Dummy Sensors Mode
             static float simStep = 0.0f;
@@ -198,19 +246,30 @@ static void sensorTaskFunction(void* pvParameters) {
             temp1 = 32.0f + 4.0f * sin(simStep * 0.15f);
             temp2 = 26.0f + 2.0f * sin(simStep * 0.1f);
             tempEsp = 45.0f + 5.0f * sin(simStep * 0.2f);
+            temp1Valid = true;
+            temp2Valid = true;
         } else {
             // --- Read DS18B20 (conversion requested in PREVIOUS cycle) ---
-            temp1 = tempBus.readTemperature(0);
-            temp2 = tempBus.readTemperature(1);
+            temp1Valid = tempBus.readTemperature(0, temp1);
+            temp2Valid = tempBus.readTemperature(1, temp2);
             tempEsp = (temprature_sens_read() - 32.0f) / 1.8f;
 
-            // --- Read AC Sensors ---
-            acVoltage1 = zmpt1.readRMSVoltage();
-            acRaw1     = zmpt1.readRawADC();
-            acVoltage2 = zmpt2.readRMSVoltage();
-            acRaw2     = zmpt2.readRawADC();
-            acCurrent  = zmct.readRMSCurrent();
-            acRawI     = zmct.readRawADC();
+            // --- Read AC Sensors (Internal eFuse ADC vs ADS1115 16-Bit I2C ADC) ---
+            if (currentCfg.useAds1115 && ads != nullptr && ads->isEnabled()) {
+                acVoltage1 = zmpt1.readRMSVoltage(ads, 0); // ADS1115 Ch0 -> ZMPT1
+                acRaw1     = zmpt1.readRawADC();
+                acVoltage2 = zmpt2.readRMSVoltage(ads, 1); // ADS1115 Ch1 -> ZMPT2
+                acRaw2     = zmpt2.readRawADC();
+                acCurrent  = zmct.readRMSCurrent(ads, 2);  // ADS1115 Ch2 -> ZMCT
+                acRawI     = zmct.readRawADC();
+            } else {
+                acVoltage1 = zmpt1.readRMSVoltage();        // Internal ESP32 eFuse calibrated ADC
+                acRaw1     = zmpt1.readRawADC();
+                acVoltage2 = zmpt2.readRMSVoltage();
+                acRaw2     = zmpt2.readRawADC();
+                acCurrent  = zmct.readRMSCurrent();
+                acRawI     = zmct.readRawADC();
+            }
 
             // --- Calculate AC Power ---
             acPower = acVoltage1 * acCurrent * currentCfg.pf;
@@ -233,17 +292,25 @@ static void sensorTaskFunction(void* pvParameters) {
             tempBus.requestTemperature();
         }
 
-        // --- Update DataManager (thread-safe) ---
-        dataManager.updateACVoltage(acVoltage1, acRaw1);
-        dataManager.updateACVoltage2(acVoltage2, acRaw2);
-        dataManager.updateACCurrent(acCurrent, acRawI);
-        dataManager.updateACPower(acPower);
-        dataManager.updateDC1(dcV1, dcA1, dcP1);
-        dataManager.updateDC2(dcV2, dcA2, dcP2);
-        dataManager.updateTemperature1(temp1);
-        dataManager.updateTemperature2(temp2);
-        dataManager.updateInternalTemp(tempEsp);
-        dataManager.updateRPM((uint32_t)rpm);
+        // Publish one complete, internally consistent measurement frame.
+        static uint32_t sequence = 0;
+        static uint32_t overruns = 0;
+        SensorData frame = {};
+        frame.zmpt1_adc = acRaw1; frame.zmpt2_adc = acRaw2; frame.zmct_adc = acRawI;
+        frame.ac_voltage = acVoltage1; frame.ac_voltage2 = acVoltage2;
+        frame.ac_current = acCurrent; frame.ac_power = acPower;
+        frame.ina1_voltage = dcV1; frame.ina1_current = dcA1; frame.ina1_power = dcP1;
+        frame.ina2_voltage = dcV2; frame.ina2_current = dcA2; frame.ina2_power = dcP2;
+        frame.temperature1 = temp1; frame.temperature2 = temp2; frame.temperature_esp = tempEsp;
+        frame.rpm = static_cast<uint32_t>(rpm);
+        frame.health = SensorData::HEALTH_AC_V1 | SensorData::HEALTH_AC_V2 |
+                       SensorData::HEALTH_AC_I | SensorData::HEALTH_CPU_TEMP |
+                       SensorData::HEALTH_RPM;
+        if (temp1Valid) frame.health |= SensorData::HEALTH_TEMP1;
+        if (temp2Valid) frame.health |= SensorData::HEALTH_TEMP2;
+        if (currentCfg.dummyMode || (ina1 != nullptr && ina1->isEnabled())) frame.health |= SensorData::HEALTH_INA1;
+        if (currentCfg.dummyMode || (ina2 != nullptr && ina2->isEnabled())) frame.health |= SensorData::HEALTH_INA2;
+        frame.sequence = ++sequence;
 
         // --- Serial Logging (Dynamic rate) ---
 #if ENABLE_SERIAL_LOG
@@ -277,7 +344,17 @@ static void sensorTaskFunction(void* pvParameters) {
 #endif
 
         // --- Update LCD Display (with dynamic screen rotation) ---
-        lcdDisplay.update(dataManager.getData());
+        lcdDisplay.update(frame);
+
+        // Account for all work in this iteration, including logging and display I/O.
+        frame.cycleMs = millis() - cycleStartedAt;
+        if (frame.cycleMs > currentCfg.sensorPollMs) {
+            // Deadline overrun — increment counter but still publish the frame
+            // since measurements are complete; the overrun is from serial/LCD I/O.
+            ++overruns;
+        }
+        frame.overruns = overruns;
+        dataManager.publish(frame);
 
         // Wait for next cycle
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
@@ -291,7 +368,7 @@ static void sensorTaskFunction(void* pvParameters) {
 static void networkTaskFunction(void* pvParameters) {
     Serial.println("[Task] Network task started on Core 0");
 
-    const SystemConfig& cfg = configManager.getConfig();
+    SystemConfig cfg = configManager.getConfig();
 
     // Setup WiFi based on whether STA is enabled
     if (cfg.staEnabled && strlen(cfg.staSSID) > 0) {
@@ -312,7 +389,7 @@ static void networkTaskFunction(void* pvParameters) {
     uint32_t lastWsPush = millis();
 
     for (;;) {
-        const SystemConfig& currentCfg = configManager.getConfig();
+        SystemConfig currentCfg = configManager.getConfig();
 
         // Process DNS requests (high frequency for captive portal)
         dnsServer.processNextRequest();
@@ -333,32 +410,56 @@ static void networkTaskFunction(void* pvParameters) {
 //  Task Startup Functions
 // =============================================================
 
-void Tasks::startSensorTask() {
-    xTaskCreatePinnedToCore(
+bool Tasks::startSensorTask() {
+    const bool started = xTaskCreatePinnedToCore(
         sensorTaskFunction,
         "SensorTask",
         4096 * 2,       // Stack size (bytes) — generous for I2C scan + Serial.printf + LCD
         NULL,           // Parameters
         1,              // Priority
-        NULL,           // Task handle
+        &sensorTaskHandle, // Task handle for watermark diagnostics
         1               // Core 1 (App Core)
-    );
+    ) == pdPASS;
+    if (!started) {
+        Serial.println("[Task] Failed to start sensor task");
+        sensorTaskHandle = NULL;
+    }
+    return started;
 }
 
-void Tasks::startNetworkTask() {
-    xTaskCreatePinnedToCore(
+bool Tasks::startNetworkTask() {
+    const bool started = xTaskCreatePinnedToCore(
         networkTaskFunction,
         "NetworkTask",
         8192,           // Larger stack for networking
         NULL,           // Parameters
         1,              // Priority
-        NULL,           // Task handle
+        &networkTaskHandle, // Task handle for watermark diagnostics
         0               // Core 0 (Protocol Core)
-    );
+    ) == pdPASS;
+    if (!started) {
+        Serial.println("[Task] Failed to start network task");
+        networkTaskHandle = NULL;
+    }
+    return started;
 }
 
 void Tasks::requestI2CScan() {
     portENTER_CRITICAL(&i2cScanMux);
     i2cScanRequested = true;
     portEXIT_CRITICAL(&i2cScanMux);
+}
+
+void Tasks::requestAdcCalibration() {
+    portENTER_CRITICAL(&adcCalMux);
+    adcCalRequested = true;
+    portEXIT_CRITICAL(&adcCalMux);
+}
+
+TaskHandle_t Tasks::getSensorTaskHandle() {
+    return sensorTaskHandle;
+}
+
+TaskHandle_t Tasks::getNetworkTaskHandle() {
+    return networkTaskHandle;
 }
