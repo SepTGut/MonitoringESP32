@@ -47,7 +47,7 @@ void ConfigManager::loadDefaults() {
 
     _config.ina1Addr = INA226_ADDR_1; // Default INA226 #1 (from pin_config.h)
     _config.ina2Addr = INA226_ADDR_2; // Default INA226 #2 (from pin_config.h)
-    _config.useAds1115 = false;       // Internal ESP32 ADC used by default
+    _config.useAds1115 = true;        // External ADS1115 16-bit I2C ADC used by default
     _config.adsAddr = DEFAULT_ADS1115_ADDR; // Default ADS1115 address (0x48)
     _config.dummyMode = false; // Simulated dummy sensors mode disabled by default
     _config.setupRequired = true;

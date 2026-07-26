@@ -11,6 +11,12 @@ public:
     MovingAverage(uint8_t windowSize = 10);
     ~MovingAverage();
 
+    // Non-copyable, non-movable (owns heap buffer)
+    MovingAverage(const MovingAverage&) = delete;
+    MovingAverage& operator=(const MovingAverage&) = delete;
+    MovingAverage(MovingAverage&&) = delete;
+    MovingAverage& operator=(MovingAverage&&) = delete;
+
     // Add a new value and return the current average
     float update(float newValue);
 

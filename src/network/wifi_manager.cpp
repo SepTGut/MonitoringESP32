@@ -12,7 +12,7 @@ void WiFiManager::beginAP() {
     IPAddress apIP(192, 168, 4, 1);
     IPAddress subnet(255, 255, 255, 0);
 
-    const SystemConfig& cfg = configManager.getConfig();
+    const SystemConfig cfg = configManager.getConfig();
 
     WiFi.mode(WIFI_AP);
     WiFi.softAPConfig(apIP, apIP, subnet);
@@ -27,7 +27,7 @@ void WiFiManager::beginAPSTA(const char* staSSID, const char* staPass) {
     IPAddress apIP(192, 168, 4, 1);
     IPAddress subnet(255, 255, 255, 0);
 
-    const SystemConfig& cfg = configManager.getConfig();
+    const SystemConfig cfg = configManager.getConfig();
 
     WiFi.mode(WIFI_AP_STA);
     WiFi.softAPConfig(apIP, apIP, subnet);

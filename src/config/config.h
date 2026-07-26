@@ -32,14 +32,14 @@
 // --- ZMPT101B Calibration ---
 //  Adjust these based on known reference voltage measurements.
 //  Formula: Vrms = raw_rms × calibration_factor
-#define ZMPT_CALIBRATION_1  150.0f  // ZMPT101B #1 (for power calculation)
-#define ZMPT_CALIBRATION_2  150.0f  // ZMPT101B #2 (raw monitoring)
+#define ZMPT_CALIBRATION_1  242.0f  // ZMPT101B #1 (for power calculation)
+#define ZMPT_CALIBRATION_2  242.0f  // ZMPT101B #2 (raw monitoring)
 
 // --- ZMCT103C Calibration ---
 //  Depends on burden resistor and CT turns ratio.
 //  ZMCT103C typical: 1000:1 turns ratio
 //  Formula: Irms = raw_rms × calibration_factor
-#define ZMCT_CALIBRATION    5.0f
+#define ZMCT_CALIBRATION    0.31f
 
 // --- AC Power Factor ---
 //  Used for estimated real power: P = Vrms × Irms × PF

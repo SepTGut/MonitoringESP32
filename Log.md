@@ -1,5 +1,15 @@
 # Development Log
 
+## 2026-07-26
+
+### Fixed (Code Review)
+- **MovingAverage Rule-of-Five**: Added `= delete` for copy constructor, copy assignment, move constructor, and move assignment in `filters.h`. The class owns a heap-allocated `float[]` buffer — without these guards, an accidental copy would cause a double-free crash.
+- **WiFi Manager const-ref to temporary**: Changed `const SystemConfig&` to `const SystemConfig` (value copy) in both `beginAP()` and `beginAPSTA()` in `wifi_manager.cpp`. `getConfig()` returns by value, so binding a `const&` to the temporary was technically safe but misleading and fragile against future refactors.
+
+### Changed
+- **Default ADC Mode → External ADS1115**: Changed `useAds1115` default from `false` to `true` in `config_manager.cpp`. New installs now use the external ADS1115 16-bit I2C ADC by default instead of the internal ESP32 12-bit ADC. Existing devices with a saved `/config.json` are unaffected.
+- **AC Sensor Calibration (Multimeter Reference)**: Recalculated calibration defaults in `config.h` from multimeter readings. ZMPT101B voltage: `150.0` → `242.0` (was reading ~137V, actual 222V). ZMCT103C current: `5.0` → `0.31` (was reading ~4.6A, actual 0.286A).
+
 ## 2026-07-21
 
 ### Added (Hardening Release v1.1.0)
