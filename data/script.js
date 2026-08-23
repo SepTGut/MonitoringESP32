@@ -160,6 +160,9 @@
         barDcCur1: $('bar-dccur1'),
         barDcVolt2: $('bar-dcvolt2'),
         barDcCur2: $('bar-dccur2'),
+        batterySoc: $('val-battery-soc'),
+        batteryWh: $('badge-battery-wh'),
+        barBatterySoc: $('bar-battery-soc'),
         barRpm: $('bar-rpm'),
         barTemp1: $('bar-temp1'),
         barTemp2: $('bar-temp2'),
@@ -447,6 +450,44 @@
         setBar(dom.barDcCur1, data.dcA1, cfg.maxCurrent);
         setBar(dom.barDcVolt2, data.dcV2, cfg.maxVoltage);
         setBar(dom.barDcCur2, data.dcA2, cfg.maxCurrent);
+        
+        // Battery SoC (12V 68Ah)
+        let soc = data.batterySoc;
+        let wh = data.batteryWh;
+        if (soc == null && data.dcV1 != null) {
+            const v = data.dcV1;
+            if (v <= 11.85) soc = 0;
+            else if (v >= 12.75) soc = 100;
+            else {
+                const table = [
+                    [11.85, 0], [11.95, 10], [12.05, 25], [12.15, 38], [12.25, 50],
+                    [12.38, 65], [12.50, 75], [12.62, 88], [12.75, 100]
+                ];
+                for (let i = 0; i < table.length - 1; i++) {
+                    if (v >= table[i][0] && v <= table[i+1][0]) {
+                        soc = table[i][1] + ((table[i+1][1] - table[i][1]) / (table[i+1][0] - table[i][0])) * (v - table[i][0]);
+                        break;
+                    }
+                }
+            }
+            wh = (soc / 100) * 444.60; // 444.60 Wh effective for Lakoni 65Ah @ 57% SoH
+        }
+        if (soc != null) {
+            setText(dom.batterySoc, Math.round(soc).toString());
+            if (dom.batteryWh) setText(dom.batteryWh, fmt(wh, 1) + ' Wh');
+            if (dom.barBatterySoc) {
+                const clampedSoc = Math.max(0, Math.min(100, soc));
+                dom.barBatterySoc.style.width = clampedSoc + '%';
+                if (clampedSoc >= 70) {
+                    dom.barBatterySoc.style.background = 'var(--c-accent, #10b981)';
+                } else if (clampedSoc >= 35) {
+                    dom.barBatterySoc.style.background = '#f59e0b';
+                } else {
+                    dom.barBatterySoc.style.background = '#ef4444';
+                }
+            }
+        }
+
         setBar(dom.barRpm, data.rpm, cfg.maxRPM);
         setBar(dom.barTemp1, data.t1, cfg.maxTemp);
         setBar(dom.barTemp2, data.t2, cfg.maxTemp);
@@ -665,7 +706,6 @@
         const payload = {
             apSsid: dom.cfgApSsid.value,
             staEnabled: dom.cfgStaEnabled.checked,
-            staSsid: dom.cfgStaSsid.value,
             pollMs: parseInt(dom.cfgPollMs.value, 10),
             wsPushMs: parseInt(dom.cfgPushMs.value, 10),
             logMs: parseInt(dom.cfgLogMs.value, 10),
@@ -683,9 +723,10 @@
             adsAddr: dom.cfgAdsAddr ? parseInt(dom.cfgAdsAddr.value, 10) : 72,
             dummyMode: dom.cfgDummyMode ? dom.cfgDummyMode.checked : false
         };
-        // Include AC display limits
+        // Include AC display limits & optional credentials
         if (dom.cfgMaxAcV) payload.maxAcV = parseFloat(dom.cfgMaxAcV.value);
         if (dom.cfgMaxAcA) payload.maxAcA = parseFloat(dom.cfgMaxAcA.value);
+        if (dom.cfgStaSsid.value) payload.staSsid = dom.cfgStaSsid.value;
         if (dom.cfgApPass.value) payload.apPass = dom.cfgApPass.value;
         if (dom.cfgStaPass.value) payload.staPass = dom.cfgStaPass.value;
 

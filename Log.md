@@ -1,5 +1,28 @@
 # Development Log
 
+## 2026-08-23
+
+### Fixed & Changed
+- **INA226 R100 Shunt Resistor Support & Current Measurement Fix**:
+  - Updated `config.h` defaults: `INA226_SHUNT_OHM` updated from `0.01Ω` to `0.10Ω` (`R100` = 100mΩ) and `INA226_MAX_CURRENT` updated from `10.0A` to `0.80A` (adhering to INA226 81.92mV maximum differential shunt voltage input range).
+  - Updated `ina226_sensor.cpp` driver to compute DC current directly from physical ADC shunt voltage ($I = \frac{V_{shunt}}{R_{shunt}}$) and power via $P = V_{bus} \times |I|$. This resolves calibration register overflow errors and ensures high-precision 16-bit measurement.
+  - Updated standalone `test/hardware_test/src/main.cpp` diagnostic test to initialize and measure with `R100` ($0.10\Omega$) parameters.
+- **INA226 DC Voltage Calibration (0.94707x Multiplier)**:
+  - Applied high-precision voltage multiplier factor `INA226_VOLTAGE_CAL` ($0.94707\text{f} = \frac{11.81\text{V}}{12.47\text{V}}$) in `ina226_sensor.cpp` and `config.h`.
+  - Verified live on hardware: INA226 #1 now reads **$11.81\text{V}$** (matches physical multimeter exactly) and reports **$0.0\%$ SoC** (matches digital battery tester $\text{SOC}=0\%$).
+- **Lakoni Blue Wolf 12V 65Ah (75D23L) Precision SoC & Energy Calibration**:
+  - Calibrated exact battery profile to **Lakoni Blue Wolf 12V 65Ah (75D23L, 550 CCA)** with measured **57% SoH / 395 CCA ($R=7.57\text{ m}\Omega$)**.
+  - Calibrated real usable battery capacity to **$37.05\text{ Ah}$ / $444.60\text{ Wh}$** ($12\text{V} \times 65\text{Ah} \times 57\%$).
+  - Adjusted piecewise linear SoC table cutoff so that resting voltage $\le 11.85\text{V}$ maps precisely to **$0\%$ SoC** (matching user's digital battery tester), $12.25\text{V} \rightarrow 50\%$, and $\ge 12.75\text{V} \rightarrow 100\%$.
+  - Updated Web Dashboard metric card to **`Lakoni 65Ah (57% SoH / 37Ah)`**, live serial telemetry, WebSocket JSON stream, and Python logger tools.
+- **1-Hour INA226 #1 Live Monitor & CSV Data Logger**: Created `tools/monitor_ina1_1hour.py` to continuously capture real-time telemetry from INA226 #1 (Voltage, Current, Power), calculate live statistical metrics (Min/Max/Avg, accumulated energy in Wh and capacity in mAh), render an in-place console status dashboard, and stream CSV logs directly to `logs/`.
+- **LittleFS Filesystem Deployment Fix**: Identified and resolved `UnicodeEncodeError` in Windows PowerShell during `uploadfs` flashing, and fixed LittleFS partition mounting compatibility.
+
+## 2026-07-29
+
+### Fixed
+- **Configuration Save HTTP 400 Error**: Resolved validation failure on `/api/config` when saving settings with an empty Station Mode (STA) SSID field. Updated `config_manager.cpp` to permit empty/unconfigured `staSsid` strings (as long as `staEnabled` is false), and updated `script.js` (and `docs/script.js`) to conditionally send `staSsid` only when populated.
+
 ## 2026-07-26
 
 ### Fixed (Code Review)
@@ -8,7 +31,8 @@
 
 ### Changed
 - **Default ADC Mode → External ADS1115**: Changed `useAds1115` default from `false` to `true` in `config_manager.cpp`. New installs now use the external ADS1115 16-bit I2C ADC by default instead of the internal ESP32 12-bit ADC. Existing devices with a saved `/config.json` are unaffected.
-- **AC Sensor Calibration (Multimeter Reference)**: Recalculated calibration defaults in `config.h` from multimeter readings. ZMPT101B voltage: `150.0` → `242.0` (was reading ~137V, actual 222V). ZMCT103C current: `5.0` → `0.31` (was reading ~4.6A, actual 0.286A).
+- **AC Sensor Calibration (Multimeter Reference)**: Recalculated calibration defaults in `config.h` from multimeter readings. ZMPT101B voltage: `150.0` → `242.0` (was reading ~137V, actual 222V). ZMCT103C current: `5.0` → `0.31` → `0.69` (second pass: was reading ~0.32A, actual 0.71A).
+- **RPM Sensor — Period-Based Measurement**: Rewrote `rpm_sensor.cpp`/`.h` from pulse-counting over fixed 100ms windows to period-based measurement (time between the last two pulses). Fixes erratic RPM jumps (0 → 600 → 0) at speeds under 1000 RPM. Added adaptive deceleration: if time since the last pulse exceeds the last inter-pulse period, RPM smoothly decreases in real-time instead of holding a stale value until timeout.
 
 ## 2026-07-21
 

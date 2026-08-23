@@ -478,6 +478,21 @@ body {
     background: rgba(245, 158, 11, 0.1);
 }
 
+.metric-card[data-type="battery"] .metric-icon {
+    color: var(--accent-green, #10b981);
+    background: rgba(16, 185, 129, 0.12);
+}
+
+.badge-accent {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--accent-green, #10b981);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-left: 0.25rem;
+}
+
 .metric-card[data-type="ac"] .metric-icon {
     color: var(--accent-purple);
     background: rgba(168, 85, 247, 0.1);

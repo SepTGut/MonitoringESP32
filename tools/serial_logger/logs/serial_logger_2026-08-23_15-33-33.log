@@ -1,0 +1,1165 @@
+=== Unified Serial Logger Session Started at 2026-08-23 15:33:33.333126 ===
+ets Jul 29 2019 12:21:46
+
+rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3fff0030,len:184
+load:0x40078000,len:12732
+ho 0 tail 12 room 4
+load:0x40080400,len:2908
+entry 0x400805c4
+
+====================================
+  ESP32 Wind Generator Monitor
+  v1.1.0
+====================================
+[Config] Invalid saved configuration (SSID must contain 1-32 printable characters), using defaults
+[Config] Saved configuration successfully
+[Task] Sensor task started on Core 1
+[Task] Network task started on Core 0
+[I2C] Scanning I2C bus for connected devices...
+[I2C] Found responsive device at address 0x44
+[I2C] Found responsive device at address 0x45
+[LCD] No I2C LCD display address provided. LCD display is DISABLED.
+[WiFi] Access Point mode
+[WiFi] SSID: ESP32-WIND-MONITOR
+[WiFi] AP IP: 192.168.4.1
+[DNS] Captive portal DNS started
+[Web] Server started on port 80
+[ZMPT101B] Calibrated zero baseline offset: 142.00 mV
+[ZMPT101B] Initialized on GPIO 34 (eFuse offset=142.0mV, cal=242.0)
+[ZMPT101B] Calibrated zero baseline offset: 142.00 mV
+[ZMPT101B] Initialized on GPIO 35 (eFuse offset=142.0mV, cal=242.0)
+[ZMCT103C] Calibrated zero baseline offset: 142.98 mV
+[ZMCT103C] Initialized on GPIO 32 (eFuse offset=143.0mV, cal=0.7)
+[DS18B20] Found 0 sensor(s) on pin 4
+[RPM] Initialized on GPIO 27 (IR sensor, 1 pulse/rev)
+[INA226] Dynamic assignment: INA1 mapped to address 0x44
+[INA226] Initialized at address 0x44 (max 10.0A, 0.010Ω shunt)
+[INA226] Dynamic assignment: INA2 mapped to address 0x45
+[INA226] Initialized at address 0x45 (max 10.0A, 0.010Ω shunt)
+[ADS1115] Warning: ADS1115 address 0x48 NOT found on I2C bus. Falling back to internal ADC.
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.1°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 62.2°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.1°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.6W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.01V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.6W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.01V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 62.2°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 62.2°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.6W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.01V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.01V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.01V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.01V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.01V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 62.2°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.01V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 62.2°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.6W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 62.2°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.6W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 62.2°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 62.2°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.6W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 62.2°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.6W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.6W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.01V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.6W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 62.2°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.6W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 62.2°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.6W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.6W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.6W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 62.2°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.6W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.01V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.01V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.6W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 62.2°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.6W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 62.2°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 61.7°C)
+  RPM: 0
+======================
+======================
+  WIND MONITOR
+
+  AC
+  Voltage:  364.9V
+  Current:  1.04A
+  Power:    321.5W
+  V2 (raw): 364.9V
+
+  DC INA226 #1
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  DC INA226 #2
+  Voltage:  0.00V
+  Current:  0.00A
+  Power:    0.00W
+
+  Temperature: 0.0°C / 0.0°C (Internal CPU: 62.2°C)
+  RPM: 0
+======================

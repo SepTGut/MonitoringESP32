@@ -39,15 +39,16 @@
 //  Depends on burden resistor and CT turns ratio.
 //  ZMCT103C typical: 1000:1 turns ratio
 //  Formula: Irms = raw_rms × calibration_factor
-#define ZMCT_CALIBRATION    0.31f
+#define ZMCT_CALIBRATION    0.69f
 
 // --- AC Power Factor ---
 //  Used for estimated real power: P = Vrms × Irms × PF
 #define AC_POWER_FACTOR     0.85f
 
 // --- INA226 Configuration ---
-#define INA226_MAX_CURRENT  10.0f   // Maximum expected current (A)
-#define INA226_SHUNT_OHM    0.01f   // Shunt resistor value (Ω)
+#define INA226_MAX_CURRENT  0.80f   // Maximum expected current (A) for R100 shunt (81.92mV limit)
+#define INA226_SHUNT_OHM    0.10f   // Shunt resistor value (Ω) — R100 = 0.100Ω (100mΩ)
+#define INA226_VOLTAGE_CAL  0.94707f // DC voltage calibration multiplier (11.81V multimeter / 12.47V raw)
 
 // --- ADS1115 Configuration ---
 #define DEFAULT_ADS1115_ADDR 0x48   // Default ADS1115 I2C Address (ADDR -> GND)

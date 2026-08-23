@@ -202,7 +202,9 @@ bool ConfigManager::updateFromJson(const JsonVariant& json, String& error, Strin
         if (!json["staEnabled"].is<bool>()) return fail("staEnabled", "Must be a boolean"); next.staEnabled = json["staEnabled"].as<bool>(); restartRequired = true;
     }
     if (json.containsKey("staSsid") && json["staSsid"].is<const char*>()) {
-        const char* value = json["staSsid"].as<const char*>(); if (!printableString(value, 1, 32)) return fail("staSsid", "SSID must contain 1-32 printable characters"); copyString(next.staSSID, sizeof(next.staSSID), value); restartRequired = true;
+        const char* value = json["staSsid"].as<const char*>();
+        if (strlen(value) > 0 && !printableString(value, 1, 32)) return fail("staSsid", "SSID must contain 1-32 printable characters");
+        copyString(next.staSSID, sizeof(next.staSSID), value); restartRequired = true;
     }
     if (json.containsKey("staPass") && json["staPass"].is<const char*>()) {
         const char* value = json["staPass"].as<const char*>(); if (!printableString(value, 8, 63)) return fail("staPass", "Password must contain 8-63 printable characters"); copyString(next.staPass, sizeof(next.staPass), value); restartRequired = true;

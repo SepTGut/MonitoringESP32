@@ -24,25 +24,33 @@ bool INA226Sensor::begin() {
         return false;
     }
 
-    _ina.setMaxCurrentShunt(INA226_MAX_CURRENT, INA226_SHUNT_OHM);
+    int calErr = _ina.setMaxCurrentShunt(INA226_MAX_CURRENT, INA226_SHUNT_OHM);
+    if (calErr != INA226_ERR_NONE && calErr != 0) {
+        Serial.printf("[INA226] Warning: setMaxCurrentShunt returned %d, using direct physical shunt calculation\n", calErr);
+    }
     _enabled = true;
 
-    Serial.printf("[INA226] Initialized at address 0x%02X (max %.1fA, %.3fΩ shunt)\n",
+    Serial.printf("[INA226] Initialized at address 0x%02X (max %.2fA, %.3fΩ shunt)\n",
                   _address, INA226_MAX_CURRENT, INA226_SHUNT_OHM);
     return true;
 }
 
 float INA226Sensor::readVoltage() {
     if (!_enabled) return 0.0f;
-    return _ina.getBusVoltage();
+    return _ina.getBusVoltage() * INA226_VOLTAGE_CAL;
 }
 
 float INA226Sensor::readCurrent() {
     if (!_enabled) return 0.0f;
-    return _ina.getCurrent_mA() / 1000.0f;  // mA → A
+    // Calculate current directly from physical shunt voltage drop (I = V_shunt / R_shunt)
+    // getShuntVoltage_mV() returns mV -> convert to Volts, then divide by shunt resistance (Ohms)
+    float shunt_mV = _ina.getShuntVoltage_mV();
+    return (shunt_mV / 1000.0f) / INA226_SHUNT_OHM;  // Returns Amperes
 }
 
 float INA226Sensor::readPower() {
     if (!_enabled) return 0.0f;
-    return _ina.getPower_mW() / 1000.0f;    // mW → W
+    float v = readVoltage();
+    float a = readCurrent();
+    return v * fabsf(a);    // Returns Watts
 }

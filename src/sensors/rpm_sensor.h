@@ -1,8 +1,8 @@
 #pragma once
 // =============================================================
 //  rpm_sensor.h — Interrupt-Based RPM Sensor Driver
-//  Method: Pulse counting with hardware interrupt
-//  Formula: RPM = (pulse_count / time_seconds) × 60
+//  Method: Period-based measurement (time between pulses)
+//  Accurate across full RPM range, especially at low speeds.
 // =============================================================
 
 #include <Arduino.h>
@@ -19,10 +19,9 @@ public:
 
 private:
     uint8_t  _pin;
-    uint32_t _lastCalcTime;
-    uint32_t _lastPulseCount;
 
-    // Shared volatile counters accessed from ISR
+    // Shared volatile state accessed from ISR
     static volatile uint32_t _pulseCount;
     static volatile uint32_t _lastPulseTime;
+    static volatile uint32_t _prevPulseTime;
 };

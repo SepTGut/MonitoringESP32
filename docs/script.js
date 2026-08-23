@@ -665,7 +665,6 @@
         const payload = {
             apSsid: dom.cfgApSsid.value,
             staEnabled: dom.cfgStaEnabled.checked,
-            staSsid: dom.cfgStaSsid.value,
             pollMs: parseInt(dom.cfgPollMs.value, 10),
             wsPushMs: parseInt(dom.cfgPushMs.value, 10),
             logMs: parseInt(dom.cfgLogMs.value, 10),
@@ -683,9 +682,10 @@
             adsAddr: dom.cfgAdsAddr ? parseInt(dom.cfgAdsAddr.value, 10) : 72,
             dummyMode: dom.cfgDummyMode ? dom.cfgDummyMode.checked : false
         };
-        // Include AC display limits
+        // Include AC display limits & optional credentials
         if (dom.cfgMaxAcV) payload.maxAcV = parseFloat(dom.cfgMaxAcV.value);
         if (dom.cfgMaxAcA) payload.maxAcA = parseFloat(dom.cfgMaxAcA.value);
+        if (dom.cfgStaSsid.value) payload.staSsid = dom.cfgStaSsid.value;
         if (dom.cfgApPass.value) payload.apPass = dom.cfgApPass.value;
         if (dom.cfgStaPass.value) payload.staPass = dom.cfgStaPass.value;
 

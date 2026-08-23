@@ -26,10 +26,12 @@ struct SensorData {
     float ac_power;         // Estimated real power (W) = V × I × PF
     float ac_voltage2;      // ZMPT101B #2 raw monitoring (V)
 
-    // --- INA226 #1 (DC) ---
+    // --- INA226 #1 (DC / Battery) ---
     float ina1_voltage;     // Bus voltage (V)
     float ina1_current;     // Current (A)
     float ina1_power;       // Power (W)
+    float battery_soc;      // 12V 68Ah Lead-Acid State of Charge (%)
+    float battery_wh;       // Estimated remaining energy (Wh)
 
     // --- INA226 #2 (DC) ---
     float ina2_voltage;

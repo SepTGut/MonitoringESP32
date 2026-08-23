@@ -116,12 +116,12 @@ void setup() {
 
     // Initialize INA226 modules if found
     if (ina1Connected && ina1.begin()) {
-        ina1.setMaxCurrentShunt(10.0, 0.01);
-        Serial.println("[Init] INA226 #1 initialized @ 0x44");
+        ina1.setMaxCurrentShunt(0.80, 0.10);
+        Serial.println("[Init] INA226 #1 initialized @ 0x44 (R100 = 0.10Ω)");
     }
     if (ina2Connected && ina2.begin()) {
-        ina2.setMaxCurrentShunt(10.0, 0.01);
-        Serial.println("[Init] INA226 #2 initialized @ 0x45");
+        ina2.setMaxCurrentShunt(0.80, 0.10);
+        Serial.println("[Init] INA226 #2 initialized @ 0x45 (R100 = 0.10Ω)");
     }
 
     // Initialize OneWire DS18B20
@@ -181,12 +181,12 @@ void loop() {
 
     // --- 3. Read INA226 DC Power Sensors ---
     float ina1_V = ina1Connected ? ina1.getBusVoltage() : 0.0f;
-    float ina1_A = ina1Connected ? (ina1.getCurrent_mA() / 1000.0f) : 0.0f;
-    float ina1_W = ina1Connected ? (ina1.getPower_mW() / 1000.0f) : 0.0f;
-
+    float ina1_A = ina1Connected ? ((ina1.getShuntVoltage_mV() / 1000.0f) / 0.10f) : 0.0f;
+    float ina1_W = ina1_V * fabsf(ina1_A);
+    
     float ina2_V = ina2Connected ? ina2.getBusVoltage() : 0.0f;
-    float ina2_A = ina2Connected ? (ina2.getCurrent_mA() / 1000.0f) : 0.0f;
-    float ina2_W = ina2Connected ? (ina2.getPower_mW() / 1000.0f) : 0.0f;
+    float ina2_A = ina2Connected ? ((ina2.getShuntVoltage_mV() / 1000.0f) / 0.10f) : 0.0f;
+    float ina2_W = ina2_V * fabsf(ina2_A);
 
     // --- 4. Read DS18B20 Temperatures ---
     float temp1 = tempSensors.getTempCByIndex(0);

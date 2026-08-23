@@ -49,6 +49,34 @@ uint8_t temprature_sens_read();
 }
 #endif
 
+// Calibrated SoC curve for Lakoni Blue Wolf 12V 65Ah (75D23L, 57% SoH / 550 CCA)
+// Cutoff: <= 11.85V -> 0.0%, >= 12.75V -> 100.0%
+static float calculateBatterySoC(float v) {
+    if (v <= 11.85f) return 0.0f;
+    if (v >= 12.75f) return 100.0f;
+
+    static const struct { float v; float soc; } socTable[] = {
+        {11.85f,   0.0f},
+        {11.95f,  10.0f},
+        {12.05f,  25.0f},
+        {12.15f,  38.0f},
+        {12.25f,  50.0f},
+        {12.38f,  65.0f},
+        {12.50f,  75.0f},
+        {12.62f,  88.0f},
+        {12.75f, 100.0f}
+    };
+    constexpr size_t nPoints = sizeof(socTable) / sizeof(socTable[0]);
+
+    for (size_t i = 0; i < nPoints - 1; i++) {
+        if (v >= socTable[i].v && v <= socTable[i + 1].v) {
+            float slope = (socTable[i + 1].soc - socTable[i].soc) / (socTable[i + 1].v - socTable[i].v);
+            return socTable[i].soc + slope * (v - socTable[i].v);
+        }
+    }
+    return 100.0f;
+}
+
 // =============================================================
 //  CORE 1 — Sensor Measurement Task
 // =============================================================
@@ -300,6 +328,8 @@ static void sensorTaskFunction(void* pvParameters) {
         frame.ac_voltage = acVoltage1; frame.ac_voltage2 = acVoltage2;
         frame.ac_current = acCurrent; frame.ac_power = acPower;
         frame.ina1_voltage = dcV1; frame.ina1_current = dcA1; frame.ina1_power = dcP1;
+        frame.battery_soc = calculateBatterySoC(dcV1);
+        frame.battery_wh = (frame.battery_soc / 100.0f) * (12.0f * 37.05f); // 444.60 Wh effective (65Ah @ 57% SoH)
         frame.ina2_voltage = dcV2; frame.ina2_current = dcA2; frame.ina2_power = dcP2;
         frame.temperature1 = temp1; frame.temperature2 = temp2; frame.temperature_esp = tempEsp;
         frame.rpm = static_cast<uint32_t>(rpm);
@@ -327,10 +357,11 @@ static void sensorTaskFunction(void* pvParameters) {
             Serial.printf("  Power:    %.1fW\n", acPower);
             Serial.printf("  V2 (raw): %.1fV\n", acVoltage2);
             Serial.println();
-            Serial.println("  DC INA226 #1");
+            Serial.println("  DC INA226 #1 (Lakoni Blue Wolf 65Ah @ 57% SoH / 37.05Ah)");
             Serial.printf("  Voltage:  %.2fV\n", dcV1);
             Serial.printf("  Current:  %.2fA\n", dcA1);
             Serial.printf("  Power:    %.2fW\n", dcP1);
+            Serial.printf("  SoC:      %.1f%% (%.1f Wh / 444.6 Wh)\n", frame.battery_soc, frame.battery_wh);
             Serial.println();
             Serial.println("  DC INA226 #2");
             Serial.printf("  Voltage:  %.2fV\n", dcV2);
