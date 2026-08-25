@@ -425,10 +425,10 @@
         const acP = data.acP != null ? data.acP : 0;
         const dcP1 = data.dcP1 != null ? data.dcP1 : 0;
         const invP = data.invP != null ? data.invP : (data.dcV1 && data.invA ? data.dcV1 * Math.abs(data.invA) : 0);
-        const ctrlP = data.ctrlP != null ? data.ctrlP : (data.dcP2 != null ? data.dcP2 : 0);
+        const ctrlP = data.ctrlP != null ? data.ctrlP : 0;
         const invA = data.invA != null ? data.invA : 0;
-        const ctrlV = data.ctrlV != null ? data.ctrlV : (data.dcV2 != null ? data.dcV2 : 0);
-        const ctrlA = data.ctrlA != null ? data.ctrlA : (data.dcA2 != null ? data.dcA2 : 0);
+        const ctrlV = data.ctrlV != null ? data.ctrlV : 0;
+        const ctrlA = data.ctrlA != null ? data.ctrlA : 0;
 
         // Hero power values
         setText(dom.acPwr, acP.toFixed(1));
@@ -473,8 +473,8 @@
         if (dom.barCtrlA) setBar(dom.barCtrlA, ctrlA, 5.0);
         
         // Battery SoC (Lakoni 65Ah @ 60% SoH = 39.0Ah / 468.0 Wh)
-        let soc = data.batterySoc;
-        let wh = data.batteryWh;
+        let soc = data.soc != null ? data.soc : data.batterySoc;
+        let wh = data.wh != null ? data.wh : data.batteryWh;
         if (soc == null && data.dcV1 != null) {
             const v = data.dcV1;
             if (v <= 11.85) soc = 0;
@@ -528,8 +528,10 @@
         updateHealthIndicators(data.health);
 
         // Live diagnostics update in the footer-style area
-        if (data.cycleMs != null && dom.sysCycleMs) dom.sysCycleMs.textContent = data.cycleMs + ' ms';
-        if (data.overruns != null && dom.sysOverruns) dom.sysOverruns.textContent = data.overruns;
+        const cyc = data.cyc != null ? data.cyc : data.cycleMs;
+        const ovr = data.ovr != null ? data.ovr : data.overruns;
+        if (cyc != null && dom.sysCycleMs) dom.sysCycleMs.textContent = cyc + ' ms';
+        if (ovr != null && dom.sysOverruns) dom.sysOverruns.textContent = ovr;
     }
 
     // --- Helpers ---
@@ -701,8 +703,10 @@
                 if (data.minHeap != null && dom.sysMinHeap) dom.sysMinHeap.textContent = (data.minHeap / 1024).toFixed(1) + ' KB';
                 if (data.uptime != null) dom.sysUptime.textContent = formatUptime(data.uptime);
                 if (data.clients != null) dom.sysClients.textContent = data.clients;
-                if (data.cycleMs != null && dom.sysCycleMs) dom.sysCycleMs.textContent = data.cycleMs + ' ms';
-                if (data.overruns != null && dom.sysOverruns) dom.sysOverruns.textContent = data.overruns;
+                const cyc2 = data.cyc != null ? data.cyc : data.cycleMs;
+                const ovr2 = data.ovr != null ? data.ovr : data.overruns;
+                if (cyc2 != null && dom.sysCycleMs) dom.sysCycleMs.textContent = cyc2 + ' ms';
+                if (ovr2 != null && dom.sysOverruns) dom.sysOverruns.textContent = ovr2;
                 if (data.sensorStackFree != null && dom.sysSensorStack) dom.sysSensorStack.textContent = data.sensorStackFree + ' B';
                 if (data.networkStackFree != null && dom.sysNetworkStack) dom.sysNetworkStack.textContent = data.networkStackFree + ' B';
 

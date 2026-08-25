@@ -7,6 +7,10 @@
   - Updated `config.h` defaults: `INA226_SHUNT_OHM` updated from `0.01Ω` to `0.10Ω` (`R100` = 100mΩ) and `INA226_MAX_CURRENT` updated from `10.0A` to `0.80A` (adhering to INA226 81.92mV maximum differential shunt voltage input range).
   - Updated `ina226_sensor.cpp` driver to compute DC current directly from physical ADC shunt voltage ($I = \frac{V_{shunt}}{R_{shunt}}$) and power via $P = V_{bus} \times |I|$. This resolves calibration register overflow errors and ensures high-precision 16-bit measurement.
   - Updated standalone `test/hardware_test/src/main.cpp` diagnostic test to initialize and measure with `R100` ($0.10\Omega$) parameters.
+- **3x Code Optimization & Warning Elimination Cycles**:
+  - **Iteration 1 (`b92ba62`)**: Eliminated 58 compiler warnings (57 deprecated `Bxxxxx` macros in `lcd_display.cpp` replaced with `0bxxxxx` binary literals, 1 `volatile++` deprecation in `rpm_sensor.cpp`). Removed 4 legacy alias float fields in `SensorData` (`ac_voltage`, `ac_voltage2`, `ac_current`, `ac_power`), saving 16 bytes per frame.
+  - **Iteration 2 (`f1f1e04`)**: Corrected dummy simulation topology in `freertos_tasks.cpp` so ZMPT2 simulates 220V Inverter AC output, ZMCT simulates inverter load current, and acPower matches actual hardware calculations. Saved 56 bytes flash.
+  - **Iteration 3 (`iter3`)**: Streamlined JSON serialization in `web_server.cpp` and `data/script.js` with compact, zero-duplicate payload keys. Optimized static file route handler lambdas, saving 516 bytes of flash (down to 718,223 bytes / 54.8%).
 - **Inverter AC Output (ZMPT2 + ZMCT) & Generator AC (ZMPT1) Topology**:
   - Configured **ZMPT101B #1 (ADS1115 A0)** on the raw Generator AC output (before rectifier/MPPT).
   - Configured **ZMPT101B #2 (ADS1115 A1)** & **ZMCT103C (ADS1115 A2)** on the Inverter 220V AC Output side for real AC load power measurement ($P_{\text{inv\_ac}} = V_{\text{zmpt2}} \times I_{\text{zmct}} \times PF$).

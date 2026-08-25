@@ -21,23 +21,24 @@ AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 
 static void serializeSensorData(JsonDocument& doc, const SensorData& data) {
-    doc["genAcV"] = data.gen_ac_voltage;   // Generator AC Voltage (ZMPT1)
-    doc["invAcV"] = data.inv_ac_voltage;   // Inverter AC Output Voltage (ZMPT2)
-    doc["invAcA"] = data.inv_ac_current;   // Inverter AC Load Current (ZMCT)
-    doc["invAcP"] = data.inv_ac_power;     // Inverter AC Output Power (W)
-    doc["acV"]  = data.gen_ac_voltage;     // Legacy JSON alias
-    doc["acV2"] = data.inv_ac_voltage;     // Legacy JSON alias
-    doc["acA"]  = data.inv_ac_current;     // Legacy JSON alias
-    doc["acP"]  = data.inv_ac_power;       // Legacy JSON alias
+    // AC — Generator & Inverter Output
+    doc["acV"]  = data.gen_ac_voltage;     // Generator AC Voltage (ZMPT1/A0)
+    doc["acV2"] = data.inv_ac_voltage;     // Inverter AC Output Voltage (ZMPT2/A1)
+    doc["acA"]  = data.inv_ac_current;     // Inverter AC Load Current (ZMCT/A2)
+    doc["acP"]  = data.inv_ac_power;       // Inverter AC Output Power (W)
+    // DC — Battery & MPPT
     doc["dcV1"] = data.ina1_voltage; doc["dcA1"] = data.ina1_current; doc["dcP1"] = data.ina1_power;
-    doc["batterySoc"] = data.battery_soc; doc["batteryWh"] = data.battery_wh;
+    doc["soc"]  = data.battery_soc; doc["wh"] = data.battery_wh;
+    // DC — Inverter Input (ACS758 50A)
     doc["invA"] = data.inverter_current; doc["invP"] = data.inverter_power;
     doc["invEff"] = data.inverter_efficiency;
+    // DC — Control & Lights (INA226 #2)
     doc["ctrlV"] = data.ina2_voltage; doc["ctrlA"] = data.ina2_current; doc["ctrlP"] = data.ina2_power;
-    doc["dcV2"] = data.ina2_voltage; doc["dcA2"] = data.ina2_current; doc["dcP2"] = data.ina2_power; // legacy alias
-    doc["rpm"] = data.rpm; doc["t1"] = data.temperature1; doc["t2"] = data.temperature2; doc["tEsp"] = data.temperature_esp;
-    doc["sequence"] = data.sequence; doc["cycleMs"] = data.cycleMs; doc["overruns"] = data.overruns;
-    doc["powerMode"] = "estimated";
+    // Mechanical & Thermal
+    doc["rpm"] = data.rpm;
+    doc["t1"] = data.temperature1; doc["t2"] = data.temperature2; doc["tEsp"] = data.temperature_esp;
+    // Meta
+    doc["seq"] = data.sequence; doc["cyc"] = data.cycleMs; doc["ovr"] = data.overruns;
     JsonObject health = doc.createNestedObject("health");
     health["acV1"] = (data.health & SensorData::HEALTH_AC_V1) != 0;
     health["acV2"] = (data.health & SensorData::HEALTH_AC_V2) != 0;
@@ -71,30 +72,13 @@ void WebDashboard::begin() {
 
     // --- Serve Static Files ---
     server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
-        if (LittleFS.exists("/index.html")) {
-            request->send(LittleFS, "/index.html", "text/html");
-        } else {
-            request->send(200, "text/html",
-                "<h1>ESP32 Wind Monitor</h1>"
-                "<p>index.html not found. Upload filesystem: "
-                "<code>pio run -t uploadfs</code></p>");
-        }
+        request->send(LittleFS, "/index.html", "text/html");
     });
-
     server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest* request) {
-        if (LittleFS.exists("/style.css")) {
-            request->send(LittleFS, "/style.css", "text/css");
-        } else {
-            request->send(404, "text/plain", "style.css not found");
-        }
+        request->send(LittleFS, "/style.css", "text/css");
     });
-
     server.on("/script.js", HTTP_GET, [](AsyncWebServerRequest* request) {
-        if (LittleFS.exists("/script.js")) {
-            request->send(LittleFS, "/script.js", "text/javascript");
-        } else {
-            request->send(404, "text/plain", "script.js not found");
-        }
+        request->send(LittleFS, "/script.js", "text/javascript");
     });
 
     // --- API: Get System Info ---
