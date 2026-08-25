@@ -17,6 +17,7 @@
 // Sensors
 #include "../sensors/ina226_sensor.h"
 #include "../sensors/ads1115_sensor.h"
+#include "../sensors/acs758_sensor.h"
 #include "../sensors/ds18b20_sensor.h"
 #include "../sensors/rpm_sensor.h"
 #include "../sensors/zmpt101b.h"
@@ -82,11 +83,12 @@ static float calculateBatterySoC(float v) {
 // =============================================================
 
 // Instantiate all sensor objects (with initial config values)
-static ZMPT101B    zmpt1(PIN_ZMPT101B_1, ZMPT_CALIBRATION_1);
-static ZMPT101B    zmpt2(PIN_ZMPT101B_2, ZMPT_CALIBRATION_2);
-static ZMCT103C    zmct(PIN_ZMCT103C, ZMCT_CALIBRATION);
+static ZMPT101B     zmpt1(PIN_ZMPT101B_1, ZMPT_CALIBRATION_1);
+static ZMPT101B     zmpt2(PIN_ZMPT101B_2, ZMPT_CALIBRATION_2);
+static ZMCT103C     zmct(PIN_ZMCT103C, ZMCT_CALIBRATION);
+static ACS758Sensor acs758(PIN_ACS758_INPUT, ACS758_SENSITIVITY);
 static DS18B20Sensor tempBus(PIN_DS18B20);
-static RPMSensor   rpmSensor(PIN_RPM_INPUT);
+static RPMSensor    rpmSensor(PIN_RPM_INPUT);
 static LcdDisplay   lcdDisplay;
 
 // Dynamic pointer allocation for I2C INA226 modules and optional ADS1115 module
@@ -169,9 +171,17 @@ static void sensorTaskFunction(void* pvParameters) {
             Serial.printf("[ADS1115] Dynamic assignment: 16-bit ADC mapped to address 0x%02X\n", cfg.adsAddr);
             ads = new ADS1115Sensor(cfg.adsAddr);
             ads->begin();
+            // Auto-calibrate baseline offsets via ADS1115
+            zmpt1.calibrateZeroOffset(ads, ADS1115_CH_ZMPT1);
+            zmpt2.calibrateZeroOffset(ads, ADS1115_CH_ZMPT2);
+            zmct.calibrateZeroOffset(ads, ADS1115_CH_ZMCT);
+            acs758.calibrateZeroOffset(ads, ADS1115_CH_ACS758);
         } else {
             Serial.printf("[ADS1115] Warning: ADS1115 address 0x%02X NOT found on I2C bus. Falling back to internal ADC.\n", cfg.adsAddr);
+            acs758.begin();
         }
+    } else {
+        acs758.begin();
     }
 
     // Issue first DS18B20 conversion so data is ready on first read
@@ -227,9 +237,11 @@ static void sensorTaskFunction(void* pvParameters) {
 
         if (runCal) {
             Serial.println("[ADC Cal] Executing zero-point baseline offset calibration on Core 1...");
-            float o1 = zmpt1.calibrateZeroOffset(currentCfg.useAds1115 ? ads : nullptr, 0);
-            float o2 = zmpt2.calibrateZeroOffset(currentCfg.useAds1115 ? ads : nullptr, 1);
-            float oi = zmct.calibrateZeroOffset(currentCfg.useAds1115 ? ads : nullptr, 2);
+            const bool useAds = (currentCfg.useAds1115 && ads != nullptr && ads->isEnabled());
+            float o1 = zmpt1.calibrateZeroOffset(useAds ? ads : nullptr, ADS1115_CH_ZMPT1);
+            float o2 = zmpt2.calibrateZeroOffset(useAds ? ads : nullptr, ADS1115_CH_ZMPT2);
+            float oi = zmct.calibrateZeroOffset(useAds ? ads : nullptr, ADS1115_CH_ZMCT);
+            acs758.calibrateZeroOffset(useAds ? ads : nullptr, ADS1115_CH_ACS758);
             configManager.updateOffsets(o1, o2, oi);
             Serial.printf("[ADC Cal] Baseline zero offsets saved: ZMPT1=%.1fmV, ZMPT2=%.1fmV, ZMCT=%.1fmV\n", o1, o2, oi);
         }
@@ -238,6 +250,7 @@ static void sensorTaskFunction(void* pvParameters) {
         const uint32_t cycleStartedAt = millis();
         float temp1 = 0.0f, temp2 = 0.0f, tempEsp = 0.0f;
         float acVoltage1, acRaw1, acVoltage2, acRaw2, acCurrent, acRawI, acPower;
+        float invCurrent = 0.0f, invRawMv = 0.0f, invPower = 0.0f;
         float dcV1, dcA1, dcP1, dcV2, dcA2, dcP2;
         float rpm;
 
@@ -258,14 +271,20 @@ static void sensorTaskFunction(void* pvParameters) {
             acRawI     = acCurrent * 100.0f;
             acPower    = acVoltage1 * acCurrent * currentCfg.pf;
 
-            dcV1 = 12.0f + 2.0f * sin(simStep * 0.4f);
-            dcA1 = 3.0f + 2.0f * sin(simStep * 0.6f);
+            dcV1 = 12.0f + 0.8f * sin(simStep * 0.4f);
+            dcA1 = 1.5f + 1.2f * sin(simStep * 0.6f);
             if (dcA1 < 0.0f) dcA1 = 0.0f;
             dcP1 = dcV1 * dcA1;
 
-            dcV2 = 24.0f + 3.0f * sin(simStep * 0.35f);
-            dcA2 = 1.5f + 1.0f * sin(simStep * 0.55f);
-            if (dcA2 < 0.0f) dcA2 = 0.0f;
+            // Inverter discharge simulation
+            invCurrent = 8.5f + 5.0f * sin(simStep * 0.45f);
+            if (invCurrent < 0.0f) invCurrent = 0.0f;
+            invPower = dcV1 * invCurrent;
+            invRawMv = 2500.0f + (invCurrent * 40.0f);
+
+            // Control / Light power simulation (before DC-DC)
+            dcV2 = dcV1;
+            dcA2 = 0.45f + 0.15f * sin(simStep * 0.2f);
             dcP2 = dcV2 * dcA2;
 
             rpm  = 800.0f + 600.0f * sin(simStep * 0.25f) * (windSpeed / 8.0f);
@@ -282,31 +301,44 @@ static void sensorTaskFunction(void* pvParameters) {
             temp2Valid = tempBus.readTemperature(1, temp2);
             tempEsp = (temprature_sens_read() - 32.0f) / 1.8f;
 
-            // --- Read AC Sensors (Internal eFuse ADC vs ADS1115 16-Bit I2C ADC) ---
+            // --- Read Analog Sensors (ADS1115 16-Bit I2C ADC vs Internal ADC) ---
             if (currentCfg.useAds1115 && ads != nullptr && ads->isEnabled()) {
-                acVoltage1 = zmpt1.readRMSVoltage(ads, 0); // ADS1115 Ch0 -> ZMPT1
+                acVoltage1 = zmpt1.readRMSVoltage(ads, ADS1115_CH_ZMPT1); // ADS1115 Ch0 -> ZMPT1
                 acRaw1     = zmpt1.readRawADC();
-                acVoltage2 = zmpt2.readRMSVoltage(ads, 1); // ADS1115 Ch1 -> ZMPT2
+                acVoltage2 = zmpt2.readRMSVoltage(ads, ADS1115_CH_ZMPT2); // ADS1115 Ch1 -> ZMPT2
                 acRaw2     = zmpt2.readRawADC();
-                acCurrent  = zmct.readRMSCurrent(ads, 2);  // ADS1115 Ch2 -> ZMCT
+                acCurrent  = zmct.readRMSCurrent(ads, ADS1115_CH_ZMCT);   // ADS1115 Ch2 -> ZMCT
                 acRawI     = zmct.readRawADC();
+                invCurrent = acs758.readCurrent(ads, ADS1115_CH_ACS758); // ADS1115 Ch3 -> ACS758 50A
+                invRawMv   = acs758.readRawMilliVolts(ads, ADS1115_CH_ACS758);
             } else {
-                acVoltage1 = zmpt1.readRMSVoltage();        // Internal ESP32 eFuse calibrated ADC
+                acVoltage1 = zmpt1.readRMSVoltage();                     // Internal ESP32 ADC
                 acRaw1     = zmpt1.readRawADC();
                 acVoltage2 = zmpt2.readRMSVoltage();
                 acRaw2     = zmpt2.readRawADC();
                 acCurrent  = zmct.readRMSCurrent();
                 acRawI     = zmct.readRawADC();
+                invCurrent = acs758.readCurrent();
+                invRawMv   = acs758.readRawMilliVolts();
             }
 
-            // --- Calculate AC Power ---
-            acPower = acVoltage1 * acCurrent * currentCfg.pf;
+            // --- Calculate Inverter AC Output Power & Inverter DC Input Power ---
+            // ZMPT1 (A0): Generator AC Voltage (before MPPT)
+            // ZMPT2 (A1): Inverter AC Output Voltage (220V)
+            // ZMCT  (A2): Inverter AC Load Current
+            // ACS758(A3): Inverter DC Input Discharge Current
+            acPower = acVoltage2 * acCurrent * currentCfg.pf; // Inverter AC Output Power (W)
 
             // --- Read DC Sensors (nullptr-safe) ---
+            // INA226 #1: Battery & MPPT Charging
             dcV1 = (ina1 != nullptr) ? ina1->readVoltage() : 0.0f;
             dcA1 = (ina1 != nullptr) ? ina1->readCurrent() : 0.0f;
             dcP1 = (ina1 != nullptr) ? ina1->readPower() : 0.0f;
 
+            // ACS758 50A: Inverter DC Input Power = V_battery × I_inverter
+            invPower = dcV1 * fabsf(invCurrent);
+
+            // INA226 #2: ESP32, Control & 12V Lighting Aux Power (before DC-DC)
             dcV2 = (ina2 != nullptr) ? ina2->readVoltage() : 0.0f;
             dcA2 = (ina2 != nullptr) ? ina2->readCurrent() : 0.0f;
             dcP2 = (ina2 != nullptr) ? ina2->readPower() : 0.0f;
@@ -325,19 +357,25 @@ static void sensorTaskFunction(void* pvParameters) {
         static uint32_t overruns = 0;
         SensorData frame = {};
         frame.zmpt1_adc = acRaw1; frame.zmpt2_adc = acRaw2; frame.zmct_adc = acRawI;
-        frame.ac_voltage = acVoltage1; frame.ac_voltage2 = acVoltage2;
-        frame.ac_current = acCurrent; frame.ac_power = acPower;
+        frame.acs758_adc = invRawMv;
+        frame.gen_ac_voltage = acVoltage1;            // Generator AC (ZMPT1)
+        frame.inv_ac_voltage = acVoltage2;            // Inverter AC Output (ZMPT2)
+        frame.inv_ac_current = acCurrent;             // Inverter AC Load Current (ZMCT)
+        frame.inv_ac_power = acPower;                 // Inverter AC Output Power (W)
         frame.ina1_voltage = dcV1; frame.ina1_current = dcA1; frame.ina1_power = dcP1;
         frame.battery_soc = calculateBatterySoC(dcV1);
-        frame.battery_wh = (frame.battery_soc / 100.0f) * (12.0f * 37.05f); // 444.60 Wh effective (65Ah @ 57% SoH)
+        frame.battery_wh = (frame.battery_soc / 100.0f) * (12.0f * 39.00f); // 468.00 Wh effective (65Ah @ 60% SoH)
+        frame.inverter_current = invCurrent; frame.inverter_power = invPower;
+        frame.inverter_efficiency = (invPower > 5.0f && acPower > 0.0f) ? min(100.0f, (acPower / invPower) * 100.0f) : 0.0f;
         frame.ina2_voltage = dcV2; frame.ina2_current = dcA2; frame.ina2_power = dcP2;
         frame.temperature1 = temp1; frame.temperature2 = temp2; frame.temperature_esp = tempEsp;
         frame.rpm = static_cast<uint32_t>(rpm);
         frame.health = SensorData::HEALTH_AC_V1 | SensorData::HEALTH_AC_V2 |
                        SensorData::HEALTH_AC_I | SensorData::HEALTH_CPU_TEMP |
-                       SensorData::HEALTH_RPM;
+                       SensorData::HEALTH_RPM | SensorData::HEALTH_ACS758;
         if (temp1Valid) frame.health |= SensorData::HEALTH_TEMP1;
         if (temp2Valid) frame.health |= SensorData::HEALTH_TEMP2;
+        if (currentCfg.useAds1115 && ads != nullptr && ads->isEnabled()) frame.health |= SensorData::HEALTH_ADS1115;
         if (currentCfg.dummyMode || (ina1 != nullptr && ina1->isEnabled())) frame.health |= SensorData::HEALTH_INA1;
         if (currentCfg.dummyMode || (ina2 != nullptr && ina2->isEnabled())) frame.health |= SensorData::HEALTH_INA2;
         frame.sequence = ++sequence;
@@ -348,29 +386,21 @@ static void sensorTaskFunction(void* pvParameters) {
         if (now - lastSerialLog >= currentCfg.serialLogMs) {
             lastSerialLog = now;
 
-            Serial.println("======================");
-            Serial.println("  WIND MONITOR");
-            Serial.println();
-            Serial.println("  AC");
-            Serial.printf("  Voltage:  %.1fV\n", acVoltage1);
-            Serial.printf("  Current:  %.2fA\n", acCurrent);
-            Serial.printf("  Power:    %.1fW\n", acPower);
-            Serial.printf("  V2 (raw): %.1fV\n", acVoltage2);
-            Serial.println();
-            Serial.println("  DC INA226 #1 (Lakoni Blue Wolf 65Ah @ 57% SoH / 37.05Ah)");
-            Serial.printf("  Voltage:  %.2fV\n", dcV1);
-            Serial.printf("  Current:  %.2fA\n", dcA1);
-            Serial.printf("  Power:    %.2fW\n", dcP1);
-            Serial.printf("  SoC:      %.1f%% (%.1f Wh / 444.6 Wh)\n", frame.battery_soc, frame.battery_wh);
-            Serial.println();
-            Serial.println("  DC INA226 #2");
-            Serial.printf("  Voltage:  %.2fV\n", dcV2);
-            Serial.printf("  Current:  %.2fA\n", dcA2);
-            Serial.printf("  Power:    %.2fW\n", dcP2);
-            Serial.println();
-            Serial.printf("  Temperature: %.1f°C / %.1f°C (Internal CPU: %.1f°C)\n", temp1, temp2, tempEsp);
-            Serial.printf("  RPM: %d\n", (int)rpm);
-            Serial.println("======================");
+            Serial.println("==================================================");
+            Serial.println("            WIND & SOLAR SYSTEM MONITOR           ");
+            Serial.println("==================================================");
+            Serial.printf("  [Generator AC]   ZMPT1 (A0): %.1f V RMS | RPM: %d\n", acVoltage1, (int)rpm);
+            Serial.printf("  [MPPT Battery]   INA1: %.2f V | Charge: %.2f A (%.1f W) | SoC: %.1f%% (%.1f Wh)\n",
+                          dcV1, dcA1, dcP1, frame.battery_soc, frame.battery_wh);
+            Serial.printf("  [Inverter DC In] ACS758 (A3): %.2f A | DC Input: %.1f W\n", invCurrent, invPower);
+            Serial.printf("  [Inverter AC Out]ZMPT2 (A1): %.1f V | ZMCT (A2): %.2f A | AC Power: %.1f W\n",
+                          acVoltage2, acCurrent, acPower);
+            if (frame.inverter_efficiency > 0.0f) {
+                Serial.printf("  [Inverter Eff]   Efficiency: %.1f %%\n", frame.inverter_efficiency);
+            }
+            Serial.printf("  [Control/Lights] INA2: %.2f V | Load: %.2f A (%.2f W)\n", dcV2, dcA2, dcP2);
+            Serial.printf("  [Temperature]    Gen/Box: %.1f°C / %.1f°C | ESP32 CPU: %.1f°C\n", temp1, temp2, tempEsp);
+            Serial.println("==================================================");
         }
 #endif
 

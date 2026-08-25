@@ -133,11 +133,15 @@
         acPwr: $('val-acpwr'),
         dcPwr1: $('val-dcpwr1'),
         dcPwr2: $('val-dcpwr2'),
+        invPwr: $('val-invpwr'),
+        ctrlPwr: $('val-ctrlpwr'),
 
         // Power rings
         ringAC: $('power-ring-ac'),
         ringDC1: $('power-ring-dc1'),
         ringDC2: $('power-ring-dc2'),
+        ringInv: $('power-ring-inv'),
+        ringCtrl: $('power-ring-ctrl'),
 
         // Metric values
         acVolt1: $('val-acvolt1'),
@@ -145,6 +149,9 @@
         acVolt2: $('val-acvolt2'),
         dcVolt1: $('val-dcvolt1'),
         dcCur1: $('val-dccur1'),
+        invA: $('val-inva'),
+        ctrlV: $('val-ctrlv'),
+        ctrlA: $('val-ctrla'),
         dcVolt2: $('val-dcvolt2'),
         dcCur2: $('val-dccur2'),
         rpm: $('val-rpm'),
@@ -158,6 +165,9 @@
         barAcVolt2: $('bar-acvolt2'),
         barDcVolt1: $('bar-dcvolt1'),
         barDcCur1: $('bar-dccur1'),
+        barInvA: $('bar-inva'),
+        barCtrlV: $('bar-ctrlv'),
+        barCtrlA: $('bar-ctrla'),
         barDcVolt2: $('bar-dcvolt2'),
         barDcCur2: $('bar-dccur2'),
         batterySoc: $('val-battery-soc'),
@@ -414,19 +424,28 @@
     function updateDashboard(data) {
         const acP = data.acP != null ? data.acP : 0;
         const dcP1 = data.dcP1 != null ? data.dcP1 : 0;
-        const dcP2 = data.dcP2 != null ? data.dcP2 : 0;
+        const invP = data.invP != null ? data.invP : (data.dcV1 && data.invA ? data.dcV1 * Math.abs(data.invA) : 0);
+        const ctrlP = data.ctrlP != null ? data.ctrlP : (data.dcP2 != null ? data.dcP2 : 0);
+        const invA = data.invA != null ? data.invA : 0;
+        const ctrlV = data.ctrlV != null ? data.ctrlV : (data.dcV2 != null ? data.dcV2 : 0);
+        const ctrlA = data.ctrlA != null ? data.ctrlA : (data.dcA2 != null ? data.dcA2 : 0);
 
         // Hero power values
         setText(dom.acPwr, acP.toFixed(1));
         setText(dom.dcPwr1, dcP1.toFixed(1));
-        setText(dom.dcPwr2, dcP2.toFixed(1));
+        if (dom.invPwr) setText(dom.invPwr, invP.toFixed(1));
+        if (dom.ctrlPwr) setText(dom.ctrlPwr, ctrlP.toFixed(1));
 
         // Power rings
         const maxDCPower = cfg.maxVoltage * cfg.maxCurrent;
         const maxACPower = cfg.maxACVoltage * cfg.maxACCurrent;
+        const maxInvPower = 12.0 * 50.0; // 600W max for 50A Inverter
+        const maxCtrlPower = 12.0 * 5.0;  // 60W max for Control/Lights
+
         setRing(dom.ringAC, acP, maxACPower);
         setRing(dom.ringDC1, dcP1, maxDCPower);
-        setRing(dom.ringDC2, dcP2, maxDCPower);
+        if (dom.ringInv) setRing(dom.ringInv, invP, maxInvPower);
+        if (dom.ringCtrl) setRing(dom.ringCtrl, ctrlP, maxCtrlPower);
 
         // Metric values
         setText(dom.acVolt1, fmt(data.acV, 1));
@@ -434,8 +453,9 @@
         setText(dom.acVolt2, fmt(data.acV2, 1));
         setText(dom.dcVolt1, fmt(data.dcV1, 2));
         setText(dom.dcCur1, fmt(data.dcA1, 2));
-        setText(dom.dcVolt2, fmt(data.dcV2, 2));
-        setText(dom.dcCur2, fmt(data.dcA2, 2));
+        if (dom.invA) setText(dom.invA, fmt(invA, 2));
+        if (dom.ctrlV) setText(dom.ctrlV, fmt(ctrlV, 2));
+        if (dom.ctrlA) setText(dom.ctrlA, fmt(ctrlA, 2));
         setText(dom.rpm, data.rpm != null ? Math.round(data.rpm).toString() : '0');
         setText(dom.temp1, fmt(data.t1, 1));
         setText(dom.temp2, fmt(data.t2, 1));
@@ -448,10 +468,11 @@
         // DC uses configurable DC limits
         setBar(dom.barDcVolt1, data.dcV1, cfg.maxVoltage);
         setBar(dom.barDcCur1, data.dcA1, cfg.maxCurrent);
-        setBar(dom.barDcVolt2, data.dcV2, cfg.maxVoltage);
-        setBar(dom.barDcCur2, data.dcA2, cfg.maxCurrent);
+        if (dom.barInvA) setBar(dom.barInvA, Math.abs(invA), 50.0); // 50A max
+        if (dom.barCtrlV) setBar(dom.barCtrlV, ctrlV, 20.0);
+        if (dom.barCtrlA) setBar(dom.barCtrlA, ctrlA, 5.0);
         
-        // Battery SoC (12V 68Ah)
+        // Battery SoC (Lakoni 65Ah @ 60% SoH = 39.0Ah / 468.0 Wh)
         let soc = data.batterySoc;
         let wh = data.batteryWh;
         if (soc == null && data.dcV1 != null) {
@@ -470,7 +491,7 @@
                     }
                 }
             }
-            wh = (soc / 100) * 444.60; // 444.60 Wh effective for Lakoni 65Ah @ 57% SoH
+            wh = (soc / 100) * 468.00; // 468.00 Wh effective for Lakoni 65Ah @ 60% SoH
         }
         if (soc != null) {
             setText(dom.batterySoc, Math.round(soc).toString());

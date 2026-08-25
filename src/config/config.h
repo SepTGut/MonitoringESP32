@@ -53,6 +53,10 @@
 // --- ADS1115 Configuration ---
 #define DEFAULT_ADS1115_ADDR 0x48   // Default ADS1115 I2C Address (ADDR -> GND)
 
+// --- ACS758 50A Inverter Current Sensor Configuration ---
+#define ACS758_SENSITIVITY  40.0f   // mV/A (40.0 mV/A for ACS758LCB-050B bidirectional, 60.0 for 050U)
+#define ACS758_MAX_CURRENT  50.0f   // Maximum current (A) for 50A variant
+
 // --- RPM Configuration ---
 #define RPM_PULSES_PER_REV  1       // Pulses per revolution (IR sensor)
 #define RPM_TIMEOUT_MS      1000    // Zero RPM if no pulse for this duration

@@ -21,11 +21,20 @@ AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 
 static void serializeSensorData(JsonDocument& doc, const SensorData& data) {
-    doc["acV"] = data.ac_voltage; doc["acV2"] = data.ac_voltage2;
-    doc["acA"] = data.ac_current; doc["acP"] = data.ac_power;
+    doc["genAcV"] = data.gen_ac_voltage;   // Generator AC Voltage (ZMPT1)
+    doc["invAcV"] = data.inv_ac_voltage;   // Inverter AC Output Voltage (ZMPT2)
+    doc["invAcA"] = data.inv_ac_current;   // Inverter AC Load Current (ZMCT)
+    doc["invAcP"] = data.inv_ac_power;     // Inverter AC Output Power (W)
+    doc["acV"]  = data.gen_ac_voltage;     // Legacy JSON alias
+    doc["acV2"] = data.inv_ac_voltage;     // Legacy JSON alias
+    doc["acA"]  = data.inv_ac_current;     // Legacy JSON alias
+    doc["acP"]  = data.inv_ac_power;       // Legacy JSON alias
     doc["dcV1"] = data.ina1_voltage; doc["dcA1"] = data.ina1_current; doc["dcP1"] = data.ina1_power;
     doc["batterySoc"] = data.battery_soc; doc["batteryWh"] = data.battery_wh;
-    doc["dcV2"] = data.ina2_voltage; doc["dcA2"] = data.ina2_current; doc["dcP2"] = data.ina2_power;
+    doc["invA"] = data.inverter_current; doc["invP"] = data.inverter_power;
+    doc["invEff"] = data.inverter_efficiency;
+    doc["ctrlV"] = data.ina2_voltage; doc["ctrlA"] = data.ina2_current; doc["ctrlP"] = data.ina2_power;
+    doc["dcV2"] = data.ina2_voltage; doc["dcA2"] = data.ina2_current; doc["dcP2"] = data.ina2_power; // legacy alias
     doc["rpm"] = data.rpm; doc["t1"] = data.temperature1; doc["t2"] = data.temperature2; doc["tEsp"] = data.temperature_esp;
     doc["sequence"] = data.sequence; doc["cycleMs"] = data.cycleMs; doc["overruns"] = data.overruns;
     doc["powerMode"] = "estimated";
@@ -35,6 +44,8 @@ static void serializeSensorData(JsonDocument& doc, const SensorData& data) {
     health["acI"] = (data.health & SensorData::HEALTH_AC_I) != 0;
     health["ina1"] = (data.health & SensorData::HEALTH_INA1) != 0;
     health["ina2"] = (data.health & SensorData::HEALTH_INA2) != 0;
+    health["acs758"] = (data.health & SensorData::HEALTH_ACS758) != 0;
+    health["ads1115"] = (data.health & SensorData::HEALTH_ADS1115) != 0;
     health["temp1"] = (data.health & SensorData::HEALTH_TEMP1) != 0;
     health["temp2"] = (data.health & SensorData::HEALTH_TEMP2) != 0;
     health["cpuTemp"] = (data.health & SensorData::HEALTH_CPU_TEMP) != 0;

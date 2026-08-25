@@ -7,6 +7,22 @@
   - Updated `config.h` defaults: `INA226_SHUNT_OHM` updated from `0.01Ω` to `0.10Ω` (`R100` = 100mΩ) and `INA226_MAX_CURRENT` updated from `10.0A` to `0.80A` (adhering to INA226 81.92mV maximum differential shunt voltage input range).
   - Updated `ina226_sensor.cpp` driver to compute DC current directly from physical ADC shunt voltage ($I = \frac{V_{shunt}}{R_{shunt}}$) and power via $P = V_{bus} \times |I|$. This resolves calibration register overflow errors and ensures high-precision 16-bit measurement.
   - Updated standalone `test/hardware_test/src/main.cpp` diagnostic test to initialize and measure with `R100` ($0.10\Omega$) parameters.
+- **Inverter AC Output (ZMPT2 + ZMCT) & Generator AC (ZMPT1) Topology**:
+  - Configured **ZMPT101B #1 (ADS1115 A0)** on the raw Generator AC output (before rectifier/MPPT).
+  - Configured **ZMPT101B #2 (ADS1115 A1)** & **ZMCT103C (ADS1115 A2)** on the Inverter 220V AC Output side for real AC load power measurement ($P_{\text{inv\_ac}} = V_{\text{zmpt2}} \times I_{\text{zmct}} \times PF$).
+  - Added real-time Inverter conversion efficiency calculation ($\eta = \frac{P_{\text{inv\_ac}}}{P_{\text{inv\_dc}}} \times 100\%$) comparing ACS758 50A DC input power to Inverter AC output power.
+  - Rebuilt LittleFS binary image and recompiled firmware with [SUCCESS].
+- **4-Channel ADS1115 Analog Migration, ACS758 50A Inverter Monitor & INA226 #2 Control/Light Reassignment**:
+  - Migrated all 4 analog channels to 16-bit ADS1115 I2C ADC:
+    - `Channel A0`: **ZMPT101B #1** (AC Voltage #1)
+    - `Channel A1`: **ZMPT101B #2** (AC Voltage #2)
+    - `Channel A2`: **ZMCT103C** (AC Current)
+    - `Channel A3`: **ACS758 50A** (High-Current Inverter DC Discharge)
+  - Created new **`ACS758Sensor`** driver (`src/sensors/acs758_sensor.h`, `src/sensors/acs758_sensor.cpp`) with configurable sensitivity ($40.0\text{ mV/A}$ for 50B / $60.0\text{ mV/A}$ for 50U), auto-zero offset calibration, and moving average filtering.
+  - Reassigned **INA226 #2 (`0x45`)** to monitor ESP32, controller, sensors, and 12V lighting auxiliary power consumption before the DC-DC buck converter.
+  - Updated `SensorData` struct with `inverter_current`, `inverter_power`, `acs758_adc`, and `HEALTH_ACS758` / `HEALTH_ADS1115` health bits.
+  - Updated Web Dashboard (`data/index.html`, `data/script.js`, `data/style.css`, `test/web_preview/index.html`) with 4 distinct Hero Power Rings (AC Turbine Power, MPPT Battery Charging, Inverter Discharge Load, and Control & Lighting Aux Power) and matching metric cards.
+  - Rebuilt LittleFS binary filesystem image.
 - **INA226 DC Voltage Calibration (0.94707x Multiplier)**:
   - Applied high-precision voltage multiplier factor `INA226_VOLTAGE_CAL` ($0.94707\text{f} = \frac{11.81\text{V}}{12.47\text{V}}$) in `ina226_sensor.cpp` and `config.h`.
   - Verified live on hardware: INA226 #1 now reads **$11.81\text{V}$** (matches physical multimeter exactly) and reports **$0.0\%$ SoC** (matches digital battery tester $\text{SOC}=0\%$).

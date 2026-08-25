@@ -26,7 +26,7 @@ void IRAM_ATTR RPMSensor::handleInterrupt() {
     portENTER_CRITICAL_ISR(&rpmMux);
     _prevPulseTime = _lastPulseTime;
     _lastPulseTime = micros();
-    _pulseCount++;
+    _pulseCount = _pulseCount + 1;
     portEXIT_CRITICAL_ISR(&rpmMux);
 }
 

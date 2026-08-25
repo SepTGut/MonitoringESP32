@@ -47,13 +47,13 @@ void LcdDisplay::begin(uint8_t addr) {
     _lcd->backlight();
     
     // Define and create custom icons for the LCD display
-    uint8_t propeller0[8] = { B00100, B00100, B00100, B01110, B00100, B00100, B00100, B00000 };
-    uint8_t propeller1[8] = { B00001, B00010, B00100, B01110, B00100, B01000, B10000, B00000 };
-    uint8_t propeller2[8] = { B00000, B00000, B00000, B11111, B00000, B00000, B00000, B00000 };
-    uint8_t propeller3[8] = { B10000, B01000, B00100, B01110, B00100, B00010, B00001, B00000 };
-    uint8_t thermometer[8] = { B00100, B00100, B00100, B01010, B10001, B11111, B01110, B00000 };
-    uint8_t battery[8] = { B01110, B11111, B10001, B10001, B11111, B11111, B11111, B11111 };
-    uint8_t bolt[8] = { B00010, B00100, B01000, B11111, B00100, B01000, B10000, B00000 };
+    uint8_t propeller0[8] = { 0b00100, 0b00100, 0b00100, 0b01110, 0b00100, 0b00100, 0b00100, 0b00000 };
+    uint8_t propeller1[8] = { 0b00001, 0b00010, 0b00100, 0b01110, 0b00100, 0b01000, 0b10000, 0b00000 };
+    uint8_t propeller2[8] = { 0b00000, 0b00000, 0b00000, 0b11111, 0b00000, 0b00000, 0b00000, 0b00000 };
+    uint8_t propeller3[8] = { 0b10000, 0b01000, 0b00100, 0b01110, 0b00100, 0b00010, 0b00001, 0b00000 };
+    uint8_t thermometer[8] = { 0b00100, 0b00100, 0b00100, 0b01010, 0b10001, 0b11111, 0b01110, 0b00000 };
+    uint8_t battery[8] = { 0b01110, 0b11111, 0b10001, 0b10001, 0b11111, 0b11111, 0b11111, 0b11111 };
+    uint8_t bolt[8] = { 0b00010, 0b00100, 0b01000, 0b11111, 0b00100, 0b01000, 0b10000, 0b00000 };
 
     _lcd->createChar(0, propeller0);
     _lcd->createChar(1, propeller1);
@@ -133,13 +133,13 @@ void LcdDisplay::drawScreen(uint8_t screen, const SensorData& data) {
 
     switch (screen) {
         case 0: {
-            // Screen 0: AC Overview
-            // Line 0: [bolt]AC: [ac_voltage]V [ac_current]A
-            snprintf(buf, sizeof(buf), "\x06" "AC:%5.1fV %4.2fA", data.ac_voltage, data.ac_current);
+            // Screen 0: Inverter AC Output Overview
+            // Line 0: [bolt]AC: [inv_ac_voltage]V [inv_ac_current]A
+            snprintf(buf, sizeof(buf), "\x06" "AC:%5.1fV %4.2fA", data.inv_ac_voltage, data.inv_ac_current);
             printLine(0, buf);
             
-            // Line 1: Pwr: [ac_power]W PF[pf]
-            snprintf(buf, sizeof(buf), "Pwr:%4.0fW PF%0.2f", data.ac_power, configManager.getConfig().pf);
+            // Line 1: Pwr: [inv_ac_power]W PF[pf]
+            snprintf(buf, sizeof(buf), "Pwr:%4.0fW PF%0.2f", data.inv_ac_power, configManager.getConfig().pf);
             printLine(1, buf);
             break;
         }

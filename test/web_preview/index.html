@@ -87,9 +87,9 @@
                     <span class="page-subtitle" id="uptime-label">Uptime: --</span>
                 </div>
 
-                <!-- Hero Power Cards -->
+                <!-- Hero Power Cards (4 Channels: Inverter AC Out, Battery MPPT, Inverter DC In, Control & Lights) -->
                 <div class="highlights-container">
-                    <!-- AC Power -->
+                    <!-- Inverter AC Output Power -->
                     <div class="hero-card" id="card-power-ac" data-type="ac">
                         <div class="hero-ring">
                             <svg viewBox="0 0 120 120">
@@ -102,12 +102,12 @@
                             </div>
                         </div>
                         <div class="hero-meta">
-                            <h3>AC Power <span class="power-mode-label" id="power-mode-label">(Est.)</span></h3>
-                            <p class="hero-desc">Generator AC output (Vrms × Irms × PF)</p>
+                            <h3>Inverter AC Power <span class="power-mode-label" id="power-mode-label">(220V AC)</span></h3>
+                            <p class="hero-desc">Inverter Output (ZMPT2 × ZMCT × PF)</p>
                         </div>
                     </div>
 
-                    <!-- DC Power #1 -->
+                    <!-- Battery / MPPT Charging Power -->
                     <div class="hero-card" id="card-power-dc1" data-type="dc">
                         <div class="hero-ring">
                             <svg viewBox="0 0 120 120">
@@ -120,26 +120,44 @@
                             </div>
                         </div>
                         <div class="hero-meta">
-                            <h3>DC Power #1</h3>
-                            <p class="hero-desc">INA226 #1 — after rectifier/MPPT</p>
+                            <h3>MPPT Charge <span class="badge badge-accent" style="font-size:0.65rem;">INA226 #1</span></h3>
+                            <p class="hero-desc">Battery Charging Input</p>
                         </div>
                     </div>
 
-                    <!-- DC Power #2 -->
-                    <div class="hero-card" id="card-power-dc2" data-type="dc">
+                    <!-- Inverter DC Input Power -->
+                    <div class="hero-card" id="card-power-inv" data-type="inverter">
                         <div class="hero-ring">
                             <svg viewBox="0 0 120 120">
                                 <circle class="ring-bg" cx="60" cy="60" r="52"/>
-                                <circle class="ring-fill" cx="60" cy="60" r="52" id="power-ring-dc2"/>
+                                <circle class="ring-fill" cx="60" cy="60" r="52" id="power-ring-inv"/>
                             </svg>
                             <div class="hero-value">
-                                <span id="val-dcpwr2">0.00</span>
+                                <span id="val-invpwr">0.00</span>
                                 <small>W</small>
                             </div>
                         </div>
                         <div class="hero-meta">
-                            <h3>DC Power #2</h3>
-                            <p class="hero-desc">INA226 #2 — secondary DC channel</p>
+                            <h3>Inverter DC Input <span class="badge badge-accent" style="font-size:0.65rem;">ACS758 50A</span></h3>
+                            <p class="hero-desc">Battery High-Current Discharge</p>
+                        </div>
+                    </div>
+
+                    <!-- Control & Lighting Power -->
+                    <div class="hero-card" id="card-power-ctrl" data-type="aux">
+                        <div class="hero-ring">
+                            <svg viewBox="0 0 120 120">
+                                <circle class="ring-bg" cx="60" cy="60" r="52"/>
+                                <circle class="ring-fill" cx="60" cy="60" r="52" id="power-ring-ctrl"/>
+                            </svg>
+                            <div class="hero-value">
+                                <span id="val-ctrlpwr">0.00</span>
+                                <small>W</small>
+                            </div>
+                        </div>
+                        <div class="hero-meta">
+                            <h3>Control & Lights <span class="badge badge-accent" style="font-size:0.65rem;">INA226 #2</span></h3>
+                            <p class="hero-desc">ESP32, Sensors & 12V Lights</p>
                         </div>
                     </div>
                 </div>
@@ -147,7 +165,7 @@
                 <!-- Metric Cards Grid -->
                 <div class="metrics-grid">
 
-                    <!-- AC Voltage #1 (for power) -->
+                    <!-- Generator Raw AC Voltage (ZMPT1 / A0) -->
                     <div class="metric-card" data-type="ac" data-sensor="acV1" id="card-acvolt1">
                         <div class="metric-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -155,27 +173,13 @@
                             </svg>
                         </div>
                         <div class="metric-body">
-                            <span class="metric-label">AC Voltage <span class="health-badge" id="health-acV1"></span></span>
+                            <span class="metric-label">Generator AC (ZMPT1 / A0) <span class="health-badge" id="health-acV1"></span></span>
                             <span class="metric-value"><span id="val-acvolt1">0.0</span> <small>V</small></span>
                         </div>
                         <div class="metric-bar"><div class="metric-bar-fill" id="bar-acvolt1"></div></div>
                     </div>
 
-                    <!-- AC Current -->
-                    <div class="metric-card" data-type="accur" data-sensor="acI" id="card-accur">
-                        <div class="metric-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-                            </svg>
-                        </div>
-                        <div class="metric-body">
-                            <span class="metric-label">AC Current <span class="health-badge" id="health-acI"></span></span>
-                            <span class="metric-value"><span id="val-accur">0.00</span> <small>A</small></span>
-                        </div>
-                        <div class="metric-bar"><div class="metric-bar-fill" id="bar-accur"></div></div>
-                    </div>
-
-                    <!-- AC Voltage #2 (raw monitoring) -->
+                    <!-- Inverter AC Output Voltage (ZMPT2 / A1) -->
                     <div class="metric-card" data-type="ac">
                         <div class="metric-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -183,13 +187,27 @@
                             </svg>
                         </div>
                         <div class="metric-body">
-                            <span class="metric-label">AC Voltage #2</span>
+                            <span class="metric-label">Inverter AC Out (ZMPT2 / A1)</span>
                             <span class="metric-value"><span id="val-acvolt2">0.0</span> <small>V</small></span>
                         </div>
                         <div class="metric-bar"><div class="metric-bar-fill" id="bar-acvolt2"></div></div>
                     </div>
 
-                    <!-- DC #1 Voltage -->
+                    <!-- Inverter AC Output Current (ZMCT / A2) -->
+                    <div class="metric-card" data-type="accur" data-sensor="acI" id="card-accur">
+                        <div class="metric-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                            </svg>
+                        </div>
+                        <div class="metric-body">
+                            <span class="metric-label">Inverter AC Load (ZMCT / A2) <span class="health-badge" id="health-acI"></span></span>
+                            <span class="metric-value"><span id="val-accur">0.00</span> <small>A</small></span>
+                        </div>
+                        <div class="metric-bar"><div class="metric-bar-fill" id="bar-accur"></div></div>
+                    </div>
+
+                    <!-- Battery Voltage -->
                     <div class="metric-card" data-type="voltage">
                         <div class="metric-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -197,13 +215,13 @@
                             </svg>
                         </div>
                         <div class="metric-body">
-                            <span class="metric-label">DC #1 Voltage</span>
+                            <span class="metric-label">Battery Voltage (INA1)</span>
                             <span class="metric-value"><span id="val-dcvolt1">0.00</span> <small>V</small></span>
                         </div>
                         <div class="metric-bar"><div class="metric-bar-fill" id="bar-dcvolt1"></div></div>
                     </div>
 
-                    <!-- DC #1 Current -->
+                    <!-- MPPT Charge Current -->
                     <div class="metric-card" data-type="current">
                         <div class="metric-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -211,7 +229,7 @@
                             </svg>
                         </div>
                         <div class="metric-body">
-                            <span class="metric-label">DC #1 Current</span>
+                            <span class="metric-label">MPPT Charge Current</span>
                             <span class="metric-value"><span id="val-dccur1">0.00</span> <small>A</small></span>
                         </div>
                         <div class="metric-bar"><div class="metric-bar-fill" id="bar-dccur1"></div></div>
@@ -229,13 +247,27 @@
                             </svg>
                         </div>
                         <div class="metric-body">
-                            <span class="metric-label">Lakoni 65Ah (57% SoH / 37Ah) <span class="badge badge-accent" id="badge-battery-wh">0 Wh</span></span>
+                            <span class="metric-label">Lakoni 65Ah (60% SoH / 39Ah) <span class="badge badge-accent" id="badge-battery-wh">0 Wh</span></span>
                             <span class="metric-value"><span id="val-battery-soc">0</span> <small>%</small></span>
                         </div>
                         <div class="metric-bar"><div class="metric-bar-fill" id="bar-battery-soc" style="width: 0%"></div></div>
                     </div>
 
-                    <!-- DC #2 Voltage -->
+                    <!-- Inverter Discharge Current (ACS758 50A) -->
+                    <div class="metric-card" data-type="inverter" id="card-inva">
+                        <div class="metric-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                            </svg>
+                        </div>
+                        <div class="metric-body">
+                            <span class="metric-label">Inverter Discharge (A3)</span>
+                            <span class="metric-value"><span id="val-inva">0.00</span> <small>A</small></span>
+                        </div>
+                        <div class="metric-bar"><div class="metric-bar-fill" id="bar-inva"></div></div>
+                    </div>
+
+                    <!-- Control & Lighting Supply Voltage (INA226 #2) -->
                     <div class="metric-card" data-type="voltage">
                         <div class="metric-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -243,13 +275,13 @@
                             </svg>
                         </div>
                         <div class="metric-body">
-                            <span class="metric-label">DC #2 Voltage</span>
-                            <span class="metric-value"><span id="val-dcvolt2">0.00</span> <small>V</small></span>
+                            <span class="metric-label">Control / Aux Voltage</span>
+                            <span class="metric-value"><span id="val-ctrlv">0.00</span> <small>V</small></span>
                         </div>
-                        <div class="metric-bar"><div class="metric-bar-fill" id="bar-dcvolt2"></div></div>
+                        <div class="metric-bar"><div class="metric-bar-fill" id="bar-ctrlv"></div></div>
                     </div>
 
-                    <!-- DC #2 Current -->
+                    <!-- Control & Lighting Current (INA226 #2) -->
                     <div class="metric-card" data-type="current">
                         <div class="metric-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -257,10 +289,10 @@
                             </svg>
                         </div>
                         <div class="metric-body">
-                            <span class="metric-label">DC #2 Current</span>
-                            <span class="metric-value"><span id="val-dccur2">0.00</span> <small>A</small></span>
+                            <span class="metric-label">Control & Light Current</span>
+                            <span class="metric-value"><span id="val-ctrla">0.00</span> <small>A</small></span>
                         </div>
-                        <div class="metric-bar"><div class="metric-bar-fill" id="bar-dccur2"></div></div>
+                        <div class="metric-bar"><div class="metric-bar-fill" id="bar-ctrla"></div></div>
                     </div>
 
                     <!-- RPM -->

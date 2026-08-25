@@ -398,6 +398,14 @@ body {
     stroke: var(--ring-dc);
 }
 
+.hero-card[data-type="inverter"] .ring-fill {
+    stroke: #ec4899;
+}
+
+.hero-card[data-type="aux"] .ring-fill {
+    stroke: #38bdf8;
+}
+
 .hero-value {
     position: absolute;
     inset: 0;
@@ -573,6 +581,15 @@ body {
 
 .metric-card[data-type="temp"] .metric-bar-fill {
     background: linear-gradient(90deg, var(--accent-rose), #fb7185);
+}
+
+.metric-card[data-type="inverter"] .metric-icon {
+    color: #ec4899;
+    background: rgba(236, 72, 153, 0.12);
+}
+
+.metric-card[data-type="inverter"] .metric-bar-fill {
+    background: linear-gradient(90deg, #ec4899, #f472b6);
 }
 
 /* --- Settings --- */
