@@ -261,28 +261,32 @@ static void sensorTaskFunction(void* pvParameters) {
             static float simStep = 0.0f;
             simStep += 0.08f;
 
+            // Generator AC voltage (raw variable wind output before MPPT)
             float windSpeed = 5.0f + 3.0f * sin(simStep * 0.3f);
             acVoltage1 = 30.0f + 25.0f * sin(simStep * 0.5f) * (windSpeed / 8.0f);
-            acRaw1     = acVoltage1 * 10.0f; // Fake raw ADC representation
-            acVoltage2 = acVoltage1 * 0.95f + 1.5f * sin(simStep * 1.1f);
+            acRaw1     = acVoltage1 * 10.0f;
+
+            // Inverter AC output (220V household load side)
+            acVoltage2 = 218.0f + 6.0f * sin(simStep * 0.15f); // ~218-224V AC
             acRaw2     = acVoltage2 * 10.0f;
-            acCurrent  = 2.0f + 1.5f * sin(simStep * 0.7f) * (windSpeed / 8.0f);
+            acCurrent  = 0.5f + 0.4f * sin(simStep * 0.7f) * (windSpeed / 8.0f);
             if (acCurrent < 0.0f) acCurrent = 0.0f;
             acRawI     = acCurrent * 100.0f;
-            acPower    = acVoltage1 * acCurrent * currentCfg.pf;
+            acPower    = acVoltage2 * acCurrent * currentCfg.pf; // Inverter AC Output Power
 
+            // Battery / MPPT Charging (INA226 #1)
             dcV1 = 12.0f + 0.8f * sin(simStep * 0.4f);
             dcA1 = 1.5f + 1.2f * sin(simStep * 0.6f);
             if (dcA1 < 0.0f) dcA1 = 0.0f;
             dcP1 = dcV1 * dcA1;
 
-            // Inverter discharge simulation
+            // Inverter DC discharge (ACS758 50A)
             invCurrent = 8.5f + 5.0f * sin(simStep * 0.45f);
             if (invCurrent < 0.0f) invCurrent = 0.0f;
             invPower = dcV1 * invCurrent;
             invRawMv = 2500.0f + (invCurrent * 40.0f);
 
-            // Control / Light power simulation (before DC-DC)
+            // Control / Light power simulation (INA226 #2 before DC-DC)
             dcV2 = dcV1;
             dcA2 = 0.45f + 0.15f * sin(simStep * 0.2f);
             dcP2 = dcV2 * dcA2;
