@@ -50,8 +50,13 @@
 #define INA226_SHUNT_OHM    0.10f   // Shunt resistor value (Ω) — R100 = 0.100Ω (100mΩ)
 #define INA226_VOLTAGE_CAL  0.94707f // DC voltage calibration multiplier (11.81V multimeter / 12.47V raw)
 
+// --- I2C Bus Configuration ---
+#define I2C_CLOCK_SPEED     400000UL // Fast-mode I2C clock (400 kHz) for rapid 16-bit sampling
+
 // --- ADS1115 Configuration ---
 #define DEFAULT_ADS1115_ADDR 0x48   // Default ADS1115 I2C Address (ADDR -> GND)
+#define ADS1115_USE_ALERT    true   // Enable hardware ALERT/RDY pin synchronization if wired
+#define ADS1115_DATA_RATE    7      // 7 = 860 SPS (Fastest conversion rate)
 
 // --- ACS758 50A Inverter Current Sensor Configuration ---
 #define ACS758_SENSITIVITY  40.0f   // mV/A (40.0 mV/A for ACS758LCB-050B bidirectional, 60.0 for 050U)

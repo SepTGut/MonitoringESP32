@@ -14,6 +14,7 @@
 #include "../system/config_manager.h"
 #include "../system/freertos_tasks.h"
 #include "../config/config.h"
+#include "../config/pin_config.h"
 #include <esp_task_wdt.h>
 
 // Server and WebSocket instances
@@ -92,8 +93,9 @@ void WebDashboard::begin() {
         doc["uptime"] = esp_timer_get_time() / 1000000ULL;
         doc["clients"] = ws.count();
         doc["cycleMs"] = data.cycleMs;
-        doc["overruns"] = data.overruns;
-        doc["adcMode"] = configManager.getConfig().useAds1115 ? "ADS1115 (16-bit I2C)" : "Internal (eFuse Calibrated)";
+        doc["adcMode"] = configManager.getConfig().useAds1115 ? "ADS1115 16-Bit (400kHz Fast I2C, ALRT: GPIO 19)" : "Internal (eFuse Calibrated)";
+        doc["i2cClock"] = "400 kHz Fast-Mode";
+        doc["adsAlertPin"] = PIN_ADS1115_ALERT;
 
         // Task stack high water marks (minimum free stack in words → bytes)
         TaskHandle_t sensorHandle = Tasks::getSensorTaskHandle();

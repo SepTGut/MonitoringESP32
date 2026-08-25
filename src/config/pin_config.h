@@ -31,8 +31,22 @@
 #define PIN_I2C_SDA           21
 #define PIN_I2C_SCL           22
 
+// --- ADS1115 Hardware ALERT/RDY Pin (Optional hardware interrupt/ready input) ---
+// Connecting ADS1115 ALRT pin to GPIO 19 allows zero-wait hardware conversion synchronization
+#define PIN_ADS1115_ALERT     19 // ADS1115 ALERT/RDY pin (Active-LOW, pullup enabled)
+
 // --- I2C Device Addresses ---
-#define ADS1115_I2C_ADDR      0x48 // ADS1115 ADC (ADDR -> GND)
+// ADS1115 ADDR Pin Hardware Options:
+//   ADDR -> GND = 0x48 (Default)
+//   ADDR -> VDD = 0x49
+//   ADDR -> SDA = 0x4A
+//   ADDR -> SCL = 0x4B
+#define ADS1115_I2C_ADDR      0x48 // ADS1115 ADC (Default: ADDR -> GND)
+#define ADS1115_ADDR_GND      0x48 // ADDR pin -> GND
+#define ADS1115_ADDR_VDD      0x49 // ADDR pin -> VDD
+#define ADS1115_ADDR_SDA      0x4A // ADDR pin -> SDA
+#define ADS1115_ADDR_SCL      0x4B // ADDR pin -> SCL
+
 #define INA226_ADDR_1         0x44 // INA226 #1: Battery / MPPT Charging (A0=GND, A1=GND)
 #define INA226_ADDR_2         0x45 // INA226 #2: ESP32, Control & 12V Lighting Aux Power (A0=VS, A1=GND)
 #define LCD_I2C_ADDR          0x27 // PCF8574 I2C LCD Display

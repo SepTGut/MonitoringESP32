@@ -7,6 +7,12 @@
   - Updated `config.h` defaults: `INA226_SHUNT_OHM` updated from `0.01Ω` to `0.10Ω` (`R100` = 100mΩ) and `INA226_MAX_CURRENT` updated from `10.0A` to `0.80A` (adhering to INA226 81.92mV maximum differential shunt voltage input range).
   - Updated `ina226_sensor.cpp` driver to compute DC current directly from physical ADC shunt voltage ($I = \frac{V_{shunt}}{R_{shunt}}$) and power via $P = V_{bus} \times |I|$. This resolves calibration register overflow errors and ensures high-precision 16-bit measurement.
   - Updated standalone `test/hardware_test/src/main.cpp` diagnostic test to initialize and measure with `R100` ($0.10\Omega$) parameters.
+- **ADS1115 Hardware ALRT (ALERT/RDY) Pin, Multi-ADDR Support & 400kHz Fast I2C**:
+  - Implemented hardware `ALRT` (ALERT/RDY) pin conversion synchronization on `GPIO 19` (`PIN_ADS1115_ALERT`) with active-LOW pulse detection and `INPUT_PULLUP`.
+  - Added full multi-address support for all 4 hardware `ADDR` pin configurations (`ADDR->GND: 0x48`, `ADDR->VDD: 0x49`, `ADDR->SDA: 0x4A`, `ADDR->SCL: 0x4B`) with automated multi-probe auto-discovery across `0x48..0x4B`.
+  - Configured I2C bus clock to **400 kHz Fast-Mode** (`I2C_CLOCK_SPEED = 400000UL`), accelerating 16-bit ADC throughput and INA226 bus transactions.
+  - Exposed ADS1115 ALRT pin status, active address, and I2C 400kHz speed in `/api/sysinfo`.
+  - Rebuilt LittleFS binary image and verified firmware compilation with `[SUCCESS]`.
 - **3x Code Optimization & Warning Elimination Cycles**:
   - **Iteration 1 (`b92ba62`)**: Eliminated 58 compiler warnings (57 deprecated `Bxxxxx` macros in `lcd_display.cpp` replaced with `0bxxxxx` binary literals, 1 `volatile++` deprecation in `rpm_sensor.cpp`). Removed 4 legacy alias float fields in `SensorData` (`ac_voltage`, `ac_voltage2`, `ac_current`, `ac_power`), saving 16 bytes per frame.
   - **Iteration 2 (`f1f1e04`)**: Corrected dummy simulation topology in `freertos_tasks.cpp` so ZMPT2 simulates 220V Inverter AC output, ZMCT simulates inverter load current, and acPower matches actual hardware calculations. Saved 56 bytes flash.

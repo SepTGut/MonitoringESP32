@@ -99,10 +99,11 @@ static ADS1115Sensor* ads  = nullptr;
 static void sensorTaskFunction(void* pvParameters) {
     Serial.println("[Task] Sensor task started on Core 1");
 
-    // Initialize I2C bus once before scanning
+    // Initialize I2C bus once before scanning with 400kHz Fast Mode
     Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL);
+    Wire.setClock(I2C_CLOCK_SPEED);
 
-    Serial.println("[I2C] Scanning I2C bus for connected devices...");
+    Serial.println("[I2C] Scanning I2C bus for connected devices (400 kHz Fast-Mode)...");
     uint8_t i2c_list[16];
     uint8_t i2c_count = 0;
     uint8_t lcdAddr = 0;
@@ -163,13 +164,34 @@ static void sensorTaskFunction(void* pvParameters) {
     }
 
     if (cfg.useAds1115) {
+        uint8_t activeAdsAddr = cfg.adsAddr;
         bool adsPresent = false;
         for (uint8_t i = 0; i < i2c_count; i++) {
-            if (i2c_list[i] == cfg.adsAddr) adsPresent = true;
+            if (i2c_list[i] == activeAdsAddr) {
+                adsPresent = true;
+                break;
+            }
         }
+        // If configured address not found, probe all 4 possible ADDR variants (0x48..0x4B)
+        if (!adsPresent) {
+            const uint8_t possibleAdsAddrs[4] = { 0x48, 0x49, 0x4A, 0x4B };
+            for (uint8_t a : possibleAdsAddrs) {
+                for (uint8_t i = 0; i < i2c_count; i++) {
+                    if (i2c_list[i] == a) {
+                        activeAdsAddr = a;
+                        adsPresent = true;
+                        Serial.printf("[ADS1115] Auto-discovered ADS1115 at alternative address 0x%02X\n", a);
+                        break;
+                    }
+                }
+                if (adsPresent) break;
+            }
+        }
+
         if (adsPresent) {
-            Serial.printf("[ADS1115] Dynamic assignment: 16-bit ADC mapped to address 0x%02X\n", cfg.adsAddr);
-            ads = new ADS1115Sensor(cfg.adsAddr);
+            Serial.printf("[ADS1115] Dynamic assignment: 16-bit ADC mapped to address 0x%02X (ALRT pin: %d)\n",
+                          activeAdsAddr, ADS1115_USE_ALERT ? PIN_ADS1115_ALERT : -1);
+            ads = new ADS1115Sensor(activeAdsAddr, ADS1115_USE_ALERT ? PIN_ADS1115_ALERT : -1);
             ads->begin();
             // Auto-calibrate baseline offsets via ADS1115
             zmpt1.calibrateZeroOffset(ads, ADS1115_CH_ZMPT1);
@@ -177,7 +199,7 @@ static void sensorTaskFunction(void* pvParameters) {
             zmct.calibrateZeroOffset(ads, ADS1115_CH_ZMCT);
             acs758.calibrateZeroOffset(ads, ADS1115_CH_ACS758);
         } else {
-            Serial.printf("[ADS1115] Warning: ADS1115 address 0x%02X NOT found on I2C bus. Falling back to internal ADC.\n", cfg.adsAddr);
+            Serial.printf("[ADS1115] Warning: ADS1115 NOT found at any address (0x48-0x4B). Falling back to internal ADC.\n");
             acs758.begin();
         }
     } else {
