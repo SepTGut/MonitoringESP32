@@ -398,6 +398,14 @@ body {
     stroke: var(--ring-dc);
 }
 
+.hero-card[data-type="inverter"] .ring-fill {
+    stroke: #ec4899;
+}
+
+.hero-card[data-type="aux"] .ring-fill {
+    stroke: #38bdf8;
+}
+
 .hero-value {
     position: absolute;
     inset: 0;
@@ -476,6 +484,62 @@ body {
 .metric-card[data-type="current"] .metric-icon {
     color: var(--accent-amber);
     background: rgba(245, 158, 11, 0.1);
+}
+
+.metric-card[data-type="battery"] .metric-icon {
+    color: var(--accent-green, #10b981);
+    background: rgba(16, 185, 129, 0.12);
+}
+
+.badge-accent {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--accent-green, #10b981);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-left: 0.25rem;
+}
+
+/* --- Sensor Source Hardware Tags --- */
+.sensor-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.65rem;
+    font-weight: 500;
+    padding: 0.12rem 0.45rem;
+    border-radius: 4px;
+    margin-top: 0.3rem;
+    width: fit-content;
+    letter-spacing: 0.02em;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-muted);
+}
+
+.sensor-tag.i2c {
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.08);
+    border-color: rgba(56, 189, 248, 0.25);
+}
+
+.sensor-tag.ads {
+    color: #c084fc;
+    background: rgba(192, 132, 252, 0.08);
+    border-color: rgba(192, 132, 252, 0.25);
+}
+
+.sensor-tag.gpio {
+    color: #34d399;
+    background: rgba(52, 211, 153, 0.08);
+    border-color: rgba(52, 211, 153, 0.25);
+}
+
+.sensor-tag.onewire {
+    color: #fbbf24;
+    background: rgba(251, 191, 36, 0.08);
+    border-color: rgba(251, 191, 36, 0.25);
 }
 
 .metric-card[data-type="ac"] .metric-icon {
@@ -558,6 +622,15 @@ body {
 
 .metric-card[data-type="temp"] .metric-bar-fill {
     background: linear-gradient(90deg, var(--accent-rose), #fb7185);
+}
+
+.metric-card[data-type="inverter"] .metric-icon {
+    color: #ec4899;
+    background: rgba(236, 72, 153, 0.12);
+}
+
+.metric-card[data-type="inverter"] .metric-bar-fill {
+    background: linear-gradient(90deg, #ec4899, #f472b6);
 }
 
 /* --- Settings --- */

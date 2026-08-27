@@ -26,8 +26,8 @@
 #define PIN_ZMPT_2      35  // ADC1_CH7 (ZMPT101B #2)
 #define PIN_ZMCT        32  // ADC1_CH4 (ZMCT103C)
 #define PIN_ACS758_IN   33  // ADC1_CH5 (ACS758 Inverter Current Fallback)
-#define PIN_I2C_SDA     22  // I2C SDA (GPIO 22)
-#define PIN_I2C_SCL     21  // I2C SCL (GPIO 21)
+#define PIN_I2C_SDA     21  // I2C SDA (GPIO 21)
+#define PIN_I2C_SCL     22  // I2C SCL (GPIO 22)
 #define PIN_DS18B20     4   // OneWire bus (GPIO 4)
 #define PIN_RPM         16  // IR pulse sensor (GPIO 16)
 

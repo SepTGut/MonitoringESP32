@@ -12,7 +12,7 @@ class ADS1115Sensor;
 class ACS758Sensor {
 public:
     // sensitivityMvPerA: 40.0 mV/A for 50B (bidirectional 5V), 60.0 mV/A for 50U (unidirectional 5V)
-    ACS758Sensor(uint8_t fallbackPin = 33, float sensitivityMvPerA = 40.0f);
+    ACS758Sensor(uint8_t fallbackPin = 33, float sensitivityMvPerA = 40.0f, float calMultiplier = 3.1714f);
 
     void begin();
 
@@ -31,9 +31,13 @@ public:
     void setZeroOffset(float zeroMv) { _zeroOffset = zeroMv; }
     float getZeroOffset() const { return _zeroOffset; }
 
+    void setCalMultiplier(float cal) { _calMultiplier = cal; }
+    float getCalMultiplier() const { return _calMultiplier; }
+
 private:
     uint8_t       _pin;
     float         _sensitivity;     // mV per Ampere (e.g. 40.0 mV/A for 50B)
+    float         _calMultiplier;   // Scaling calibration factor (e.g. 3.1714)
     float         _zeroOffset;      // Resting zero-current output in mV (~2500mV for 5V 50B, ~1650mV for 3.3V)
     MovingAverage _filter;
 };

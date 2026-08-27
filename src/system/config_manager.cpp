@@ -33,9 +33,11 @@ void ConfigManager::loadDefaults() {
     _config.zmpt1Cal = ZMPT_CALIBRATION_1;
     _config.zmpt2Cal = ZMPT_CALIBRATION_2;
     _config.zmctCal  = ZMCT_CALIBRATION;
-    _config.zmpt1OffsetMv = 1650.0f;
-    _config.zmpt2OffsetMv = 1650.0f;
-    _config.zmctOffsetMv  = 1650.0f;
+    _config.acs758Cal = ACS758_CAL_MULTIPLIER;
+    _config.zmpt1OffsetMv = 1665.0f;
+    _config.zmpt2OffsetMv = 935.0f;
+    _config.zmctOffsetMv  = 1672.0f;
+    _config.acs758OffsetMv = ACS758_ZERO_OFFSET; // 1675.0f (ADS1115 A3)
     _config.pf       = AC_POWER_FACTOR;
 
     _config.maxV     = DEFAULT_MAX_V;
@@ -70,12 +72,16 @@ SystemConfig ConfigManager::getConfig() const {
 }
 
 bool ConfigManager::begin() {
-    // LittleFS initialization is also checked by WebDashboard, 
-    // but we mount it here to ensure settings can load.
-    if (!LittleFS.begin(true)) {
-        Serial.println("[Config] Error mounting LittleFS, using defaults");
-        loadDefaults();
-        return false;
+    // Mount LittleFS. If unformatted, format once so partition is writable.
+    if (!LittleFS.begin(false)) {
+        Serial.println("[Config] LittleFS not mounted. Attempting initial format...");
+        if (LittleFS.format() && LittleFS.begin(false)) {
+            Serial.println("[Config] LittleFS formatted and mounted successfully");
+        } else {
+            Serial.println("[Config] Error mounting LittleFS, using defaults in RAM");
+            loadDefaults();
+            return false;
+        }
     }
     return load();
 }
@@ -136,11 +142,22 @@ bool ConfigManager::load() {
 }
 
 bool ConfigManager::save() {
+    if (!LittleFS.begin(false)) {
+        LittleFS.format();
+        LittleFS.begin(false);
+    }
+
     const char* temporaryFilename = "/config.tmp";
     File configFile = LittleFS.open(temporaryFilename, "w");
     if (!configFile) {
-        Serial.println("[Config] Failed to open config file for writing");
-        return false;
+        Serial.println("[Config] Failed to open /config.tmp for writing. Formatting partition...");
+        if (LittleFS.format() && LittleFS.begin(false)) {
+            configFile = LittleFS.open(temporaryFilename, "w");
+        }
+        if (!configFile) {
+            Serial.println("[Config] Critical error: could not open config file for writing");
+            return false;
+        }
     }
 
     StaticJsonDocument<1024> doc;
@@ -230,9 +247,11 @@ bool ConfigManager::updateFromJson(const JsonVariant& json, String& error, Strin
     if (json.containsKey("zmpt1Cal")) { const float v = json["zmpt1Cal"].as<float>(); if (v <= 0.0f || v > 1000.0f) return fail("zmpt1Cal", "Must be >0 and <=1000"); next.zmpt1Cal = v; }
     if (json.containsKey("zmpt2Cal")) { const float v = json["zmpt2Cal"].as<float>(); if (v <= 0.0f || v > 1000.0f) return fail("zmpt2Cal", "Must be >0 and <=1000"); next.zmpt2Cal = v; }
     if (json.containsKey("zmctCal"))  { const float v = json["zmctCal"].as<float>();  if (v <= 0.0f || v > 1000.0f) return fail("zmctCal", "Must be >0 and <=1000"); next.zmctCal = v; }
+    if (json.containsKey("acs758Cal")) { const float v = json["acs758Cal"].as<float>(); if (v <= 0.0f || v > 50.0f) return fail("acs758Cal", "Must be >0 and <=50"); next.acs758Cal = v; }
     if (json.containsKey("zmpt1OffsetMv")) { const float v = json["zmpt1OffsetMv"].as<float>(); if (v < 500.0f || v > 3000.0f) return fail("zmpt1OffsetMv", "Must be 500-3000 mV"); next.zmpt1OffsetMv = v; }
     if (json.containsKey("zmpt2OffsetMv")) { const float v = json["zmpt2OffsetMv"].as<float>(); if (v < 500.0f || v > 3000.0f) return fail("zmpt2OffsetMv", "Must be 500-3000 mV"); next.zmpt2OffsetMv = v; }
     if (json.containsKey("zmctOffsetMv"))  { const float v = json["zmctOffsetMv"].as<float>();  if (v < 500.0f || v > 3000.0f) return fail("zmctOffsetMv", "Must be 500-3000 mV"); next.zmctOffsetMv = v; }
+    if (json.containsKey("acs758OffsetMv")) { const float v = json["acs758OffsetMv"].as<float>(); if (v < 0.0f || v > 5000.0f) return fail("acs758OffsetMv", "Must be 0-5000 mV"); next.acs758OffsetMv = v; }
     if (json.containsKey("pf")) {
         const float value = json["pf"].as<float>(); if (!validFinite(value, 0.0f, 1.0f)) return fail("pf", "Must be finite and between 0-1"); next.pf = value;
     }
@@ -289,7 +308,7 @@ bool ConfigManager::updateFromJson(const JsonVariant& json, String& error, Strin
     return true;
 }
 
-bool ConfigManager::updateOffsets(float o1, float o2, float oi) {
+bool ConfigManager::updateOffsets(float o1, float o2, float oi, float o_acs) {
     if (_mutex == NULL) {
         _mutex = xSemaphoreCreateMutex();
     }
@@ -297,6 +316,7 @@ bool ConfigManager::updateOffsets(float o1, float o2, float oi) {
         _config.zmpt1OffsetMv = o1;
         _config.zmpt2OffsetMv = o2;
         _config.zmctOffsetMv  = oi;
+        _config.acs758OffsetMv = o_acs;
         xSemaphoreGive(_mutex);
         return save();
     }
@@ -320,9 +340,11 @@ void ConfigManager::serialize(JsonDocument& doc, bool includeSecrets) const {
     doc["zmpt1Cal"]   = config.zmpt1Cal;
     doc["zmpt2Cal"]   = config.zmpt2Cal;
     doc["zmctCal"]    = config.zmctCal;
+    doc["acs758Cal"]  = config.acs758Cal;
     doc["zmpt1OffsetMv"] = config.zmpt1OffsetMv;
     doc["zmpt2OffsetMv"] = config.zmpt2OffsetMv;
     doc["zmctOffsetMv"]  = config.zmctOffsetMv;
+    doc["acs758OffsetMv"] = config.acs758OffsetMv;
     doc["pf"]         = config.pf;
 
     doc["maxV"]       = config.maxV;

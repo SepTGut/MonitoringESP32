@@ -43,10 +43,7 @@ void ZMCT103C::begin() {
     analogSetAttenuation(ADC_11db);
     analogReadResolution(12);
 
-    // Auto-calibrate DC offset at idle using eFuse calibrated millivolts
-    calibrateZeroOffset();
-
-    Serial.printf("[ZMCT103C] Initialized on GPIO %d (eFuse offset=%.1fmV, cal=%.1f)\n",
+    Serial.printf("[ZMCT103C] Initialized on GPIO %d (offset=%.1fmV, cal=%.1f)\n",
                   _pin, _offset, _calibration);
 }
 

@@ -7,12 +7,14 @@
 #include "../config/config.h"
 
 // Cutoff threshold for zero current dead-band (Amperes)
-static const float ACS758_DEADBAND_A = 0.08f;
+// Clamps idle residual noise/drift below 0.35A to exactly 0.00A
+static const float ACS758_DEADBAND_A = 0.35f;
 
-ACS758Sensor::ACS758Sensor(uint8_t fallbackPin, float sensitivityMvPerA)
+ACS758Sensor::ACS758Sensor(uint8_t fallbackPin, float sensitivityMvPerA, float calMultiplier)
     : _pin(fallbackPin),
       _sensitivity(sensitivityMvPerA),
-      _zeroOffset(2500.0f),       // Typical 5V bidirectional midpoint (~2.5V)
+      _calMultiplier(calMultiplier),
+      _zeroOffset(1675.0f),       // Calibrated baseline (~1.675V)
       _filter(FILTER_WINDOW_SIZE) {
 }
 
@@ -22,8 +24,8 @@ void ACS758Sensor::begin() {
         analogSetAttenuation(ADC_11db);
         analogReadResolution(12);
     }
-    Serial.printf("[ACS758] Driver initialized (sensitivity: %.1f mV/A, default zero: %.1f mV)\n",
-                  _sensitivity, _zeroOffset);
+    Serial.printf("[ACS758] Driver initialized (sensitivity: %.1f mV/A, calMultiplier: %.4f, default zero: %.1f mV)\n",
+                  _sensitivity, _calMultiplier, _zeroOffset);
 }
 
 float ACS758Sensor::calibrateZeroOffset(ADS1115Sensor* ads, int8_t adsChannel) {
@@ -43,19 +45,37 @@ float ACS758Sensor::calibrateZeroOffset(ADS1115Sensor* ads, int8_t adsChannel) {
 
 float ACS758Sensor::readRawMilliVolts(ADS1115Sensor* ads, int8_t adsChannel) {
     const bool useAds = (ads != nullptr && ads->isEnabled() && adsChannel >= 0 && adsChannel <= 3);
-    return useAds ? ads->readMilliVolts((uint8_t)adsChannel)
-                  : (float)analogReadMilliVolts(_pin);
+    // 32x oversampling to filter out internal ADC noise
+    float sum = 0.0f;
+    const int samples = 32;
+    for (int i = 0; i < samples; i++) {
+        sum += useAds ? ads->readMilliVolts((uint8_t)adsChannel)
+                      : (float)analogReadMilliVolts(_pin);
+        delayMicroseconds(50);
+    }
+    return sum / (float)samples;
 }
 
 float ACS758Sensor::readCurrent(ADS1115Sensor* ads, int8_t adsChannel) {
     float rawMv = readRawMilliVolts(ads, adsChannel);
     float deltaMv = rawMv - _zeroOffset;
-    float currentA = deltaMv / _sensitivity;
+    
+    // Apply calibration multiplier to scale raw delta to signed Amperes
+    float signedCurrentA = (deltaMv / _sensitivity) * _calMultiplier;
 
-    // Apply dead-band cutoff for noise around 0A
-    if (fabsf(currentA) < ACS758_DEADBAND_A) {
-        currentA = 0.0f;
+    // Thermal zero-drift tracking: when in idle noise floor, slowly track baseline
+    if (fabsf(signedCurrentA) < ACS758_DEADBAND_A) {
+        _zeroOffset += 0.0005f * (rawMv - _zeroOffset);
     }
 
-    return _filter.update(currentA);
+    // Filter the SIGNED signal first so symmetric positive/negative noise cancels to 0.0A
+    float filteredCurrentA = _filter.update(signedCurrentA);
+
+    // Apply dead-band cutoff on the filtered signal to eliminate residual idle noise
+    if (fabsf(filteredCurrentA) < ACS758_DEADBAND_A) {
+        return 0.0f;
+    }
+
+    // Return positive magnitude for inverter discharge current
+    return fabsf(filteredCurrentA);
 }

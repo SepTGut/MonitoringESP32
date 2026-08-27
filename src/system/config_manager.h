@@ -28,9 +28,11 @@ struct SystemConfig {
     float zmpt1Cal;
     float zmpt2Cal;
     float zmctCal;
+    float acs758Cal;
     float zmpt1OffsetMv;
     float zmpt2OffsetMv;
     float zmctOffsetMv;
+    float acs758OffsetMv;
     float pf;
 
     // Display Limits — DC (INA226)
@@ -81,7 +83,7 @@ public:
                         bool& restartRequired, bool allowSetupCompletion = true);
 
     // Update zero-point baseline offsets and save to LittleFS (thread-safe)
-    bool updateOffsets(float o1, float o2, float oi);
+    bool updateOffsets(float o1, float o2, float oi, float o_acs = 2500.0f);
 
     // Serialize current config to JSON
     void serialize(JsonDocument& doc, bool includeSecrets = false) const;

@@ -32,14 +32,13 @@
 // --- ZMPT101B Calibration ---
 //  Adjust these based on known reference voltage measurements.
 //  Formula: Vrms = raw_rms × calibration_factor
-#define ZMPT_CALIBRATION_1  242.0f  // ZMPT101B #1 (for power calculation)
-#define ZMPT_CALIBRATION_2  242.0f  // ZMPT101B #2 (raw monitoring)
+#define ZMPT_CALIBRATION_1  242.0f  // ZMPT101B #1 (Generator AC Voltage)
+#define ZMPT_CALIBRATION_2  327.8f  // ZMPT101B #2 (Inverter 220V AC Output)
 
 // --- ZMCT103C Calibration ---
 //  Depends on burden resistor and CT turns ratio.
 //  ZMCT103C typical: 1000:1 turns ratio
-//  Formula: Irms = raw_rms × calibration_factor
-#define ZMCT_CALIBRATION    0.69f
+#define ZMCT_CALIBRATION    0.2207f // Calibrated AC current scale factor (0.134A multimeter / 607mV raw)
 
 // --- AC Power Factor ---
 //  Used for estimated real power: P = Vrms × Irms × PF
@@ -48,10 +47,10 @@
 // --- INA226 Configuration ---
 #define INA226_MAX_CURRENT  0.80f   // Maximum expected current (A) for R100 shunt (81.92mV limit)
 #define INA226_SHUNT_OHM    0.10f   // Shunt resistor value (Ω) — R100 = 0.100Ω (100mΩ)
-#define INA226_VOLTAGE_CAL  0.94707f // DC voltage calibration multiplier (11.81V multimeter / 12.47V raw)
+#define INA226_VOLTAGE_CAL  0.94551f // DC voltage calibration multiplier (12.10V multimeter / 12.12V raw)
 
 // --- I2C Bus Configuration ---
-#define I2C_CLOCK_SPEED     400000UL // Fast-mode I2C clock (400 kHz) for rapid 16-bit sampling
+#define I2C_CLOCK_SPEED     100000UL // Standard-mode I2C clock (100 kHz) for PCF8574 LCD compatibility
 
 // --- ADS1115 Configuration ---
 #define DEFAULT_ADS1115_ADDR 0x48   // Default ADS1115 I2C Address (ADDR -> GND)
@@ -59,8 +58,10 @@
 #define ADS1115_DATA_RATE    7      // 7 = 860 SPS (Fastest conversion rate)
 
 // --- ACS758 50A Inverter Current Sensor Configuration ---
-#define ACS758_SENSITIVITY  40.0f   // mV/A (40.0 mV/A for ACS758LCB-050B bidirectional, 60.0 for 050U)
-#define ACS758_MAX_CURRENT  50.0f   // Maximum current (A) for 50A variant
+#define ACS758_SENSITIVITY      40.0f   // mV/A (40.0 mV/A for ACS758LCB-050B bidirectional, 60.0 for 050U)
+#define ACS758_CAL_MULTIPLIER   0.9825f // Calibrated scale factor for direct GPIO 33 (3.93A multimeter / 160mV raw delta)
+#define ACS758_ZERO_OFFSET      1675.0f // Resting zero-current baseline in mV on GPIO 33
+#define ACS758_MAX_CURRENT      50.0f   // Maximum current (A) for 50A variant
 
 // --- RPM Configuration ---
 #define RPM_PULSES_PER_REV  1       // Pulses per revolution (IR sensor)

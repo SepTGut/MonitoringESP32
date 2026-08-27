@@ -27,8 +27,8 @@
 #define PIN_RPM_INPUT 16 // IR / Proximity sensor input (GPIO 16)
 
 // --- I2C Bus (shared by ADS1115, INA226 x2, LCD) ---
-#define PIN_I2C_SDA 22
-#define PIN_I2C_SCL 21
+#define PIN_I2C_SDA 21
+#define PIN_I2C_SCL 22
 
 // --- ADS1115 Hardware ALERT/RDY Pin (Optional hardware interrupt/ready input)
 // --- Connecting ADS1115 ALRT pin to GPIO 19 allows zero-wait hardware

@@ -33,9 +33,8 @@ LcdDisplay::~LcdDisplay() {
 
 void LcdDisplay::begin(uint8_t addr) {
     if (addr == 0) {
-        Serial.println("[LCD] No I2C LCD display address provided. LCD display is DISABLED.");
-        _enabled = false;
-        return;
+        addr = 0x27; // Standard PCF8574 fallback address
+        Serial.println("[LCD] No scanned I2C LCD address; attempting initialization at default 0x27...");
     }
 
     _addr = addr;
@@ -47,7 +46,14 @@ void LcdDisplay::begin(uint8_t addr) {
         _lcd = nullptr;
     }
 
-    // Allocate the LiquidCrystal_I2C object dynamically with the scanned address
+    // Send direct hardware backlight activation pulse to common PCF8574 / PCF8574A addresses
+    for (uint8_t candidate : { (uint8_t)0x27, (uint8_t)0x3F, (uint8_t)0x20, (uint8_t)0x38 }) {
+        Wire.beginTransmission(candidate);
+        Wire.write(0x08); // P3 bit = 1 turns on backlight transistor
+        Wire.endTransmission();
+    }
+
+    // Allocate the LiquidCrystal_I2C object dynamically with the target address
     _lcd = new LiquidCrystal_I2C(_addr, 16, 2);
     _lcd->init();
     _lcd->backlight();

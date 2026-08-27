@@ -21,9 +21,9 @@
 static const float OFFSET_ALPHA = 0.001f;
 
 // Noise floor dead-band (in mV). Readings below this are clamped to 0.
-// Prevents floating pin / ambient EM noise from producing false AC readings.
-static const float ADC_NOISE_FLOOR_MV = 45.0f;
-static const float AC_MIN_VOLTAGE_CUTOFF = 3.0f; // Minimum valid AC voltage (V)
+// Prevents floating pin / ambient EM noise from producing false AC readings (clamps 35-36V floating noise to 0.0V).
+static const float ADC_NOISE_FLOOR_MV = 160.0f;
+static const float AC_MIN_VOLTAGE_CUTOFF = 12.0f; // Minimum valid AC voltage (V)
 
 ZMPT101B::ZMPT101B(uint8_t pin, float calibration)
     : _pin(pin),
@@ -43,10 +43,7 @@ void ZMPT101B::begin() {
     analogSetAttenuation(ADC_11db);
     analogReadResolution(12);
 
-    // Auto-calibrate DC offset at idle using eFuse calibrated millivolts
-    calibrateZeroOffset();
-
-    Serial.printf("[ZMPT101B] Initialized on GPIO %d (eFuse offset=%.1fmV, cal=%.1f)\n",
+    Serial.printf("[ZMPT101B] Initialized on GPIO %d (offset=%.1fmV, cal=%.1f)\n",
                   _pin, _offset, _calibration);
 }
 

@@ -1,8 +1,8 @@
 {
     "clangd.arguments": [
-        "--compile-commands-dir=${workspaceFolder}",
+        "--compile-commands-dir=d:/MyCode/New folder/MonitoringESP32/.cache/clangd",
         "--header-insertion=never",
-        "--query-driver=C:/Users/user/.platformio/packages/toolchain-xtensa-esp-elf/bin/xtensa-esp32-elf-*"
+        "--query-driver=C:/Users/user/.platformio/packages/toolchain-*/bin/*,C:/Users/user/.platformio/packages/tool-*/bin/*"
     ],
     "clangd.fallbackFlags": [
         "-std=gnu++2b",

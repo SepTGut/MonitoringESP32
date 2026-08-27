@@ -1,11 +1,6 @@
-// =============================================================
-//  web_server.cpp — ESPAsyncWebServer + WebSocket Dashboard
-//
-//  Serves the dashboard from LittleFS and pushes real-time
-//  sensor data via WebSocket to connected clients.
-// =============================================================
-
 #include "web_server.h"
+#include "wifi_manager.h"
+#include "web_assets.h"
 #include <ESPAsyncWebServer.h>
 #include <AsyncJson.h>
 #include <LittleFS.h>
@@ -20,6 +15,22 @@
 // Server and WebSocket instances
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
+
+// Helper to stream file from LittleFS if present, otherwise from Flash PROGMEM (GZIP)
+static void sendGzipOrFile(AsyncWebServerRequest* request, const char* path, const char* mime, const uint8_t* embeddedGz, size_t embeddedLen) {
+    if (LittleFS.exists(path)) {
+        request->send(LittleFS, path, mime);
+        return;
+    }
+    if (embeddedGz != nullptr && embeddedLen > 0) {
+        AsyncWebServerResponse* response = request->beginResponse_P(200, mime, embeddedGz, embeddedLen);
+        response->addHeader("Content-Encoding", "gzip");
+        response->addHeader("Cache-Control", "public, max-age=3600");
+        request->send(response);
+        return;
+    }
+    request->send(404, "text/plain", "Asset not found");
+}
 
 static void serializeSensorData(JsonDocument& doc, const SensorData& data) {
     // AC — Generator & Inverter Output
@@ -66,21 +77,56 @@ void onWsEvent(AsyncWebSocket* server, AsyncWebSocketClient* client,
 }
 
 void WebDashboard::begin() {
-    // Mount LittleFS
-    if (!LittleFS.begin(true)) {
-        Serial.println("[Web] Error mounting LittleFS");
+    // Mount LittleFS without formatting on fail so flashed files are preserved
+    if (!LittleFS.begin(false)) {
+        Serial.println("[Web] Notice: LittleFS not mounted; serving built-in Flash dashboard (100% available)");
+    } else {
+        Serial.println("[Web] LittleFS mounted successfully");
     }
 
-    // --- Serve Static Files ---
+    // --- Global CORS Headers ---
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type");
+
+    // --- Serve Static Files (LittleFS override with embedded GZIP fallback) ---
     server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
-        request->send(LittleFS, "/index.html", "text/html");
+        sendGzipOrFile(request, "/index.html", "text/html", INDEX_HTML_GZ, INDEX_HTML_GZ_LEN);
+    });
+    server.on("/index.html", HTTP_GET, [](AsyncWebServerRequest* request) {
+        sendGzipOrFile(request, "/index.html", "text/html", INDEX_HTML_GZ, INDEX_HTML_GZ_LEN);
     });
     server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest* request) {
-        request->send(LittleFS, "/style.css", "text/css");
+        sendGzipOrFile(request, "/style.css", "text/css", STYLE_CSS_GZ, STYLE_CSS_GZ_LEN);
     });
     server.on("/script.js", HTTP_GET, [](AsyncWebServerRequest* request) {
-        request->send(LittleFS, "/script.js", "text/javascript");
+        sendGzipOrFile(request, "/script.js", "application/javascript", SCRIPT_JS_GZ, SCRIPT_JS_GZ_LEN);
     });
+    server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest* request) {
+        sendGzipOrFile(request, "/favicon.ico", "image/x-icon", FAVICON_ICO_GZ, FAVICON_ICO_GZ_LEN);
+    });
+    server.on("/web_serial_plotter.html", HTTP_GET, [](AsyncWebServerRequest* request) {
+        if (LittleFS.exists("/web_serial_plotter.html")) {
+            request->send(LittleFS, "/web_serial_plotter.html", "text/html");
+        } else {
+            sendGzipOrFile(request, "/index.html", "text/html", INDEX_HTML_GZ, INDEX_HTML_GZ_LEN);
+        }
+    });
+
+    // --- Captive Portal Probe Endpoints (Android / Apple / Windows) ---
+    auto sendCaptiveRedirect = [](AsyncWebServerRequest* request) {
+        request->redirect("http://192.168.4.1/");
+    };
+    server.on("/generate_204", HTTP_GET, sendCaptiveRedirect);
+    server.on("/gen_204", HTTP_GET, sendCaptiveRedirect);
+    server.on("/hotspot-detect.html", HTTP_GET, sendCaptiveRedirect);
+    server.on("/canonical.html", HTTP_GET, sendCaptiveRedirect);
+    server.on("/success.txt", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(200, "text/plain", "success\n"); });
+    server.on("/connecttest.txt", HTTP_GET, sendCaptiveRedirect);
+    server.on("/ncsi.txt", HTTP_GET, sendCaptiveRedirect);
+
+    // Serve all other LittleFS assets if available
+    server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
 
     // --- API: Get System Info ---
     server.on("/api/sysinfo", HTTP_GET, [](AsyncWebServerRequest* request) {
@@ -202,16 +248,20 @@ void WebDashboard::begin() {
 
     // --- Captive Portal: redirect unknown hosts ---
     server.onNotFound([](AsyncWebServerRequest* request) {
+        if (request->method() == HTTP_OPTIONS) {
+            request->send(200);
+            return;
+        }
+
         String host = request->host();
-        if (host != "192.168.4.1" && !host.endsWith(".local")) {
-            request->redirect("http://192.168.4.1/");
+        IPAddress apIP = WiFiManager::getAPIP();
+        String apIPStr = apIP.toString();
+
+        // Redirect external domains probed during captive portal discovery to AP IP
+        if (host.indexOf(apIPStr) == -1 && !host.endsWith(".local") && !WiFiManager::isSTAConnected()) {
+            request->redirect("http://" + apIPStr + "/");
         } else {
-            if (LittleFS.exists("/index.html")) {
-                request->send(LittleFS, "/index.html", "text/html");
-            } else {
-                request->send(200, "text/html",
-                    "<h1>ESP32 Wind Monitor</h1><p>Upload filesystem first.</p>");
-            }
+            sendGzipOrFile(request, "/index.html", "text/html", INDEX_HTML_GZ, INDEX_HTML_GZ_LEN);
         }
     });
 

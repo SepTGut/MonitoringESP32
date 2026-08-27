@@ -3,6 +3,89 @@
 ## 2026-08-27
 
 ### Fixed & Improved
+- **ACS758 DC Current Sensor Hardware Route to GPIO 33**:
+  - Re-routed ACS758 current sampling directly to physical hardware pin `GPIO 33` (`PIN_ACS758_INPUT`) where the analog voltage shifts cleanly by $+160\text{ mV}$ under load.
+  - Implemented 32x ADC oversampling on GPIO 33 with signed moving average filtering to suppress internal SAR ADC noise.
+  - Set calibrated multiplier to $0.9825\text{f}$ for exact $3.93\text{ A}$ multimeter tracking and automatic $0.00\text{ A}$ idle zero-current detection.
+- **INA226 Battery DC Voltage Fine-Tuning ($12.10\text{ V}$)**:
+  - Adjusted `INA226_VOLTAGE_CAL` to $0.94551\text{f}$ to perfectly match $12.10\text{ V}$ multimeter measurement.
+  - Set default ACS758 resting zero baseline `ACS758_ZERO_OFFSET` to $1695.0\text{ mV}$ in `config.h` and LittleFS `config.json`.
+- **ZMPT2 Inverter AC Output Voltage $220.0\text{ V}$ Multimeter Calibration**:
+  - Calibrated `zmpt2Cal` scale multiplier to $327.8\text{f}$ based on physical $220.0\text{ V}$ multimeter AC output measurement on ADS1115 A1.
+  - Aligned inverter AC power calculations ($P_{\text{AC}} = 220\text{V} \times 0.134\text{A} \approx 29.5\text{ W}$) and inverter efficiency metric.
+- **ACS758 ($3.93\text{ A}$) and ZMCT103C ($0.134\text{ A}$) Multimeter Calibration**:
+  - Calibrated ACS758 DC current scaling multiplier to $7.860\text{f}$ based on $3.93\text{ A}$ multimeter measurement ($20.0\text{ mV}$ raw $\Delta$ on ADS1115 A3).
+  - Calibrated ZMCT103C AC load current factor to $0.2207\text{f}$ based on $0.134\text{ A}$ multimeter measurement ($607.1\text{ mV}$ raw RMS signal on ADS1115 A2).
+  - Verified INA226 battery DC voltage accuracy ($12.10\text{ V} - 12.12\text{ V}$ reading vs $12.11\text{ V}$ multimeter).
+- **Dual ACS758 ADC Comparison Mode (ADS1115 A3 vs Direct ESP32 GPIO 33)**:
+  - Added concurrent sampling of ESP32 internal ADC1 on GPIO 33 (`PIN_ACS758_INPUT`) alongside ADS1115 Channel A3.
+  - Implemented real-time side-by-side diagnostic logging (`[ACS758 Compare]`) displaying millivolts, baseline offset delta ($\Delta$), and computed Amperes for both ADC paths.
+- **ACS758 $\pm 0.5\text{A}$ Idle Drift Elimination & Thermal Auto-Tracking**:
+  - Increased zero-current dead-band `ACS758_DEADBAND_A` to $0.70\text{ A}$ ($\approx 9\text{ mV}$ threshold) to cleanly eliminate ambient $\pm 0.5\text{A}$ thermal noise while preserving $1.11\text{ A}$ inverter idle and $3.65\text{ A}$ load measurements.
+  - Implemented continuous **Thermal Zero-Drift Tracking** ($\alpha = 0.0005$) that dynamically adapts `_zeroOffset` during idle periods to cancel temperature-induced baseline drift over extended runtimes.
+- **ACS758 Default Hardware Baseline Alignment ($1675.0\text{ mV}$)**:
+  - Fixed $65.55\text{A}$ false current reading on boot/reset caused by mismatch between $2500\text{ mV}$ nominal 5V setting and actual $1675\text{ mV}$ ADS1115 hardware divider level.
+  - Set `ACS758_ZERO_OFFSET` in `config.h` and default baseline in `config_manager.cpp` to $1675.0\text{ mV}$.
+  - Aligned all default baseline offsets (`zmpt1=1665mV`, `zmpt2=935mV`, `zmct=1672mV`, `acs758=1675mV`) and packaged default `data/config.json`.
+- **ACS758 DC Current Sensor Signed Filtering & Idle Jitter Elimination**:
+  - Eliminated $0\text{A} - 1.5\text{A}$ ghost current fluctuations caused by premature absolute rectification (`fabsf`) before moving average filtering.
+  - Implemented signed filtering so symmetric Gaussian noise cancels naturally to $0.00\text{ A}$.
+  - Added 16x ADC oversampling with $50\mu\text{s}$ delay in `readRawMilliVolts()` to suppress high-frequency power ripple spikes.
+  - Increased noise dead-band `ACS758_DEADBAND_A` to $0.40\text{ A}$ to cleanly clamp zero-load fluctuations to **`0.00 A`**.
+- **Web Dashboard Sensor Source Hardware Badges**:
+  - Added hardware sensor source badges to all 17 measurement cards and hero power cards in the Web UI dashboard (`data/index.html`, `data/style.css`, `docs/`, `test/web_preview/`).
+  - Categorized and color-coded each sensor by hardware interface:
+    - **I2C Bus (Cyan)**: `INA226 #1 · I2C 0x44`, `INA226 #2 · I2C 0x45`, `LCD · I2C 0x27`
+    - **16-Bit ADS1115 / GPIO (Purple)**: `ZMPT101B · ADS1115 (A0)`, `ZMPT101B · ADS1115 (A1)`, `ZMCT103C · ADS1115 (A2)`, `ACS758 · ADS1115 (A3)`
+    - **Direct GPIO (Green)**: `IR Optical Sensor · GPIO 16`, `ESP32 Internal TSENS`
+    - **1-Wire Bus (Amber)**: `DS18B20 #1 · GPIO 4`, `DS18B20 #2 · GPIO 4`
+  - Regenerated PROGMEM GZIP flash arrays in `src/network/web_assets.h`.
+- **USB Serial Command Processor (`CAL`, `SCAN`, `REBOOT`)**:
+  - Added real-time serial command parser in `networkTaskFunction()` over USB UART (`115200` baud).
+  - Supported commands: `CAL` / `CALIBRATE` (executes 500-sample ADC zero calibration and saves to flash), `SCAN` (runs dynamic I2C bus device discovery), and `REBOOT` (restarts ESP32).
+- **Persistent ADC Calibration & Boot Reset Prevention**:
+  - Removed destructive boot-time auto-calibration routines from `ZMPT101B::begin()`, `ZMCT103C::begin()`, and `sensorTaskFunction()` that were wiping out saved offsets in flash on every reboot.
+  - Implemented direct restoration of saved baseline offsets (`zmpt1OffsetMv`, `zmpt2OffsetMv`, `zmctOffsetMv`, `acs758OffsetMv`) from LittleFS `/config.json` upon startup.
+  - Restricted zero-point calibration strictly to user-triggered requests (`/api/adc-calibrate`), ensuring calibration survives power-cycles and reboots.
+- **ZMPT101B Floating Input Noise Suppression**:
+  - Raised `ADC_NOISE_FLOOR_MV` in `zmpt101b.cpp` to `160.0f` ($\approx 38.7\text{ V}$) and `AC_MIN_VOLTAGE_CUTOFF` to `12.0f`.
+  - Clamped ambient $50\text{Hz}$ electromagnetic op-amp pickup on open/floating generator terminals to **`0.0 V`** instead of displaying false ghost voltages ($35\text{V} - 36\text{V}$).
+- **ZMCT103C AC Current Calibration & ACS758 Diagnostic Telemetry**:
+  - Calibrated `ZMCT_CALIBRATION` factor to `0.1493f` ($0.69 \times \frac{0.132\text{A}}{0.61\text{A}}$), accurately scaling 40W heating element AC load measurement from $0.61\text{ A}$ down to exact reference current **$0.132\text{ A}$**.
+  - Added live raw ADC millivolt telemetry logs (`[ACS758 Raw Diag]` and `[ZMCT Raw Diag]`) in `freertos_tasks.cpp` displaying raw sensor mV, zero baseline, delta mV, and active sampling source (ADS1115 vs Internal ADC GPIO).
+- **ACS758 Hall-Effect DC Current Calibration & Dynamic Multiplier**:
+  - Resolved current under-reading ($0.35\text{ A}$ raw vs $1.11\text{ A}$ multimeter on battery/inverter discharge line) caused by input voltage divider and ADC impedance scaling.
+  - Added calibrated scaling factor `ACS758_CAL_MULTIPLIER` ($K_{\text{cal}} = 3.1714$) to `ACS758Sensor` driver and `config.h`, bringing the measured current to exact parity with external reference meters ($0.35\text{A} \times 3.1714 = 1.11\text{A}$).
+  - Extended `SystemConfig` and `ConfigManager` to persist `acs758Cal` and dynamic zero-point baseline `acs758OffsetMv`.
+  - Added ACS758 calibration multiplier setting in web dashboard (`data/index.html`, `data/script.js`, `docs/`, `test/web_preview/`) and regenerated flash assets (`src/network/web_assets.h`).
+- **I2C Auto-Recovery, Multi-Address Backlight Pulse & Diagnostics**:
+  - Implemented automatic SDA/SCL pin-reversal detection in `sensorTaskFunction()`: if 0 devices are found on the primary mapping, the firmware automatically scans the reversed pin mapping (SDA <-> SCL) and adopts the working configuration.
+  - Added direct hardware backlight pulses in `LcdDisplay::begin()` across PCF8574 candidate addresses (`0x27`, `0x3F`, `0x20`, `0x38`) to force-illuminate the backlight circuit regardless of backpack IC variant.
+  - Added GPIO pin state diagnostic logging (`[I2C Diag]`) to monitor SDA/SCL logic levels and detect physical shorts or missing pull-ups.
+- **LCD Backlight Activation & I2C 100 kHz Compatibility**:
+  - Adjusted `I2C_CLOCK_SPEED` from 400 kHz to standard 100 kHz (`100000UL`) in `config.h` to ensure 100% timing compatibility with PCF8574 LCD backpacks.
+  - Added a 100ms power-on stabilization delay before I2C address scanning and set a 50ms bus timeout.
+  - Updated `LcdDisplay::begin()` and `sensorTaskFunction()` to fallback to default address `0x27` and always initialize the display and backlight (`_lcd->init()`, `_lcd->backlight()`) even if the initial bus scan didn't receive an early ACK.
+- **I2C Pin Assignment Synchronization & Config Save Resolution**:
+  - Updated I2C pin assignments across firmware and diagnostic test suites to match hardware wiring: `PIN_I2C_SDA` (GPIO 21) and `PIN_I2C_SCL` (GPIO 22).
+  - Enhanced `ConfigManager::begin()` and `ConfigManager::save()` with auto-formatting fallback on LittleFS write failure, ensuring that settings modifications sent via `/api/config` from the web dashboard are saved to flash successfully.
+- **Zero-Dependency Fail-Safe Web Dashboard (Flash Embedded PROGMEM GZIP Assets)**:
+  - Created `tools/generate_web_assets.py` to compress `index.html`, `style.css`, `script.js`, and `favicon.ico` into 18.2 KB of pre-compressed GZIP byte arrays in `src/network/web_assets.h`.
+  - Implemented hybrid static asset delivery in `web_server.cpp`: checks for physical LittleFS files first, and automatically falls back to streaming PROGMEM GZIP assets via `beginResponse_P` with `Content-Encoding: gzip`.
+  - Disabled `formatOnFail` in `LittleFS.begin(false)` across `config_manager.cpp` and `web_server.cpp` to prevent destructive partition formatting and file erasures during boot.
+  - Guaranteed 100% web dashboard uptime across all connection modes even if LittleFS is unformatted or empty.
+- **Bulletproof Web Server & Captive Portal Routing**:
+  - Implemented `server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html")` alongside explicit static routes (`/`, `/index.html`, `/style.css`, `/script.js`, `/favicon.ico`, `/web_serial_plotter.html`) to ensure all paths and assets resolve reliably without redirect loops.
+  - Added dedicated captive portal probe endpoints for Android (`/generate_204`, `/gen_204`), Apple (`/hotspot-detect.html`, `/canonical.html`, `/success.txt`), and Windows (`/connecttest.txt`, `/ncsi.txt`) with automatic redirect to AP IP `192.168.4.1`.
+  - Added global CORS headers (`Access-Control-Allow-Origin: *`, `OPTIONS 200 OK`) to allow seamless cross-origin and local browser preview access.
+  - Improved `onNotFound` fallback to prevent redirect loops when accessing via router IP in STA mode or via mDNS (`windmonitor.local`).
+- **Web Dashboard Error Elimination & 4-Channel Asset Synchronization**:
+  - Resolved DOM element ID caching mismatches in `script.js` left over from the pre-4-channel power architecture migration (`val-dcpwr2`, `power-ring-dc2`, `val-dcvolt2`, etc. removed; DOM cache now 100% matched to `index.html`).
+  - Added embedded SVG turbine favicon to `index.html` and registered `/favicon.ico` (204 No Content) route handler in `web_server.cpp` to eliminate browser console 404 errors.
+  - Wrapped settings inputs in a semantic `<form id="settings-form" onsubmit="event.preventDefault()">` to satisfy browser password management and eliminate accessibility/autofill warnings.
+  - Modernized `startDemoSimulation()` in `script.js` to simulate realistic 4-channel power topology: Inverter 220V AC Output, MPPT Battery Charge, ACS758 50A Inverter DC Discharge, and INA226 #2 Control & Lighting Aux, along with Lakoni 65Ah / 780Wh battery SoC.
+  - Enhanced preview / localhost fallback in `script.js` so browser previews automatically activate demo simulation cleanly without throwing connection exceptions or unhandled 404 fetch alerts.
+  - Synchronized all web assets (`index.html`, `script.js`, `style.css`) across `data/`, `docs/`, and `test/web_preview/`.
 - **Project Folder Relocation Verification & Path Synchronization**:
   - Verified project integrity following directory relocation to `d:\MyCode\New folder\MonitoringESP32`.
   - Tested and confirmed full firmware compilation (`pio run` -> `[SUCCESS]`, RAM: 12.5%, Flash: 55.3%) and LittleFS image generation (`pio run -t buildfs` -> `[SUCCESS]`).

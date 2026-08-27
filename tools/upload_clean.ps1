@@ -1,23 +1,22 @@
 # =============================================================
-#  upload_clean.ps1 — ESP32 Clean Upload Script
+#  upload_clean.ps1 - ESP32 Clean Upload Script
 #  1. Erases all flash (program and LittleFS data)
 #  2. Compiles and uploads firmware
 #  3. Builds and uploads LittleFS filesystem image
 # =============================================================
 
-$port = ""
+$port = "COM3"
 if ($args.Count -gt 0) {
     $port = $args[0]
 }
 
-# Find internal PlatformIO executable first to avoid broken Python launchers
 $pioPath = "$env:USERPROFILE\.platformio\penv\Scripts\pio.exe"
 if (!(Test-Path $pioPath)) {
     $pioPath = "pio"
 }
 
 Write-Host "====================================================" -ForegroundColor Cyan
-Write-Host "  ESP32 Wind Monitor — Clean Upload Utility" -ForegroundColor Cyan
+Write-Host "  ESP32 Wind Monitor - Clean Upload Utility" -ForegroundColor Cyan
 Write-Host "  Using PlatformIO: $pioPath" -ForegroundColor Gray
 Write-Host "====================================================" -ForegroundColor Cyan
 

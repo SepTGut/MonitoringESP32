@@ -90,7 +90,7 @@ static float calculateBatterySoC(float v) {
 static ZMPT101B     zmpt1(PIN_ZMPT101B_1, ZMPT_CALIBRATION_1);
 static ZMPT101B     zmpt2(PIN_ZMPT101B_2, ZMPT_CALIBRATION_2);
 static ZMCT103C     zmct(PIN_ZMCT103C, ZMCT_CALIBRATION);
-static ACS758Sensor acs758(PIN_ACS758_INPUT, ACS758_SENSITIVITY);
+static ACS758Sensor acs758(PIN_ACS758_INPUT, ACS758_SENSITIVITY, ACS758_CAL_MULTIPLIER);
 static DS18B20Sensor tempBus(PIN_DS18B20);
 static RPMSensor    rpmSensor(PIN_RPM_INPUT);
 static LcdDisplay   lcdDisplay;
@@ -103,11 +103,27 @@ static ADS1115Sensor* ads  = nullptr;
 static void sensorTaskFunction(void* pvParameters) {
     Serial.println("[Task] Sensor task started on Core 1");
 
-    // Initialize I2C bus once before scanning with 400kHz Fast Mode
-    Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL);
-    Wire.setClock(I2C_CLOCK_SPEED);
+    // Power-on stabilization delay for I2C modules and LCD controller
+    vTaskDelay(pdMS_TO_TICKS(100));
 
-    Serial.println("[I2C] Scanning I2C bus for connected devices (400 kHz Fast-Mode)...");
+    // Log GPIO physical logic levels for diagnostic feedback
+    pinMode(PIN_I2C_SDA, INPUT_PULLUP);
+    pinMode(PIN_I2C_SCL, INPUT_PULLUP);
+    int sdaLevel = digitalRead(PIN_I2C_SDA);
+    int sclLevel = digitalRead(PIN_I2C_SCL);
+    Serial.printf("[I2C Diag] GPIO%d(SDA)=%s, GPIO%d(SCL)=%s\n",
+                  PIN_I2C_SDA, sdaLevel ? "HIGH (Normal)" : "LOW (Shorted or pulled down!)",
+                  PIN_I2C_SCL, sclLevel ? "HIGH (Normal)" : "LOW (Shorted or pulled down!)");
+
+    // Initialize I2C bus with 100kHz standard mode
+    uint8_t activeSda = PIN_I2C_SDA;
+    uint8_t activeScl = PIN_I2C_SCL;
+    Wire.begin(activeSda, activeScl);
+    Wire.setClock(I2C_CLOCK_SPEED);
+    Wire.setTimeOut(50);
+
+    Serial.printf("[I2C] Scanning primary I2C bus on SDA=%d, SCL=%d (%lu Hz)...\n",
+                  activeSda, activeScl, I2C_CLOCK_SPEED);
     uint8_t i2c_list[16];
     uint8_t i2c_count = 0;
     uint8_t lcdAddr = 0;
@@ -119,18 +135,54 @@ static void sensorTaskFunction(void* pvParameters) {
             if (i2c_count < 16) {
                 i2c_list[i2c_count++] = addr;
             }
-            
-            // Check for LCD (0x20-0x27 or 0x38-0x3F)
             if ((addr >= 0x20 && addr <= 0x27) || (addr >= 0x38 && addr <= 0x3F)) {
                 if (lcdAddr == 0) lcdAddr = addr;
             }
         }
     }
 
+    // Auto-Recovery: If 0 devices found, test reversed pin orientation (SDA <-> SCL)
+    if (i2c_count == 0) {
+        Serial.printf("[I2C] No devices on SDA=%d/SCL=%d. Testing reversed pins SDA=%d, SCL=%d...\n",
+                      PIN_I2C_SDA, PIN_I2C_SCL, PIN_I2C_SCL, PIN_I2C_SDA);
+        Wire.end();
+        Wire.begin(PIN_I2C_SCL, PIN_I2C_SDA);
+        Wire.setClock(I2C_CLOCK_SPEED);
+        Wire.setTimeOut(50);
+
+        for (uint8_t addr = 1; addr < 127; addr++) {
+            Wire.beginTransmission(addr);
+            if (Wire.endTransmission() == 0) {
+                Serial.printf("[I2C-Reversed] Found responsive device at address 0x%02X\n", addr);
+                if (i2c_count < 16) {
+                    i2c_list[i2c_count++] = addr;
+                }
+                if ((addr >= 0x20 && addr <= 0x27) || (addr >= 0x38 && addr <= 0x3F)) {
+                    if (lcdAddr == 0) lcdAddr = addr;
+                }
+            }
+        }
+
+        if (i2c_count > 0) {
+            Serial.println("[I2C] Success! Devices found on reversed pins. Operating on reversed mapping.");
+            activeSda = PIN_I2C_SCL;
+            activeScl = PIN_I2C_SDA;
+        } else {
+            Serial.println("[I2C] No devices found on either pin configuration.");
+            Wire.end();
+            Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL);
+            Wire.setClock(I2C_CLOCK_SPEED);
+        }
+    }
+
+    if (lcdAddr == 0) {
+        lcdAddr = LCD_I2C_ADDR; // Default 0x27 fallback
+    }
+
     // Save detected I2C list to DataManager (for Web Dashboard UI)
     dataManager.updateI2CAddresses(i2c_list, i2c_count);
 
-    // Initialize LCD display with detected address (disabled if 0)
+    // Initialize LCD display with detected address (or fallback)
     lcdDisplay.begin(lcdAddr);
 
     // Initialize non-I2C sensors
@@ -200,11 +252,6 @@ static void sensorTaskFunction(void* pvParameters) {
                           activeAdsAddr, ADS1115_USE_ALERT ? PIN_ADS1115_ALERT : -1);
             ads = new ADS1115Sensor(activeAdsAddr, ADS1115_USE_ALERT ? PIN_ADS1115_ALERT : -1);
             ads->begin();
-            // Auto-calibrate baseline offsets via ADS1115
-            zmpt1.calibrateZeroOffset(ads, ADS1115_CH_ZMPT1);
-            zmpt2.calibrateZeroOffset(ads, ADS1115_CH_ZMPT2);
-            zmct.calibrateZeroOffset(ads, ADS1115_CH_ZMCT);
-            acs758.calibrateZeroOffset(ads, ADS1115_CH_ACS758);
         } else {
             Serial.printf("[ADS1115] Warning: ADS1115 NOT found at any address (0x48-0x4B). Falling back to internal ADC.\n");
             acs758.begin();
@@ -212,6 +259,18 @@ static void sensorTaskFunction(void* pvParameters) {
     } else {
         acs758.begin();
     }
+
+    // Apply saved baseline offsets and calibration directly from LittleFS config
+    zmpt1.setOffset(cfg.zmpt1OffsetMv);
+    zmpt2.setOffset(cfg.zmpt2OffsetMv);
+    zmct.setOffset(cfg.zmctOffsetMv);
+    acs758.setZeroOffset(cfg.acs758OffsetMv);
+    zmpt1.setCalibration(cfg.zmpt1Cal);
+    zmpt2.setCalibration(cfg.zmpt2Cal);
+    zmct.setCalibration(cfg.zmctCal);
+    acs758.setCalMultiplier(cfg.acs758Cal);
+    Serial.printf("[Sensors] Loaded saved calibration from flash: Z1_Off=%.1fmV, Z2_Off=%.1fmV, ZMCT_Off=%.1fmV, ACS_Off=%.1fmV\n",
+                  cfg.zmpt1OffsetMv, cfg.zmpt2OffsetMv, cfg.zmctOffsetMv, cfg.acs758OffsetMv);
 
     // Issue first DS18B20 conversion so data is ready on first read
     tempBus.requestTemperature();
@@ -250,10 +309,12 @@ static void sensorTaskFunction(void* pvParameters) {
         zmpt1.setCalibration(currentCfg.zmpt1Cal);
         zmpt2.setCalibration(currentCfg.zmpt2Cal);
         zmct.setCalibration(currentCfg.zmctCal);
+        acs758.setCalMultiplier(currentCfg.acs758Cal);
 
         if (currentCfg.zmpt1OffsetMv >= 500.0f) zmpt1.setOffset(currentCfg.zmpt1OffsetMv);
         if (currentCfg.zmpt2OffsetMv >= 500.0f) zmpt2.setOffset(currentCfg.zmpt2OffsetMv);
         if (currentCfg.zmctOffsetMv >= 500.0f)  zmct.setOffset(currentCfg.zmctOffsetMv);
+        if (currentCfg.acs758OffsetMv >= 100.0f) acs758.setZeroOffset(currentCfg.acs758OffsetMv);
 
         // Check if dynamic ADC zero-point calibration was requested from Core 0
         bool runCal = false;
@@ -270,16 +331,16 @@ static void sensorTaskFunction(void* pvParameters) {
             float o1 = zmpt1.calibrateZeroOffset(useAds ? ads : nullptr, ADS1115_CH_ZMPT1);
             float o2 = zmpt2.calibrateZeroOffset(useAds ? ads : nullptr, ADS1115_CH_ZMPT2);
             float oi = zmct.calibrateZeroOffset(useAds ? ads : nullptr, ADS1115_CH_ZMCT);
-            acs758.calibrateZeroOffset(useAds ? ads : nullptr, ADS1115_CH_ACS758);
-            configManager.updateOffsets(o1, o2, oi);
-            Serial.printf("[ADC Cal] Baseline zero offsets saved: ZMPT1=%.1fmV, ZMPT2=%.1fmV, ZMCT=%.1fmV\n", o1, o2, oi);
+            float o_acs = acs758.calibrateZeroOffset(useAds ? ads : nullptr, ADS1115_CH_ACS758);
+            configManager.updateOffsets(o1, o2, oi, o_acs);
+            Serial.printf("[ADC Cal] Baseline zero offsets saved: ZMPT1=%.1fmV, ZMPT2=%.1fmV, ZMCT=%.1fmV, ACS758=%.1fmV\n", o1, o2, oi, o_acs);
         }
 
         // --- Read/Simulate Sensors ---
         const uint32_t cycleStartedAt = millis();
         float temp1 = 0.0f, temp2 = 0.0f, tempEsp = 0.0f;
         float acVoltage1, acRaw1, acVoltage2, acRaw2, acCurrent, acRawI, acPower;
-        float invCurrent = 0.0f, invRawMv = 0.0f, invPower = 0.0f;
+        float invCurrent = 0.0f, invRawMv = 0.0f, invPower = 0.0f, adsCh3Mv = 0.0f;
         float dcV1, dcA1, dcP1, dcV2, dcA2, dcP2;
         float rpm;
 
@@ -334,7 +395,7 @@ static void sensorTaskFunction(void* pvParameters) {
             temp2Valid = tempBus.readTemperature(1, temp2);
             tempEsp = (temprature_sens_read() - 32.0f) / 1.8f;
 
-            // --- Read Analog Sensors (ADS1115 16-Bit I2C ADC vs Internal ADC) ---
+            // --- Read Analog Sensors (ADS1115 for AC Sensors, GPIO 33 for ACS758) ---
             if (currentCfg.useAds1115 && ads != nullptr && ads->isEnabled()) {
                 acVoltage1 = zmpt1.readRMSVoltage(ads, ADS1115_CH_ZMPT1); // ADS1115 Ch0 -> ZMPT1
                 acRaw1     = zmpt1.readRawADC();
@@ -342,8 +403,9 @@ static void sensorTaskFunction(void* pvParameters) {
                 acRaw2     = zmpt2.readRawADC();
                 acCurrent  = zmct.readRMSCurrent(ads, ADS1115_CH_ZMCT);   // ADS1115 Ch2 -> ZMCT
                 acRawI     = zmct.readRawADC();
-                invCurrent = acs758.readCurrent(ads, ADS1115_CH_ACS758); // ADS1115 Ch3 -> ACS758 50A
-                invRawMv   = acs758.readRawMilliVolts(ads, ADS1115_CH_ACS758);
+                // ACS758 hardware output is routed to GPIO 33
+                invCurrent = acs758.readCurrent(nullptr, -1);
+                invRawMv   = acs758.readRawMilliVolts(nullptr, -1);
             } else {
                 acVoltage1 = zmpt1.readRMSVoltage();                     // Internal ESP32 ADC
                 acRaw1     = zmpt1.readRawADC();
@@ -354,6 +416,9 @@ static void sensorTaskFunction(void* pvParameters) {
                 invCurrent = acs758.readCurrent();
                 invRawMv   = acs758.readRawMilliVolts();
             }
+
+            // Also sample ADS1115 A3 for diagnostic comparison
+            adsCh3Mv = (currentCfg.useAds1115 && ads != nullptr && ads->isEnabled()) ? ads->readMilliVolts(ADS1115_CH_ACS758) : 0.0f;
 
             // --- Calculate Inverter AC Output Power & Inverter DC Input Power ---
             // ZMPT1 (A0): Generator AC Voltage (before MPPT)
@@ -425,9 +490,14 @@ static void sensorTaskFunction(void* pvParameters) {
             Serial.printf("  [Generator AC]   ZMPT1 (A0): %.1f V RMS | RPM: %d\n", acVoltage1, (int)rpm);
             Serial.printf("  [MPPT Battery]   INA1: %.2f V | Charge: %.2f A (%.1f W) | SoC: %.1f%% (%.1f Wh)\n",
                           dcV1, dcA1, dcP1, frame.battery_soc, frame.battery_wh);
-            Serial.printf("  [Inverter DC In] ACS758 (A3): %.2f A | DC Input: %.1f W\n", invCurrent, invPower);
+            Serial.printf("  [Inverter DC In] ACS758 (GPIO 33): %.2f A | DC Input: %.1f W\n", invCurrent, invPower);
+            Serial.printf("  [ACS758 Diag]    GPIO 33: %.1f mV (Δ: %.1f mV) | Baseline: %.1f mV | ADS1115 A3: %.1f mV\n",
+                          invRawMv, invRawMv - acs758.getZeroOffset(), acs758.getZeroOffset(), adsCh3Mv);
             Serial.printf("  [Inverter AC Out]ZMPT2 (A1): %.1f V | ZMCT (A2): %.2f A | AC Power: %.1f W\n",
                           acVoltage2, acCurrent, acPower);
+            Serial.printf("  [ZMCT Raw Diag]   RMS Signal: %.1f mV | DC Offset: %.1f mV | Read via: %s\n",
+                          sqrtf(zmct.readRawADC()), zmct.getOffset(),
+                          (currentCfg.useAds1115 && ads != nullptr && ads->isEnabled()) ? "ADS1115 (A2)" : "Internal ADC (GPIO 32)");
             if (frame.inverter_efficiency > 0.0f) {
                 Serial.printf("  [Inverter Eff]   Efficiency: %.1f %%\n", frame.inverter_efficiency);
             }
@@ -535,6 +605,23 @@ static void networkTaskFunction(void* pvParameters) {
         if (now - lastWsPush >= currentCfg.wsPushMs) {
             WebDashboard::pushData();
             lastWsPush = now;
+        }
+
+        // Process Serial USB Commands (e.g. CAL, SCAN, REBOOT)
+        if (Serial.available()) {
+            String cmd = Serial.readStringUntil('\n');
+            cmd.trim();
+            cmd.toUpperCase();
+            if (cmd == "CAL" || cmd == "CALIBRATE") {
+                Serial.println("[Command] Received CALIBRATE command. Triggering zero baseline calibration...");
+                Tasks::requestAdcCalibration();
+            } else if (cmd == "SCAN" || cmd == "I2C") {
+                Serial.println("[Command] Received I2C SCAN command. Scanning bus...");
+                Tasks::requestI2CScan();
+            } else if (cmd == "REBOOT" || cmd == "RESTART") {
+                Serial.println("[Command] Rebooting ESP32...");
+                ESP.restart();
+            }
         }
 
         // Yield to other tasks without hogging the core
