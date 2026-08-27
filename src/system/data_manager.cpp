@@ -21,7 +21,10 @@ DataManager::~DataManager() {
 SensorData DataManager::getData() {
     SensorData copy;
     memset(&copy, 0, sizeof(SensorData));
-    if (xSemaphoreTake(_mutex, portMAX_DELAY) == pdTRUE) {
+    if (_mutex == NULL) {
+        _mutex = xSemaphoreCreateMutex();
+    }
+    if (_mutex != NULL && xSemaphoreTake(_mutex, portMAX_DELAY) == pdTRUE) {
         copy = _data;
         xSemaphoreGive(_mutex);
     }
@@ -29,7 +32,10 @@ SensorData DataManager::getData() {
 }
 
 void DataManager::publish(const SensorData& data) {
-    if (xSemaphoreTake(_mutex, portMAX_DELAY) == pdTRUE) {
+    if (_mutex == NULL) {
+        _mutex = xSemaphoreCreateMutex();
+    }
+    if (_mutex != NULL && xSemaphoreTake(_mutex, portMAX_DELAY) == pdTRUE) {
         const uint8_t i2cCount = _data.i2c_count;
         uint8_t i2cAddresses[16];
         memcpy(i2cAddresses, _data.i2c_addresses, sizeof(i2cAddresses));
@@ -41,7 +47,11 @@ void DataManager::publish(const SensorData& data) {
 }
 
 void DataManager::updateI2CAddresses(const uint8_t* addresses, uint8_t count) {
-    if (xSemaphoreTake(_mutex, portMAX_DELAY) == pdTRUE) {
+    if (addresses == nullptr && count > 0) return;
+    if (_mutex == NULL) {
+        _mutex = xSemaphoreCreateMutex();
+    }
+    if (_mutex != NULL && xSemaphoreTake(_mutex, portMAX_DELAY) == pdTRUE) {
         _data.i2c_count = count < 16 ? count : 16;
         for (uint8_t i = 0; i < _data.i2c_count; i++) {
             _data.i2c_addresses[i] = addresses[i];

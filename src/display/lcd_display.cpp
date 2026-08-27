@@ -41,6 +41,12 @@ void LcdDisplay::begin(uint8_t addr) {
     _addr = addr;
     Serial.printf("[LCD] Initializing I2C LCD display at address 0x%02X\n", _addr);
     
+    // Safely free previous instance if re-initializing after bus rescan
+    if (_lcd != nullptr) {
+        delete _lcd;
+        _lcd = nullptr;
+    }
+
     // Allocate the LiquidCrystal_I2C object dynamically with the scanned address
     _lcd = new LiquidCrystal_I2C(_addr, 16, 2);
     _lcd->init();
@@ -189,3 +195,11 @@ void LcdDisplay::drawScreen(uint8_t screen, const SensorData& data) {
             break;
     }
 }
+
+void LcdDisplay::shutdown() {
+    if (_enabled && _lcd != nullptr) {
+        _lcd->clear();
+        _lcd->noBacklight();
+    }
+}
+

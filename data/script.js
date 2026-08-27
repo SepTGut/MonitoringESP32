@@ -472,7 +472,7 @@
         if (dom.barCtrlV) setBar(dom.barCtrlV, ctrlV, 20.0);
         if (dom.barCtrlA) setBar(dom.barCtrlA, ctrlA, 5.0);
         
-        // Battery SoC (Lakoni 65Ah @ 60% SoH = 39.0Ah / 468.0 Wh)
+        // Battery SoC (Lakoni 65Ah @ 100% SoH = 65.0Ah / 780.0 Wh)
         let soc = data.soc != null ? data.soc : data.batterySoc;
         let wh = data.wh != null ? data.wh : data.batteryWh;
         if (soc == null && data.dcV1 != null) {
@@ -491,7 +491,7 @@
                     }
                 }
             }
-            wh = (soc / 100) * 468.00; // 468.00 Wh effective for Lakoni 65Ah @ 60% SoH
+            wh = (soc / 100) * 780.00; // 780.00 Wh nominal for Lakoni 65Ah @ 100% SoH
         }
         if (soc != null) {
             setText(dom.batterySoc, Math.round(soc).toString());

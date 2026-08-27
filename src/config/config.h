@@ -81,6 +81,11 @@
 #define DEFAULT_MAX_RPM     3000    // Max RPM display scale
 #define DEFAULT_MAX_TEMP    100     // Max temperature display scale
 
+// --- Power Management & Deep Sleep Configuration ---
+#define ENABLE_POWER_SWITCH   true    // Enable power switch deep sleep monitoring
+#define POWER_SWITCH_TIMEOUT  10000   // Milliseconds LOW before entering Deep Sleep (default 10s)
+
 // --- Feature Flags ---
 #define ENABLE_SERIAL_LOG   1       // Enable serial monitor output
 // #define ENABLE_MQTT              // Uncomment to enable MQTT telemetry
+

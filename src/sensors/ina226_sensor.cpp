@@ -37,7 +37,9 @@ bool INA226Sensor::begin() {
 
 float INA226Sensor::readVoltage() {
     if (!_enabled) return 0.0f;
-    return _ina.getBusVoltage() * INA226_VOLTAGE_CAL;
+    float v = _ina.getBusVoltage() * INA226_VOLTAGE_CAL;
+    if (isnan(v) || isinf(v) || v < 0.0f) return 0.0f;
+    return v;
 }
 
 float INA226Sensor::readCurrent() {
@@ -45,12 +47,17 @@ float INA226Sensor::readCurrent() {
     // Calculate current directly from physical shunt voltage drop (I = V_shunt / R_shunt)
     // getShuntVoltage_mV() returns mV -> convert to Volts, then divide by shunt resistance (Ohms)
     float shunt_mV = _ina.getShuntVoltage_mV();
-    return (shunt_mV / 1000.0f) / INA226_SHUNT_OHM;  // Returns Amperes
+    if (isnan(shunt_mV) || isinf(shunt_mV)) return 0.0f;
+    float currentA = (shunt_mV / 1000.0f) / INA226_SHUNT_OHM;  // Returns Amperes
+    if (isnan(currentA) || isinf(currentA)) return 0.0f;
+    return currentA;
 }
 
 float INA226Sensor::readPower() {
     if (!_enabled) return 0.0f;
     float v = readVoltage();
     float a = readCurrent();
-    return v * fabsf(a);    // Returns Watts
+    float p = v * fabsf(a);    // Returns Watts
+    if (isnan(p) || isinf(p)) return 0.0f;
+    return p;
 }

@@ -1,0 +1,117 @@
+CompileFlags:
+  Add:
+    - -Wno-unknown-warning-option
+    - -Wno-unused-command-line-argument
+    - -DPLATFORMIO=60119
+    - -DARDUINO_ESP32_DEV
+    - -DESP_PLATFORM
+    - -DESP32
+    - -DARDUINO_ARCH_ESP32
+    - -DARDUINO=10812
+    - -DARDUINO_VARIANT="esp32"
+    - -DARDUINO_BOARD="Espressif ESP32 Dev Module"
+    - -IC:/Users/user/.platformio/packages/toolchain-xtensa-esp-elf/lib/gcc/xtensa-esp-elf/15.1.0/include
+    - -IC:/Users/user/.platformio/packages/toolchain-xtensa-esp-elf/xtensa-esp-elf/include
+    - -IC:/Users/user/.platformio/packages/toolchain-xtensa-esp-elf/xtensa-esp-elf/include/c++/15.1.0
+    - -IC:/Users/user/.platformio/packages/toolchain-xtensa-esp-elf/xtensa-esp-elf/include/c++/15.1.0/xtensa-esp-elf
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/cores/esp32
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/variants/esp32
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/newlib/platform_include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/freertos/config/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/freertos/config/include/freertos
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/freertos/config/xtensa/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/freertos/FreeRTOS-Kernel/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/freertos/FreeRTOS-Kernel/portable/xtensa/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/freertos/FreeRTOS-Kernel/portable/xtensa/include/freertos
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/freertos/esp_additions/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/esp_hw_support/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/esp_hw_support/include/soc
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/esp_hw_support/include/soc/esp32
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/esp_hw_support/port/esp32
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/esp_hw_support/port/esp32/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/heap/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/log/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/soc/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/soc/esp32
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/soc/esp32/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/hal/platform_port/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/hal/esp32/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/hal/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/esp_rom/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/esp_rom/include/esp32
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/esp_rom/esp32
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/esp_common/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/esp_system/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/esp_system/port/soc
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/esp_system/port/include/private
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/xtensa/esp32/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/xtensa/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/lwip/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/lwip/lwip/src/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/lwip/port/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/esp_driver_gpio/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/esp_timer/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/vfs/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/esp_event/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/nvs_flash/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/driver/deprecated
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/driver/i2c/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/esp_wifi/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/include/esp_netif/include
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/dio_qspi/include
+    - -ID:/MyCode/New folder/MonitoringESP32/src
+    - -ID:/MyCode/New folder/MonitoringESP32/src/config
+    - -ID:/MyCode/New folder/MonitoringESP32/src/sensors
+    - -ID:/MyCode/New folder/MonitoringESP32/src/display
+    - -ID:/MyCode/New folder/MonitoringESP32/src/system
+    - -ID:/MyCode/New folder/MonitoringESP32/src/network
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/libraries/DNSServer/src
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/libraries/AsyncUDP/src
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/libraries/LittleFS/src
+    - -ID:/MyCode/New folder/MonitoringESP32/.pio/libdeps/esp32dev/ADS1X15
+    - -ID:/MyCode/New folder/MonitoringESP32/.pio/libdeps/esp32dev/LiquidCrystal_I2C
+    - -ID:/MyCode/New folder/MonitoringESP32/.pio/libdeps/esp32dev/INA226
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src
+    - -ID:/MyCode/New folder/MonitoringESP32/.pio/libdeps/esp32dev/DallasTemperature
+    - -ID:/MyCode/New folder/MonitoringESP32/.pio/libdeps/esp32dev/OneWire
+    - -ID:/MyCode/New folder/MonitoringESP32/.pio/libdeps/esp32dev/ESPAsyncWebServer/src
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/libraries/WebServer/src
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/libraries/FS/src
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/libraries/Hash/src
+    - -ID:/MyCode/New folder/MonitoringESP32/.pio/libdeps/esp32dev/AsyncTCP/src
+    - -IC:/Users/user/.platformio/packages/framework-arduinoespressif32/libraries/Network/src
+    - -ID:/MyCode/New folder/MonitoringESP32/.pio/libdeps/esp32dev/ArduinoJson/src
+  Remove:
+    - -mlongcalls
+    - -mlong-calls
+    - -fstrict-volatile-bitfields
+    - -fno-tree-switch-conversion
+    - -fno-jump-tables
+    - -freorder-blocks
+    - -mdisable-hardware-atomics
+    - -fno-builtin-memcpy
+    - -fno-builtin-memset
+    - -fno-builtin-bzero
+    - -fzero-init-padding-bits*
+    - -fno-malloc-dce
+    - -Wno-frame-address
+    - -Wno-self-move
+    - -Wno-dangling-reference
+    - -Wno-address
+    - -Wno-use-after-free
+    - -Wno-xor-used-as-pow
+    - -Werror=return-type
+    - -iprefix*
+    - -iwithprefix*
+
+Diagnostics:
+  Suppress:
+    - drv_unknown_argument
+    - drv_unsupported_opt_for_target
+    - ovl_no_viable_function_in_call
+    - no_matching_member_function
+    - no_matching_function
+    - rvalue_bind_to_lvalue_ref
+    - expected_fn_body
+    - unused_includes

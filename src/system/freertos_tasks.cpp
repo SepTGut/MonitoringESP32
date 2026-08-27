@@ -29,7 +29,11 @@
 #include "../network/web_server.h"
 
 #include <Wire.h>
+#include <WiFi.h>
+#include <esp_wifi.h>
 #include <DNSServer.h>
+#include <esp_sleep.h>
+#include <driver/rtc_io.h>
 
 // Cross-core I2C scan request state (Core 0 to Core 1).
 static volatile bool i2cScanRequested = false;
@@ -50,7 +54,7 @@ uint8_t temprature_sens_read();
 }
 #endif
 
-// Calibrated SoC curve for Lakoni Blue Wolf 12V 65Ah (75D23L, 57% SoH / 550 CCA)
+// Calibrated SoC curve for Lakoni Blue Wolf 12V 65Ah (75D23L, 100% SoH / 550 CCA)
 // Cutoff: <= 11.85V -> 0.0%, >= 12.75V -> 100.0%
 static float calculateBatterySoC(float v) {
     if (v <= 11.85f) return 0.0f;
@@ -135,6 +139,9 @@ static void sensorTaskFunction(void* pvParameters) {
     zmct.begin();
     tempBus.begin();
     rpmSensor.begin();
+
+    // Initialize power switch pin (RTC GPIO 27)
+    pinMode(PIN_POWER_SWITCH, INPUT_PULLDOWN);
 
     // Fetch config configuration and assign INA226 devices based on software settings
     SystemConfig cfg = configManager.getConfig();
@@ -390,7 +397,7 @@ static void sensorTaskFunction(void* pvParameters) {
         frame.inv_ac_power = acPower;                 // Inverter AC Output Power (W)
         frame.ina1_voltage = dcV1; frame.ina1_current = dcA1; frame.ina1_power = dcP1;
         frame.battery_soc = calculateBatterySoC(dcV1);
-        frame.battery_wh = (frame.battery_soc / 100.0f) * (12.0f * 39.00f); // 468.00 Wh effective (65Ah @ 60% SoH)
+        frame.battery_wh = (frame.battery_soc / 100.0f) * (12.0f * 65.00f); // 780.00 Wh nominal (65Ah @ 100% SoH)
         frame.inverter_current = invCurrent; frame.inverter_power = invPower;
         frame.inverter_efficiency = (invPower > 5.0f && acPower > 0.0f) ? min(100.0f, (acPower / invPower) * 100.0f) : 0.0f;
         frame.ina2_voltage = dcV2; frame.ina2_current = dcA2; frame.ina2_power = dcP2;
@@ -432,6 +439,48 @@ static void sensorTaskFunction(void* pvParameters) {
 
         // --- Update LCD Display (with dynamic screen rotation) ---
         lcdDisplay.update(frame);
+
+        // --- Power Switch Deep Sleep Monitoring ---
+        static uint32_t switchLowStartTime = 0;
+        if (currentCfg.enablePowerSwitch) {
+            const int switchState = digitalRead(PIN_POWER_SWITCH);
+            if (switchState == LOW) {
+                if (switchLowStartTime == 0) {
+                    switchLowStartTime = millis();
+                    Serial.printf("[Power] Power switch turned OFF (LOW). Entering Deep Sleep in %u ms...\n",
+                                  currentCfg.powerSwitchTimeoutMs);
+                } else if (millis() - switchLowStartTime >= currentCfg.powerSwitchTimeoutMs) {
+                    Serial.printf("[Power] Switch stayed LOW for %u ms. Entering Deep Sleep...\n",
+                                  currentCfg.powerSwitchTimeoutMs);
+
+                    // 1. Clear LCD and turn off backlight
+                    lcdDisplay.shutdown();
+
+                    // 2. Disconnect WiFi cleanly
+                    WiFi.disconnect(true);
+                    WiFi.mode(WIFI_OFF);
+
+                    // 3. Flush serial buffer
+                    Serial.println("[Power] Deep sleep active. Wake up trigger: Switch HIGH (GPIO 27).");
+                    Serial.flush();
+
+                    // 4. Configure RTC GPIO pull-down (stays LOW while switch is open)
+                    rtc_gpio_pulldown_en((gpio_num_t)PIN_POWER_SWITCH);
+                    rtc_gpio_pullup_dis((gpio_num_t)PIN_POWER_SWITCH);
+
+                    // 5. Configure EXT0: Wake up when PIN_POWER_SWITCH goes HIGH (level 1)
+                    esp_sleep_enable_ext0_wakeup((gpio_num_t)PIN_POWER_SWITCH, 1);
+
+                    // 6. Enter Deep Sleep
+                    esp_deep_sleep_start();
+                }
+            } else {
+                if (switchLowStartTime != 0) {
+                    Serial.println("[Power] Power switch turned back ON (HIGH). Sleep countdown canceled.");
+                    switchLowStartTime = 0;
+                }
+            }
+        }
 
         // Account for all work in this iteration, including logging and display I/O.
         frame.cycleMs = millis() - cycleStartedAt;

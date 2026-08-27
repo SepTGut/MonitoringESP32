@@ -1,0 +1,17 @@
+{
+    "clangd.arguments": [
+        "--compile-commands-dir=${workspaceFolder}",
+        "--header-insertion=never",
+        "--query-driver=C:/Users/user/.platformio/packages/toolchain-xtensa-esp-elf/bin/xtensa-esp32-elf-*"
+    ],
+    "clangd.fallbackFlags": [
+        "-std=gnu++2b",
+        "-IC:/Users/user/.platformio/packages/framework-arduinoespressif32/cores/esp32",
+        "-IC:/Users/user/.platformio/packages/framework-arduinoespressif32/variants/esp32",
+        "-ID:/MyCode/New folder/MonitoringESP32/src"
+    ],
+    "files.associations": {
+        "*.h": "cpp",
+        "*.cpp": "cpp"
+    }
+}

@@ -20,6 +20,9 @@ public:
     // Call periodically to handle screen rotations and redraws (if LCD is connected)
     void update(const SensorData& data);
 
+    // Turn off backlight and clear LCD before deep sleep
+    void shutdown();
+
     // Returns true if an LCD was found and initialized
     bool isEnabled() const { return _enabled; }
 

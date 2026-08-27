@@ -110,10 +110,11 @@ flowchart TB
 | **ZMPT101B #1** | `GPIO 34` | ADC1 | AC voltage (for power calc) |
 | **ZMPT101B #2** | `GPIO 35` | ADC1 | AC voltage (raw monitoring) |
 | **ZMCT103C** | `GPIO 32` | ADC1 | AC current |
-| **RPM (IR)** | `GPIO 27` | Interrupt | Pulse counting |
+| **RPM (IR)** | `GPIO 16` | Interrupt | Pulse counting |
 | **INA226 #1** | `GPIO 21/22` | I2C (0x40) | DC channel 1 |
 | **INA226 #2** | `GPIO 21/22` | I2C (0x41) | DC channel 2 |
 | **DS18B20 ×2** | `GPIO 4` | OneWire | Shared bus |
+| **Power Switch** | `GPIO 27` | RTC GPIO | Deep sleep when LOW 10s, wake on HIGH |
 
 > **Important:** All analog sensors use ADC1 pins. ADC2 is disabled when WiFi is active.
 

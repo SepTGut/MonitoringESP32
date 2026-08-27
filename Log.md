@@ -1,12 +1,58 @@
 # Development Log
 
+## 2026-08-27
+
+### Fixed & Improved
+- **Project Folder Relocation Verification & Path Synchronization**:
+  - Verified project integrity following directory relocation to `d:\MyCode\New folder\MonitoringESP32`.
+  - Tested and confirmed full firmware compilation (`pio run` -> `[SUCCESS]`, RAM: 12.5%, Flash: 55.3%) and LittleFS image generation (`pio run -t buildfs` -> `[SUCCESS]`).
+  - Regenerated compilation database `compile_commands.json` via PlatformIO (`pio run -t compiledb`).
+  - Updated include and fallback search paths in `.clangd` and `.vscode/settings.json` to reference `d:\MyCode\New folder\MonitoringESP32`.
+  - Updated relative documentation links in `test/README.md`.
+- **System Robustness & Sensor Noise Resilience**:
+  - **RPM ISR Hardware Debouncing**: Added a $1500\,\mu\text{s}$ refractory period check (`RPM_DEBOUNCE_US`) to `RPMSensor::handleInterrupt()` to filter out optical bounce and electromagnetic spikes (supporting up to 40,000 RPM cleanly).
+  - **INA226 NaN / Inf Float Protection**: Added `isnan()` and `isinf()` validation guards in `INA226Sensor::readVoltage()`, `readCurrent()`, and `readPower()` to prevent corrupt float propagation during intermittent I2C disconnects.
+  - **LCD Memory Safety**: Added explicit pointer deallocation guard (`if (_lcd != nullptr) delete _lcd;`) in `LcdDisplay::begin(addr)` to prevent memory leaks during on-demand bus rescans.
+  - **DataManager & ConfigManager Mutex Self-Healing**: Added lazy-creation fallbacks for FreeRTOS mutex handles to defend against early-boot static initialization races.
+  - **Hardware Diagnostic Test Suite Synchronization**: Updated `test/hardware_test/src/main.cpp` pin definitions to match `pin_config.h` (`PIN_I2C_SDA = 22`, `PIN_I2C_SCL = 21`, `PIN_RPM = 16`, `PIN_ACS758_IN = 33`), applied debounced RPM ISR, and added ACS758 50A diagnostic reporting.
+- **IDE Language Server (Clangd) Diagnostic False-Positives**:
+  - Created `.clangd` configuration file to strip GCC/Xtensa-specific flags (`-mlongcalls`, `-fstrict-volatile-bitfields`, `-fno-tree-switch-conversion`, `-fno-jump-tables`, etc.) that triggered false diagnostics in Clang-based IDE language servers.
+  - Added comprehensive include search paths for Arduino ESP32 core (`Arduino.h`), Xtensa GCC 15.1.0 standard headers, FreeRTOS, ESP-IDF components, and third-party library dependencies.
+  - Created `.vscode/settings.json` configured with `--compile-commands-dir`, `--query-driver` pointing to the Xtensa toolchain compiler, and fallback flags.
+  - Rebuilt compilation database (`pio run -t compiledb`) and verified 100% clean builds for both main firmware and hardware test suite (`[SUCCESS]`).
+
+## 2026-08-26
+
+### Added & Changed
+- **Lakoni 12V 65Ah Battery Profile Recalibration (100% SoH / 65Ah / 780 Wh)**:
+  - Updated battery energy calculation model in `freertos_tasks.cpp` to nominal 100% SoH ($12\text{V} \times 65.0\text{Ah} = 780.0\text{ Wh}$).
+  - Updated Web Dashboard metric card in `data/index.html` and preview `test/web_preview/index.html` to **`Lakoni 65Ah (100% SoH / 65Ah)`**.
+  - Updated client-side fallback energy scaling in `data/script.js` to $780.0\text{ Wh}$.
+  - Updated Python diagnostic logger `tools/monitor_ina1_1hour.py` with 100% SoH nominal energy metrics ($780.0\text{ Wh}$).
+- **I2C Bus Pin Reconfiguration**:
+  - `PIN_I2C_SDA = 22` (I2C Data on GPIO 22).
+  - `PIN_I2C_SCL = 21` (I2C Clock on GPIO 21).
+- **GPIO 27 Power Switch Deep Sleep & Wake-Up Feature**:
+  - Assigned **Power Switch input** to **GPIO 27** (`RTC_GPIO17`) with active `INPUT_PULLDOWN` (`PIN_POWER_SWITCH = 27`).
+  - Added configurable timeout `POWER_SWITCH_TIMEOUT = 10000` (10s) and feature flag `ENABLE_POWER_SWITCH = true` in `config.h` and `SystemConfig` (`pwrSwEn`, `pwrSwTimeout`).
+  - Implemented automatic Deep Sleep trigger in Core 1 sensor task when switch remains `LOW` continuously for the configured timeout: gracefully turns off LCD backlight, shuts down WiFi, flushes serial, sets RTC pull-down, and enters Deep Sleep with `EXT0` wake-up configured on switch `HIGH` (level 1).
+  - Added `shutdown()` method to `LcdDisplay` and deep sleep wake-up reason detection in `main.cpp`.
+- **GPIO Pin Configuration Cleanup**:
+  - `PIN_RPM_INPUT = 16` (RPM sensor pulse input on GPIO 16).
+  - `PIN_DS18B20 = 4` (DS18B20 OneWire temperature bus on GPIO 4).
+  - `PIN_POWER_SWITCH = 27` (Power switch on RTC GPIO 27).
+
 ## 2026-08-23
 
-### Fixed & Changed
+### Fixed & Changed (Hardware Integration)
 - **INA226 R100 Shunt Resistor Support & Current Measurement Fix**:
   - Updated `config.h` defaults: `INA226_SHUNT_OHM` updated from `0.01Ω` to `0.10Ω` (`R100` = 100mΩ) and `INA226_MAX_CURRENT` updated from `10.0A` to `0.80A` (adhering to INA226 81.92mV maximum differential shunt voltage input range).
   - Updated `ina226_sensor.cpp` driver to compute DC current directly from physical ADC shunt voltage ($I = \frac{V_{shunt}}{R_{shunt}}$) and power via $P = V_{bus} \times |I|$. This resolves calibration register overflow errors and ensures high-precision 16-bit measurement.
   - Updated standalone `test/hardware_test/src/main.cpp` diagnostic test to initialize and measure with `R100` ($0.10\Omega$) parameters.
+- **Pin Reassignment (RPM -> GPIO 16, DS18B20 -> GPIO 17)**:
+  - Reassigned **RPM Sensor Pulse Input** from GPIO 27 to **GPIO 16** (`PIN_RPM_INPUT = 16`).
+  - Reassigned **DS18B20 OneWire Temperature Bus** from GPIO 4 to **GPIO 17** (`PIN_DS18B20 = 17`).
+  - Verified firmware compilation with PlatformIO (`[SUCCESS]`).
 - **ADS1115 Hardware ALRT (ALERT/RDY) Pin, Multi-ADDR Support & 400kHz Fast I2C**:
   - Implemented hardware `ALRT` (ALERT/RDY) pin conversion synchronization on `GPIO 19` (`PIN_ADS1115_ALERT`) with active-LOW pulse detection and `INPUT_PULLUP`.
   - Added full multi-address support for all 4 hardware `ADDR` pin configurations (`ADDR->GND: 0x48`, `ADDR->VDD: 0x49`, `ADDR->SDA: 0x4A`, `ADDR->SCL: 0x4B`) with automated multi-probe auto-discovery across `0x48..0x4B`.
@@ -46,16 +92,16 @@
 
 ## 2026-07-29
 
-### Fixed
+### Fixed (Web Configuration)
 - **Configuration Save HTTP 400 Error**: Resolved validation failure on `/api/config` when saving settings with an empty Station Mode (STA) SSID field. Updated `config_manager.cpp` to permit empty/unconfigured `staSsid` strings (as long as `staEnabled` is false), and updated `script.js` (and `docs/script.js`) to conditionally send `staSsid` only when populated.
 
 ## 2026-07-26
 
-### Fixed (Code Review)
+### Fixed (Rule-of-Five & WiFi Value Copy)
 - **MovingAverage Rule-of-Five**: Added `= delete` for copy constructor, copy assignment, move constructor, and move assignment in `filters.h`. The class owns a heap-allocated `float[]` buffer — without these guards, an accidental copy would cause a double-free crash.
 - **WiFi Manager const-ref to temporary**: Changed `const SystemConfig&` to `const SystemConfig` (value copy) in both `beginAP()` and `beginAPSTA()` in `wifi_manager.cpp`. `getConfig()` returns by value, so binding a `const&` to the temporary was technically safe but misleading and fragile against future refactors.
 
-### Changed
+### Changed (Sensor Calibration Defaults)
 - **Default ADC Mode → External ADS1115**: Changed `useAds1115` default from `false` to `true` in `config_manager.cpp`. New installs now use the external ADS1115 16-bit I2C ADC by default instead of the internal ESP32 12-bit ADC. Existing devices with a saved `/config.json` are unaffected.
 - **AC Sensor Calibration (Multimeter Reference)**: Recalculated calibration defaults in `config.h` from multimeter readings. ZMPT101B voltage: `150.0` → `242.0` (was reading ~137V, actual 222V). ZMCT103C current: `5.0` → `0.31` → `0.69` (second pass: was reading ~0.32A, actual 0.71A).
 - **RPM Sensor — Period-Based Measurement**: Rewrote `rpm_sensor.cpp`/`.h` from pulse-counting over fixed 100ms windows to period-based measurement (time between the last two pulses). Fixes erratic RPM jumps (0 → 600 → 0) at speeds under 1000 RPM. Added adaptive deceleration: if time since the last pulse exceeds the last inter-pulse period, RPM smoothly decreases in real-time instead of holding a stale value until timeout.
@@ -85,6 +131,8 @@
 - **ESP32 Silicon eFuse Linearity & Auto Zero-Point Calibration System**: Integrated factory eFuse Vref/linearity lookup tables into `ZMPT101B` and `ZMCT103C`, added 1000-sample `calibrateZeroOffset()` routine to measure hardware baseline DC midpoint voltages, exposed `POST /api/adc-calibrate` REST endpoint, and integrated a "Calibrate ADC Zero-Point" button on the web portal to save zero-point offsets directly to LittleFS (`/config.json`).
 
 ## 2026-07-24
+
+### Added (Diagnostic Tools & Web Serial)
 - **IR RPM Sensor Signal Edge & Debounce Update**: Changed RPM hardware interrupt trigger edge from `RISING` to `FALLING` and removed software debounce filtering in both main firmware (`src/sensors/rpm_sensor.cpp`) and standalone hardware diagnostic test (`test/hardware_test/src/main.cpp`).
 - **Dual-Window Serial Dashboard & Waveform Plotter (`serial_logger`)**: Updated `serial_logger.py` to automatically open **2 separate console windows** upon launch (Window 1: Serial Dashboard Table, Window 2: Live Raw Sensor Waveform Plotter). Utilizes a background local TCP socket server (`127.0.0.1:8888`) to broadcast serial data lines from the master serial connection to the secondary plotter window without COM port lock errors. Integrated with `tools/test_hardware.py` and `tools/erase_and_monitor.py`.
 - **MAX9814 Microphone Sound Level Sensor Support (GPIO 33)**: Added MAX9814 electret microphone sampling (bias mV + 25ms Vpp sound amplitude level measurement) on GPIO 33 in `test/hardware_test/src/main.cpp`, with display in both Dashboard and Plotter windows in `serial_logger.py`.
@@ -92,7 +140,7 @@
 
 ## 2026-07-19
 
-### Fixed (Code Review)
+### Fixed (Early-Boot & Serialization)
 - **ConfigManager Mutex Deadlock on Startup**: Removed `_mutex` lock/unlock calls from `loadDefaults()`. Since `loadDefaults()` is called in the global static constructor before the FreeRTOS scheduler starts, taking the mutex failed and returned early, leaving settings initialized with garbage memory (which resulted in corrupted WiFi SSID names like `,␝?␁`).
 - **ArduinoJson Type-Strictness Deserialization Bug**: Replaced `is<T>()` with robust `containsKey()` and `.as<T>()` in `updateFromJson()`. Previously, numeric conversions (like integer `150` to `float`, or integer `68` to `uint8_t`) failed type strictness checks, causing saved web configurations to ignore fields or remain unapplied.
 - **Self-Healing Configuration Loader**: Added an automatic configuration validation check inside `load()`. If the loaded AP SSID is empty or contains non-printable garbage characters (due to past memory corruption or save errors), it automatically resets the configuration to defaults and saves a clean copy to LittleFS, self-healing the device on next boot.
@@ -104,7 +152,7 @@
 - **LCD format specifier**: `snprintf` used `%5d` (signed) for `uint32_t rpm`. Changed to `%5lu` with `(unsigned long)` cast.
 - **SensorTask stack size**: Increased from 4096 to 8192 bytes to prevent stack overflow during I2C scanning, Serial.printf, and LCD operations.
 
-### Added
+### Added (Sensor & Animation Subsystems)
 - **ADC Anti-Drift (Continuous Offset Tracking)**: Added exponential moving average (EMA) DC offset tracking to both ZMPT101B and ZMCT103C sensor drivers. The offset now adapts every measurement cycle to follow ESP32 ADC thermal drift, preventing upward-creeping readings over time. Also added a noise floor dead-band that clamps near-zero RMS values to exactly 0.0A/0.0V.
 - **Serial Logger Update**: Updated `serial_reader.py` to parse all 3 temperatures (External 1, External 2, Internal CPU), display CPU temperature with color-coded warning thresholds (green/amber/red), and use absolute log directory paths.
 - **LCD Redesign & Animations (4-Screen Layout)**:
@@ -125,7 +173,7 @@
 
 ## 2026-07-17
 
-### Added
+### Added (LCD & Frontend Capabilities)
 - **I2C LCD 16x2 Display Controller**:
   - Implemented auto-rotating screens (AC Overview, DC Channels, Speed/Temps, WiFi Status).
   - Added flicker-free drawing throttling (500ms refresh rate limit).
@@ -165,13 +213,13 @@
   - Added a new Settings card section on the web dashboard to easily toggle simulated output.
   - Implemented firmware-level math equations in the sensor polling task loop on Core 1 that generate realistic telemetry values (sine waves) when dummy mode is enabled. This allows testing the LCD rotation, web dashboard live view, and serial logging without physical sensors wired to the ESP32.
 
-### Notes
+### Architecture Notes (2026-07-17)
 - Settings updates are stored in LittleFS config file `/config.json` and applied automatically on reboot.
 - Consolidated all I2C accesses on Core 1 to avoid multi-threaded bus conflicts.
 
 ## 2026-07-15
 
-### Added
+### Added (Initial System Architecture)
 - Complete project structure with modular architecture
 - Configuration system: `config.h` (calibration/timing) + `pin_config.h` (GPIO)
 - FreeRTOS dual-core tasks: Core 1 (sensors), Core 0 (network)
@@ -198,12 +246,10 @@
 - Python serial monitor and logger tool in `tools/serial_logger/`
 - Custom clean upload utility scripts (`tools/upload_clean.ps1`, `tools/upload_clean.bat`)
 
-### Notes
+### Baseline Architecture Notes (2026-07-15)
 - AC power calculated as: P = Vrms × Irms × PF (configurable)
 - ZMPT101B #1 used for power calculation, #2 for raw monitoring
 - All analog sensors on ADC1 pins (ADC2 unavailable with WiFi)
 - DS18B20 uses async conversion (non-blocking)
 - Added pyserial-based port selector script for easy desktop diagnostics
 - Added PowerShell and Command Prompt scripts to erase flash, build/upload firmware, and uploadfs sequentially
-
-

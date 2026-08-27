@@ -25,11 +25,11 @@
 #define PIN_ZMPT_1      34  // ADC1_CH6 (ZMPT101B #1)
 #define PIN_ZMPT_2      35  // ADC1_CH7 (ZMPT101B #2)
 #define PIN_ZMCT        32  // ADC1_CH4 (ZMCT103C)
-#define PIN_MAX9814     33  // ADC1_CH5 (MAX9814 Microphone)
-#define PIN_I2C_SDA     21
-#define PIN_I2C_SCL     22
-#define PIN_DS18B20     4   // OneWire bus
-#define PIN_RPM         27  // IR pulse sensor
+#define PIN_ACS758_IN   33  // ADC1_CH5 (ACS758 Inverter Current Fallback)
+#define PIN_I2C_SDA     22  // I2C SDA (GPIO 22)
+#define PIN_I2C_SCL     21  // I2C SCL (GPIO 21)
+#define PIN_DS18B20     4   // OneWire bus (GPIO 4)
+#define PIN_RPM         16  // IR pulse sensor (GPIO 16)
 
 // --- C-extern for built-in ESP32 CPU temp ---
 #ifdef __cplusplus
@@ -52,11 +52,15 @@ static LiquidCrystal_I2C lcd(0x27, 16, 2);
 static volatile uint32_t pulseCount = 0;
 static volatile uint32_t lastPulseTime = 0;
 static portMUX_TYPE rpmMux = portMUX_INITIALIZER_UNLOCKED;
+static const uint32_t RPM_DEBOUNCE_US = 1500;
 
 void IRAM_ATTR rpmISR() {
+    uint32_t now = micros();
     portENTER_CRITICAL_ISR(&rpmMux);
-    pulseCount++;
-    lastPulseTime = micros();
+    if (lastPulseTime == 0 || (now - lastPulseTime) >= RPM_DEBOUNCE_US) {
+        pulseCount = pulseCount + 1;
+        lastPulseTime = now;
+    }
     portEXIT_CRITICAL_ISR(&rpmMux);
 }
 
@@ -135,10 +139,10 @@ void setup() {
     attachInterrupt(digitalPinToInterrupt(PIN_RPM), rpmISR, FALLING);
     Serial.printf("[Init] RPM pulse sensor attached on GPIO %d\n", PIN_RPM);
 
-    // Initialize MAX9814 Microphone pin
-    pinMode(PIN_MAX9814, INPUT);
-    analogSetPinAttenuation(PIN_MAX9814, ADC_11db);
-    Serial.printf("[Init] MAX9814 microphone attached on GPIO %d\n", PIN_MAX9814);
+    // Initialize ACS758 Fallback Input pin (GPIO 33)
+    pinMode(PIN_ACS758_IN, INPUT);
+    analogSetPinAttenuation(PIN_ACS758_IN, ADC_11db);
+    Serial.printf("[Init] ACS758 fallback analog input attached on GPIO %d\n", PIN_ACS758_IN);
 
     // Initialize LCD if found
     if (lcdConnected) {
@@ -207,17 +211,11 @@ void loop() {
     float rpm = ((float)pDelta / ((float)dt / 1000.0f)) * 60.0f;
     if ((micros() - currentPulseTime) > 1000000UL) rpm = 0.0f; // Timeout if stopped
 
-    // --- 6. Read MAX9814 Microphone Sound Sensor (GPIO 33) ---
-    uint16_t raw_mic = analogRead(PIN_MAX9814);
-    float mic_mV = (float)analogReadMilliVolts(PIN_MAX9814);
-    uint32_t micStart = millis();
-    float micMin = 3300.0f, micMax = 0.0f;
-    while (millis() - micStart < 25) {
-        float sample = (float)analogReadMilliVolts(PIN_MAX9814);
-        if (sample < micMin) micMin = sample;
-        if (sample > micMax) micMax = sample;
-    }
-    float micVpp_mV = (micMax > micMin) ? (micMax - micMin) : 0.0f;
+    // --- 6. Read ACS758 50A Inverter DC Sensor (Fallback GPIO 33 & ADS1115 A3) ---
+    uint16_t raw_acs = analogRead(PIN_ACS758_IN);
+    float acs_fallback_mV = (float)analogReadMilliVolts(PIN_ACS758_IN);
+    float acs_ads_A = (adsConnected) ? ((ads3_mV - 2500.0f) / 40.0f) : 0.0f; // 40mV/A sensitivity
+    float acs_fallback_A = (acs_fallback_mV - 2500.0f) / 40.0f;
 
     // --- 7. Formatted Serial Report ---
     Serial.println("┌───────────────────────────────────────────────────────────┐");
@@ -246,14 +244,15 @@ void loop() {
     Serial.printf("│  ZMPT101B #1 (GPIO 34): Raw:%4u | eFuse:%6.1fmV | Offset:1650mV│\n", raw_z1, zmpt1_mV);
     Serial.printf("│  ZMPT101B #2 (GPIO 35): Raw:%4u | eFuse:%6.1fmV | Offset:1650mV│\n", raw_z2, zmpt2_mV);
     Serial.printf("│  ZMCT103C    (GPIO 32): Raw:%4u | eFuse:%6.1fmV | Offset:1650mV│\n", raw_zi, zmct_mV);
+    Serial.printf("│  ACS758 50A  (GPIO 33): Raw:%4u | eFuse:%6.1fmV | Calc:%5.2fA  │\n", raw_acs, acs_fallback_mV, acs_fallback_A);
 
     // ADS1115
     Serial.println("├─ [2] External ADS1115 16-Bit ADC (I2C) ──────────────────┤");
     if (adsConnected) {
-        Serial.printf("│  Channel A0 (ZMPT1): %8.3f mV                             │\n", ads0_mV);
-        Serial.printf("│  Channel A1 (ZMPT2): %8.3f mV                             │\n", ads1_mV);
-        Serial.printf("│  Channel A2 (ZMCT) : %8.3f mV                             │\n", ads2_mV);
-        Serial.printf("│  Channel A3 (Aux)  : %8.3f mV                             │\n", ads3_mV);
+        Serial.printf("│  Channel A0 (ZMPT1)       : %8.3f mV                     │\n", ads0_mV);
+        Serial.printf("│  Channel A1 (ZMPT2)       : %8.3f mV                     │\n", ads1_mV);
+        Serial.printf("│  Channel A2 (ZMCT)        : %8.3f mV                     │\n", ads2_mV);
+        Serial.printf("│  Channel A3 (ACS758 50A)  : %8.3f mV (Calc: %5.2f A)     │\n", ads3_mV, acs_ads_A);
     } else {
         Serial.println("│  Status: NOT CONNECTED                                    │");
     }
@@ -274,24 +273,19 @@ void loop() {
     Serial.printf("│  ESP32 CPU  : %5.1f °C                                   │\n", cpuTemp);
 
     // RPM
-    Serial.println("├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤");
+    Serial.println("├─ [5] RPM Rotor Pulse Counter (GPIO 16) ───────────────────┤");
     Serial.printf("│  Total Pulses: %-8u | Speed: %5.0f RPM                    │\n",
                   currentPulses, rpm);
-
-    // MAX9814 Sound Sensor
-    Serial.println("├─ [6] MAX9814 Microphone Sound Sensor (GPIO 33) ───────────┤");
-    Serial.printf("│  Raw:%4u | Bias:%6.1fmV | Sound Vpp Level:%6.1fmV         │\n",
-                  raw_mic, mic_mV, micVpp_mV);
 
     Serial.println("└───────────────────────────────────────────────────────────┘");
     
     // Machine-readable serial plot stream for log_ploter.py
-    Serial.printf("RAW_PLOT:raw_z1=%u,raw_z2=%u,raw_zi=%u,zmpt1_mv=%.1f,zmpt2_mv=%.1f,zmct_mv=%.1f,ads0=%.3f,ads1=%.3f,ads2=%.3f,ads3=%.3f,ina1_v=%.2f,ina1_a=%.2f,ina1_w=%.2f,ina2_v=%.2f,ina2_a=%.2f,ina2_w=%.2f,rpm=%.0f,temp1=%.1f,temp2=%.1f,temp_esp=%.1f,raw_mic=%u,mic_mv=%.1f,mic_vpp=%.1f\n",
+    Serial.printf("RAW_PLOT:raw_z1=%u,raw_z2=%u,raw_zi=%u,zmpt1_mv=%.1f,zmpt2_mv=%.1f,zmct_mv=%.1f,ads0=%.3f,ads1=%.3f,ads2=%.3f,ads3=%.3f,acs_a=%.2f,ina1_v=%.2f,ina1_a=%.2f,ina1_w=%.2f,ina2_v=%.2f,ina2_a=%.2f,ina2_w=%.2f,rpm=%.0f,temp1=%.1f,temp2=%.1f,temp_esp=%.1f,raw_acs=%u,acs_mv=%.1f\n",
                   raw_z1, raw_z2, raw_zi, zmpt1_mV, zmpt2_mV, zmct_mV,
-                  ads0_mV, ads1_mV, ads2_mV, ads3_mV,
+                  ads0_mV, ads1_mV, ads2_mV, ads3_mV, acs_ads_A,
                   ina1_V, ina1_A, ina1_W, ina2_V, ina2_A, ina2_W,
                   rpm, (temp1 > -100 ? temp1 : 0.0f), (temp2 > -100 ? temp2 : 0.0f), cpuTemp,
-                  raw_mic, mic_mV, micVpp_mV);
+                  raw_acs, acs_fallback_mV);
     Serial.println();
 
     // Update LCD

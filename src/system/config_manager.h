@@ -51,6 +51,10 @@ struct SystemConfig {
     bool useAds1115;
     uint8_t adsAddr;
 
+    // Power Management & Deep Sleep
+    bool enablePowerSwitch;
+    uint32_t powerSwitchTimeoutMs;
+
     // Simulation/Dummy Mode
     bool dummyMode;
     bool setupRequired;

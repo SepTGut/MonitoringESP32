@@ -30,7 +30,7 @@ test/
 | **INA226 #2** | I2C (0x45 / 0x41) | DC Channel 2 (Voltage, Current, Power) |
 | **DS18B20** | OneWire (GPIO 4) | Dual external temperature probes |
 | **ESP32 CPU** | Internal Sensor | ESP32 CPU die temperature (°C) |
-| **RPM Sensor** | GPIO 27 (IR Pulse) | Hardware interrupt pulse counter |
+| **RPM Sensor** | GPIO 17 (IR Pulse) | Hardware interrupt pulse counter |
 | **I2C LCD 16x2** | I2C (0x27 / 0x3F) | Status LCD display output |
 
 ---
@@ -83,7 +83,7 @@ pio device monitor -b 115200
 │  DS18B20 #1 :  31.5 °C [OK]                               │
 │  DS18B20 #2 :  28.2 °C [OK]                               │
 │  ESP32 CPU  :  42.8 °C                                    │
-├─ [5] RPM Rotor Pulse Counter (GPIO 27) ───────────────────┤
+├─ [5] RPM Rotor Pulse Counter (GPIO 17) ───────────────────┤
 │  Total Pulses: 142      | Speed:  1200 RPM                │
 └───────────────────────────────────────────────────────────┘
 ```

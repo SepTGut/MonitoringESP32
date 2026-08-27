@@ -49,15 +49,22 @@ void ConfigManager::loadDefaults() {
     _config.ina2Addr = INA226_ADDR_2; // Default INA226 #2 (from pin_config.h)
     _config.useAds1115 = true;        // External ADS1115 16-bit I2C ADC used by default
     _config.adsAddr = DEFAULT_ADS1115_ADDR; // Default ADS1115 address (0x48)
+    _config.enablePowerSwitch = ENABLE_POWER_SWITCH;
+    _config.powerSwitchTimeoutMs = POWER_SWITCH_TIMEOUT;
     _config.dummyMode = false; // Simulated dummy sensors mode disabled by default
     _config.setupRequired = true;
 }
 
 SystemConfig ConfigManager::getConfig() const {
     SystemConfig config = {};
-    if (xSemaphoreTake(_mutex, portMAX_DELAY) == pdTRUE) {
+    if (_mutex == NULL) {
+        const_cast<ConfigManager*>(this)->_mutex = xSemaphoreCreateMutex();
+    }
+    if (_mutex != NULL && xSemaphoreTake(_mutex, portMAX_DELAY) == pdTRUE) {
         config = _config;
         xSemaphoreGive(_mutex);
+    } else {
+        config = _config;
     }
     return config;
 }
@@ -264,17 +271,29 @@ bool ConfigManager::updateFromJson(const JsonVariant& json, String& error, Strin
     if (json.containsKey("dummyMode")) {
         if (!json["dummyMode"].is<bool>()) return fail("dummyMode", "Must be a boolean"); next.dummyMode = json["dummyMode"].as<bool>();
     }
+    if (json.containsKey("pwrSwEn")) {
+        if (!json["pwrSwEn"].is<bool>()) return fail("pwrSwEn", "Must be a boolean"); next.enablePowerSwitch = json["pwrSwEn"].as<bool>();
+    }
+    if (json.containsKey("pwrSwTimeout")) {
+        const uint32_t value = json["pwrSwTimeout"].as<uint32_t>(); if (value < 1000 || value > 3600000) return fail("pwrSwTimeout", "Must be 1000-3600000 ms"); next.powerSwitchTimeoutMs = value;
+    }
 
     if (next.ina1Addr == next.ina2Addr) return fail("ina2Addr", "INA226 addresses must be distinct");
     if (next.staEnabled && (!printableString(next.staSSID, 1, 32) || !printableString(next.staPass, 8, 63))) return fail("staEnabled", "Enabled STA requires SSID and password");
-    if (xSemaphoreTake(_mutex, portMAX_DELAY) != pdTRUE) { error = "Configuration lock unavailable"; field = "system"; return false; }
+    if (_mutex == NULL) {
+        _mutex = xSemaphoreCreateMutex();
+    }
+    if (_mutex == NULL || xSemaphoreTake(_mutex, portMAX_DELAY) != pdTRUE) { error = "Configuration lock unavailable"; field = "system"; return false; }
     _config = next;
     xSemaphoreGive(_mutex);
     return true;
 }
 
 bool ConfigManager::updateOffsets(float o1, float o2, float oi) {
-    if (xSemaphoreTake(_mutex, portMAX_DELAY) == pdTRUE) {
+    if (_mutex == NULL) {
+        _mutex = xSemaphoreCreateMutex();
+    }
+    if (_mutex != NULL && xSemaphoreTake(_mutex, portMAX_DELAY) == pdTRUE) {
         _config.zmpt1OffsetMv = o1;
         _config.zmpt2OffsetMv = o2;
         _config.zmctOffsetMv  = oi;
@@ -317,6 +336,8 @@ void ConfigManager::serialize(JsonDocument& doc, bool includeSecrets) const {
     doc["ina2Addr"]   = config.ina2Addr;
     doc["useAds1115"] = config.useAds1115;
     doc["adsAddr"]    = config.adsAddr;
+    doc["pwrSwEn"]    = config.enablePowerSwitch;
+    doc["pwrSwTimeout"] = config.powerSwitchTimeoutMs;
     doc["dummyMode"]  = config.dummyMode;
     doc["setupRequired"] = config.setupRequired;
 }

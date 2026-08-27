@@ -22,11 +22,17 @@ volatile uint32_t RPMSensor::_lastPulseTime = 0;
 volatile uint32_t RPMSensor::_prevPulseTime = 0;
 static portMUX_TYPE rpmMux = portMUX_INITIALIZER_UNLOCKED;
 
+// Minimum refractory period (µs) to reject optical/switch noise spikes (1500 µs = max 40,000 RPM)
+static const uint32_t RPM_DEBOUNCE_US = 1500;
+
 void IRAM_ATTR RPMSensor::handleInterrupt() {
+    uint32_t now = micros();
     portENTER_CRITICAL_ISR(&rpmMux);
-    _prevPulseTime = _lastPulseTime;
-    _lastPulseTime = micros();
-    _pulseCount = _pulseCount + 1;
+    if (_lastPulseTime == 0 || (now - _lastPulseTime) >= RPM_DEBOUNCE_US) {
+        _prevPulseTime = _lastPulseTime;
+        _lastPulseTime = now;
+        _pulseCount = _pulseCount + 1;
+    }
     portEXIT_CRITICAL_ISR(&rpmMux);
 }
 

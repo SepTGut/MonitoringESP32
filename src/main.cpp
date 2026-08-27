@@ -8,6 +8,7 @@
 // =============================================================
 
 #include <Arduino.h>
+#include <esp_sleep.h>
 #include "config/config.h"
 #include "system/config_manager.h"
 #include "system/freertos_tasks.h"
@@ -19,6 +20,16 @@ void setup() {
     Serial.println("  ESP32 Wind Generator Monitor");
     Serial.print("  "); Serial.println(FW_VERSION);
     Serial.println("====================================");
+
+    // Check Deep Sleep wake-up cause
+    esp_sleep_wakeup_cause_t wakeupReason = esp_sleep_get_wakeup_cause();
+    if (wakeupReason == ESP_SLEEP_WAKEUP_EXT0) {
+        Serial.println("[Power] System woke up from Deep Sleep (Power Switch ON)");
+    } else if (wakeupReason == ESP_SLEEP_WAKEUP_UNDEFINED) {
+        Serial.println("[Power] Cold Boot / Power-On Reset");
+    } else {
+        Serial.printf("[Power] Wakeup reason code: %d\n", (int)wakeupReason);
+    }
 
     // Initialize dynamic configuration from LittleFS
     configManager.begin();

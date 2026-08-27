@@ -7,7 +7,7 @@ The `web_preview/` folder contains a copy of the glassmorphic web dashboard conf
 
 ### How to Open:
 1. **Direct File Open**:
-   Simply double-click the [index.html](file:///d:/MyCode/MonitoringESP32/test/web_preview/index.html) file inside `test/web_preview/` to open it in your default browser. It will load with simulated metrics automatically.
+   Simply double-click the [index.html](file:///d:/MyCode/New%20folder/MonitoringESP32/test/web_preview/index.html) file inside `test/web_preview/` to open it in your default browser. It will load with simulated metrics automatically.
    
 2. **Local HTTP Server (Recommended)**:
    To simulate a real web server environment, open a terminal in this directory and launch Python's built-in HTTP server:

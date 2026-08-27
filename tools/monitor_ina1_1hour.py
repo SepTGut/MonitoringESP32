@@ -91,7 +91,7 @@ def main():
     print(f"  Port        : {C_YELLOW}{port}{C_RESET} @ {args.baud} baud")
     print(f"  Duration    : {C_YELLOW}{total_duration} seconds{C_RESET} ({total_duration/60:.1f} minutes / {total_duration/3600:.2f} hours)")
     print(f"  Output CSV  : {C_GREEN}{csv_filename}{C_RESET}")
-    print(f"  Battery Ref : {C_WHITE}Lakoni Blue Wolf 12V 65Ah (75D23L, 57% SoH / 37.05Ah / 444.6 Wh real){C_RESET}")
+    print(f"  Battery Ref : {C_WHITE}Lakoni Blue Wolf 12V 65Ah (75D23L, 100% SoH / 65.0Ah / 780.0 Wh nominal){C_RESET}")
     print(f"  Started at  : {session_start_dt.strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"{C_CYAN}----------------------------------------------------------------{C_RESET}\n")
 
@@ -203,9 +203,9 @@ def main():
                     if p < stats["p_min"]: stats["p_min"] = p
                     if p > stats["p_max"]: stats["p_max"] = p
 
-                    # Calculate Battery SoC for Lakoni 65Ah @ 57% SoH (37.05Ah / 444.6 Wh)
+                    # Calculate Battery SoC for Lakoni 65Ah @ 100% SoH (65.0Ah / 780.0 Wh)
                     soc_pct = calculate_battery_soc(v)
-                    wh_rem = (soc_pct / 100.0) * 444.60
+                    wh_rem = (soc_pct / 100.0) * 780.00
 
                     # Write to CSV
                     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
