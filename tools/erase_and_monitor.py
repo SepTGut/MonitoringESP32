@@ -28,7 +28,7 @@ except ImportError:
     import serial
     import serial.tools.list_ports
 
-# Add serial_logger path so we can import serial_reader modules directly
+# Add serial_logger path so we can import serial_logger directly
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 LOGGER_DIR = os.path.join(SCRIPT_DIR, "serial_logger")
 if LOGGER_DIR not in sys.path:
@@ -83,8 +83,8 @@ def auto_select_port(requested_port=None):
             if 0 <= idx < len(ports):
                 return ports[idx].device
             print(f"{C_YELLOW}Please select a valid index between 0 and {len(ports)-1}{C_RESET}")
-        except ValueError:
-            print(f"{C_RED}Invalid input. Please enter a port number.{C_RESET}")
+        except (ValueError, KeyboardInterrupt):
+            return ports[0].device
 
 def erase_esp32_flash(port):
     """Erase all ESP32 flash memory using esptool or PlatformIO."""
@@ -115,18 +115,30 @@ def erase_esp32_flash(port):
         print(f"\n{C_RED}✖ Erase flash failed. Please check ESP32 connection or BOOT button.{C_RESET}")
         return False
 
+def generate_assets():
+    """Generates embedded web assets header before building firmware."""
+    root_dir = os.path.dirname(SCRIPT_DIR)
+    gen_script = os.path.join(SCRIPT_DIR, "generate_web_assets.py")
+    if os.path.exists(gen_script):
+        try:
+            print(f"{C_CYAN}[Assets] Generating pre-compressed web assets...{C_RESET}")
+            subprocess.run([sys.executable, gen_script], check=True)
+        except Exception as e:
+            print(f"{C_YELLOW}[Warning] generate_web_assets.py error: {e}{C_RESET}")
+
 def prompt_reupload(port):
     """Optionally offer to re-upload firmware or test sketch before launching serial monitor."""
     print(f"{C_CYAN}Select Post-Erase Action:{C_RESET}")
     print(f"  [1] Open Custom Serial Monitor immediately (device remains erased/blank)")
-    print(f"  [2] Build & Upload Main Firmware (Production v1.1.0) + LittleFS filesystem")
+    print(f"  [2] Build & Upload Main Firmware (Production) + LittleFS filesystem")
     print(f"  [3] Build & Upload Hardware Diagnostic Test (test/hardware_test)")
-    print(f"  [4] Build & Upload Hardware Test + Launch Raw Serial Plotter (log_ploter.py)")
+    print(f"  [4] Build & Upload Hardware Test + Launch Raw Serial Plotter")
     
     choice = input(f"\nEnter choice [1/2/3/4] (default 1): ").strip()
     pio_exe = get_platformio_exe()
 
     if choice == "2":
+        generate_assets()
         print(f"\n{C_YELLOW}[Uploading Main Firmware & Filesystem...]{C_RESET}")
         subprocess.run([pio_exe, "run", "-t", "upload", "--upload-port", port], check=True)
         subprocess.run([pio_exe, "run", "-t", "uploadfs", "--upload-port", port], check=True)
@@ -141,10 +153,10 @@ def prompt_reupload(port):
             return "plot"
     return "default"
 
-def launch_custom_serial_monitor(port, baud_rate=115200, is_test=False, is_plot=False):
+def launch_custom_serial_monitor(port, baud_rate=115200, is_test=False, is_plot=False, is_single=False):
     """Launch unified custom color-coded serial dashboard monitor or raw plotter."""
     import importlib
-    mode = "plot" if is_plot else "dashboard"
+    mode = "plot" if is_plot else ("dashboard" if is_single else "dual")
 
     try:
         s_logger = importlib.import_module("serial_logger")
@@ -156,7 +168,6 @@ def launch_custom_serial_monitor(port, baud_rate=115200, is_test=False, is_plot=
     # Fallback to direct raw colorized reader
     try:
         ser = serial.Serial(port, baud_rate, timeout=1)
-        # Reset ESP32
         ser.dtr = False; ser.rts = False; time.sleep(0.1)
         ser.dtr = True; ser.rts = True
 
@@ -189,7 +200,8 @@ def main():
     parser.add_argument("--skip-erase", action="store_true", help="Skip flash erase step")
     parser.add_argument("--test", action="store_true", help="Automatically upload hardware test firmware after erase")
     parser.add_argument("--upload", action="store_true", help="Automatically upload main production firmware + LittleFS after erase")
-    parser.add_argument("--plot", action="store_true", help="Launch live raw value serial plotter (log_ploter.py)")
+    parser.add_argument("--plot", action="store_true", help="Launch live raw value serial plotter")
+    parser.add_argument("--single", action="store_true", help="Launch single dashboard window without opening 2nd plotter window")
     args = parser.parse_args()
 
     print(f"{C_BOLD}{C_CYAN}")
@@ -214,6 +226,7 @@ def main():
             subprocess.run([pio_exe, "run", "-d", hw_dir, "-t", "upload", "--upload-port", port], check=True)
             print(f"{C_GREEN}✔ Hardware test uploaded successfully!{C_RESET}")
         elif args.upload:
+            generate_assets()
             print(f"\n{C_YELLOW}[Auto-Uploading Main Production Firmware...]{C_RESET}")
             pio_exe = get_platformio_exe()
             subprocess.run([pio_exe, "run", "-t", "upload", "--upload-port", port], check=True)
@@ -223,7 +236,7 @@ def main():
             action = prompt_reupload(port)
     
     is_plot = args.plot or (action == "plot")
-    launch_custom_serial_monitor(port, args.baud, is_test=args.test, is_plot=is_plot)
+    launch_custom_serial_monitor(port, args.baud, is_test=args.test, is_plot=is_plot, is_single=args.single)
 
 if __name__ == "__main__":
     main()

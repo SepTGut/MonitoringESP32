@@ -1,9 +1,10 @@
 @echo off
 rem =============================================================
 rem  upload_clean.bat — ESP32 Clean Upload Command Batch File
-rem  1. Erases all flash (program and LittleFS data)
-rem  2. Compiles and uploads firmware
-rem  3. Builds and uploads LittleFS filesystem image
+rem  1. Generates pre-compressed PROGMEM web assets
+rem  2. Erases all flash (program and LittleFS data)
+rem  3. Compiles and uploads firmware
+rem  4. Builds and uploads LittleFS filesystem image
 rem =============================================================
 
 echo ====================================================
@@ -17,6 +18,11 @@ set PIO_PATH="%USERPROFILE%\.platformio\penv\Scripts\pio.exe"
 if not exist %PIO_PATH% (
     set PIO_PATH=pio
 )
+
+rem 0. Generate Web Assets
+echo.
+echo [0/3] Generating pre-compressed web assets header (web_assets.h)...
+python "%~dp0generate_web_assets.py"
 
 rem 1. Erase all flash
 echo.

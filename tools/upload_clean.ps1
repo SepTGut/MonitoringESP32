@@ -1,11 +1,12 @@
 # =============================================================
 #  upload_clean.ps1 - ESP32 Clean Upload Script
-#  1. Erases all flash (program and LittleFS data)
-#  2. Compiles and uploads firmware
-#  3. Builds and uploads LittleFS filesystem image
+#  1. Generates pre-compressed PROGMEM web assets
+#  2. Erases all flash (program and LittleFS data)
+#  3. Compiles and uploads firmware
+#  4. Builds and uploads LittleFS filesystem image
 # =============================================================
 
-$port = "COM3"
+$port = ""
 if ($args.Count -gt 0) {
     $port = $args[0]
 }
@@ -15,10 +16,19 @@ if (!(Test-Path $pioPath)) {
     $pioPath = "pio"
 }
 
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$genScript = Join-Path $scriptDir "generate_web_assets.py"
+
 Write-Host "====================================================" -ForegroundColor Cyan
 Write-Host "  ESP32 Wind Monitor - Clean Upload Utility" -ForegroundColor Cyan
 Write-Host "  Using PlatformIO: $pioPath" -ForegroundColor Gray
 Write-Host "====================================================" -ForegroundColor Cyan
+
+# 0. Generate Web Assets
+if (Test-Path $genScript) {
+    Write-Host "`n[0/3] Generating pre-compressed web assets (web_assets.h)..." -ForegroundColor Yellow
+    python $genScript
+}
 
 # 1. Erase all flash
 Write-Host "`n[1/3] Erasing ESP32 flash (clean all program and data)..." -ForegroundColor Yellow

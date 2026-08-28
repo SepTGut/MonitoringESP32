@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ESP32 Web Serial Logger & Real-Time Waveform Plotter</title>
-  <meta name="description" content="Browser-based Web Serial API plotter and diagnostic logger for ESP32 wind turbine monitoring sensors." />
+  <meta name="description" content="Browser-based Web Serial API plotter and diagnostic logger for ESP32 wind & solar monitoring sensors." />
   <!-- Google Fonts: Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -24,6 +24,8 @@
       --accent-purple: #a855f7;
       --accent-red: #ef4444;
       --accent-pink: #ec4899;
+      --accent-indigo: #6366f1;
+      --accent-teal: #14b8a6;
       --radius-lg: 12px;
       --radius-md: 8px;
     }
@@ -443,7 +445,7 @@
       <div class="brand-icon">⚡</div>
       <div>
         <div class="brand-title">SerialPlotter Web Engine</div>
-        <div class="brand-subtitle">ESP32 Wind Turbine Live Telemetry & Waveform Visualizer</div>
+        <div class="brand-subtitle">ESP32 Wind & Solar Live Telemetry & Waveform Visualizer</div>
       </div>
     </div>
 
@@ -473,70 +475,70 @@
 
     <!-- Top Live Metric Cards Grid -->
     <div class="metrics-grid">
-      <!-- Card 1: ZMPT101B #1 -->
+      <!-- Card 1: Generator AC (ZMPT1 #1) -->
       <div class="metric-card">
         <div class="card-accent-line" style="background: var(--accent-blue)"></div>
         <div class="metric-title">
-          <span>ZMPT101B #1 (GPIO 34)</span>
-          <span style="color: var(--accent-blue)">AC V1</span>
+          <span>Generator AC (ZMPT1 A0)</span>
+          <span style="color: var(--accent-blue)">Gen AC</span>
         </div>
-        <div class="metric-value" id="valZ1" style="color: var(--accent-blue)">0.0 mV</div>
-        <div class="metric-sub" id="subZ1">Raw: 0 counts</div>
+        <div class="metric-value" id="valZ1" style="color: var(--accent-blue)">0.0 V</div>
+        <div class="metric-sub" id="subZ1">Raw: 0 counts | 0.0 mV</div>
       </div>
 
-      <!-- Card 2: ZMPT101B #2 -->
+      <!-- Card 2: Inverter AC Output (ZMPT2 #2) -->
       <div class="metric-card">
         <div class="card-accent-line" style="background: var(--accent-cyan)"></div>
         <div class="metric-title">
-          <span>ZMPT101B #2 (GPIO 35)</span>
-          <span style="color: var(--accent-cyan)">AC V2</span>
+          <span>Inverter AC (ZMPT2 A1)</span>
+          <span style="color: var(--accent-cyan)">Inv AC</span>
         </div>
-        <div class="metric-value" id="valZ2" style="color: var(--accent-cyan)">0.0 mV</div>
-        <div class="metric-sub" id="subZ2">Raw: 0 counts</div>
+        <div class="metric-value" id="valZ2" style="color: var(--accent-cyan)">0.0 V</div>
+        <div class="metric-sub" id="subZ2">Raw: 0 counts | 0.0 mV</div>
       </div>
 
-      <!-- Card 3: ZMCT103C -->
+      <!-- Card 3: Inverter AC Load Current (ZMCT103C) -->
       <div class="metric-card">
         <div class="card-accent-line" style="background: var(--accent-yellow)"></div>
         <div class="metric-title">
-          <span>ZMCT103C (GPIO 32)</span>
-          <span style="color: var(--accent-yellow)">AC Current</span>
+          <span>AC Load Current (ZMCT A2)</span>
+          <span style="color: var(--accent-yellow)">AC Power</span>
         </div>
-        <div class="metric-value" id="valZI" style="color: var(--accent-yellow)">0.0 mV</div>
-        <div class="metric-sub" id="subZI">Raw: 0 counts</div>
+        <div class="metric-value" id="valZI" style="color: var(--accent-yellow)">0.00 A</div>
+        <div class="metric-sub" id="subZI">Power: 0.0 W | RMS: 0.0 mV</div>
       </div>
 
-      <!-- Card 4: MAX9814 Microphone -->
+      <!-- Card 4: Inverter DC Input (ACS758) -->
       <div class="metric-card">
         <div class="card-accent-line" style="background: var(--accent-purple)"></div>
         <div class="metric-title">
-          <span>MAX9814 (GPIO 33)</span>
-          <span style="color: var(--accent-purple)">Sound Level</span>
+          <span>Inverter DC In (ACS758 A3)</span>
+          <span style="color: var(--accent-purple)">DC Input</span>
         </div>
-        <div class="metric-value" id="valMic" style="color: var(--accent-purple)">0.0 mV Vpp</div>
-        <div class="metric-sub" id="subMic">DC Bias: 0.0 mV</div>
+        <div class="metric-value" id="valACS" style="color: var(--accent-purple)">0.00 A</div>
+        <div class="metric-sub" id="subACS">DC Input: 0.0 W | Eff: --.-%</div>
       </div>
 
-      <!-- Card 5: INA226 DC Power -->
+      <!-- Card 5: MPPT Battery (INA226 #1) -->
       <div class="metric-card">
         <div class="card-accent-line" style="background: var(--accent-green)"></div>
         <div class="metric-title">
-          <span>INA226 DC #1 (0x44)</span>
-          <span style="color: var(--accent-green)">DC Power</span>
+          <span>MPPT Battery (INA1 0x44)</span>
+          <span style="color: var(--accent-green)">Battery</span>
         </div>
         <div class="metric-value" id="valInaW" style="color: var(--accent-green)">0.00 W</div>
-        <div class="metric-sub" id="subIna">0.00 V | 0.00 A</div>
+        <div class="metric-sub" id="subIna">0.00 V | 0.00 A | SoC: 0%</div>
       </div>
 
-      <!-- Card 6: Rotor Speed RPM -->
+      <!-- Card 6: Rotor Speed & Environment -->
       <div class="metric-card">
         <div class="card-accent-line" style="background: var(--accent-pink)"></div>
         <div class="metric-title">
-          <span>IR Pulse Sensor (GPIO 27)</span>
-          <span style="color: var(--accent-pink)">Rotor Speed</span>
+          <span>Rotor Speed & CPU</span>
+          <span style="color: var(--accent-pink)">Mechanical</span>
         </div>
         <div class="metric-value" id="valRpm" style="color: var(--accent-pink)">0 RPM</div>
-        <div class="metric-sub" id="subPulses">Pulses: 0</div>
+        <div class="metric-sub" id="subPulses">Pulses: 0 | CPU: 0.0°C</div>
       </div>
     </div>
 
@@ -547,7 +549,7 @@
       <div class="chart-container">
         <div class="chart-header">
           <div class="chart-title-group">
-            <div class="chart-title">Real-Time Waveform Plotter</div>
+            <div class="chart-title">Real-Time Multi-Channel Waveform Plotter</div>
           </div>
 
           <div class="chart-controls">
@@ -599,11 +601,11 @@
       </div>
 
       <div class="terminal-box" id="terminalBox">
-        <div class="terminal-line sys">[System] SerialPlotter.io Web Engine ready. Click "Connect USB Serial" to start telemetry.</div>
+        <div class="terminal-line sys">[System] Web Serial Plotter ready. Click "Connect USB Serial" to start streaming.</div>
       </div>
 
       <div class="terminal-input-bar">
-        <input type="text" id="terminalInput" class="terminal-input" placeholder="Type serial command (e.g. HELP, CALIBRATE, STATUS)..." />
+        <input type="text" id="terminalInput" class="terminal-input" placeholder="Type serial command (e.g. CALIBRATE, I2C SCAN, REBOOT)..." />
         <button id="btnSendCmd" class="btn-action btn-connect">Send</button>
       </div>
     </div>
@@ -614,12 +616,14 @@
   <script>
     // --- Telemetry & Chart Configuration ---
     const channels = [
-      { id: 'raw_z1', name: 'ZMPT1 #1 (GPIO 34)', color: '#38bdf8', enabled: true, unit: 'mV', val: 0 },
-      { id: 'raw_z2', name: 'ZMPT1 #2 (GPIO 35)', color: '#22d3ee', enabled: true, unit: 'mV', val: 0 },
-      { id: 'raw_zi', name: 'ZMCT103C (GPIO 32)', color: '#f59e0b', enabled: true, unit: 'mV', val: 0 },
-      { id: 'mic_vpp', name: 'MAX9814 Sound Vpp', color: '#a855f7', enabled: true, unit: 'mV', val: 0 },
-      { id: 'ina1_w', name: 'INA226 DC Power', color: '#10b981', enabled: true, unit: 'W', val: 0 },
-      { id: 'rpm', name: 'Rotor Speed (RPM)', color: '#ec4899', enabled: true, unit: 'RPM', val: 0 }
+      { id: 'gen_ac_v', name: 'Generator AC Voltage (V RMS)', color: '#38bdf8', enabled: true, unit: 'V', val: 0 },
+      { id: 'inv_ac_v', name: 'Inverter AC Output (V RMS)', color: '#22d3ee', enabled: true, unit: 'V', val: 0 },
+      { id: 'inv_ac_a', name: 'Inverter AC Load (A RMS)', color: '#f59e0b', enabled: true, unit: 'A', val: 0 },
+      { id: 'acs_a', name: 'Inverter DC Input (ACS758 A)', color: '#a855f7', enabled: true, unit: 'A', val: 0 },
+      { id: 'ina1_w', name: 'MPPT Battery Power (W)', color: '#10b981', enabled: true, unit: 'W', val: 0 },
+      { id: 'ina2_w', name: 'Aux Control Power (W)', color: '#6366f1', enabled: false, unit: 'W', val: 0 },
+      { id: 'rpm', name: 'Rotor Speed (RPM)', color: '#ec4899', enabled: true, unit: 'RPM', val: 0 },
+      { id: 'battery_soc', name: 'Battery SoC (%)', color: '#14b8a6', enabled: false, unit: '%', val: 0 }
     ];
 
     let port = null;
@@ -628,6 +632,18 @@
     let isPaused = false;
     let dataBuffer = [];
     const maxDataPoints = 1200;
+
+    // State Tracking
+    const liveData = {
+      gen_ac_v: 0, inv_ac_v: 0, inv_ac_a: 0, inv_ac_w: 0,
+      acs_a: 0, inv_power: 0, inv_efficiency: 0,
+      ina1_v: 0, ina1_a: 0, ina1_w: 0, battery_soc: 0, battery_wh: 0,
+      ina2_v: 0, ina2_a: 0, ina2_w: 0,
+      rpm: 0, pulses: 0,
+      zmpt1_mv: 0, zmpt2_mv: 0, zmct_mv: 0, acs_mv: 0,
+      raw_z1: 0, raw_z2: 0, raw_zi: 0, raw_acs: 0,
+      cpu_temp: 0
+    };
 
     // --- DOM Element References ---
     const btnConnect = document.getElementById('btnConnect');
@@ -707,10 +723,10 @@
 
     async function disconnectSerial() {
       if (reader) {
-        await reader.cancel();
+        try { await reader.cancel(); } catch(e){}
       }
       if (port) {
-        await port.close();
+        try { await port.close(); } catch(e){}
       }
       isConnected = false;
       updateConnectionUI(false);
@@ -762,7 +778,7 @@
       }
     }
 
-    // --- Line Parser (RAW_PLOT, JSON, CSV, Diagnostic Text) ---
+    // --- Line Parser (RAW_PLOT, JSON, Production 1Hz report, Hardware Test) ---
     function parseLine(line) {
       if (!line) return;
 
@@ -771,57 +787,130 @@
       if (isPaused) return;
 
       const now = Date.now();
-      let record = { timestamp: now };
+      let updated = false;
 
+      // 1. RAW_PLOT Stream
       if (line.startsWith('RAW_PLOT:')) {
         let content = line.substring(9);
         let pairs = content.split(',');
         pairs.forEach(pair => {
           let [k, v] = pair.split('=');
           if (k && v !== undefined) {
-            record[k.trim()] = parseFloat(v);
+            let num = parseFloat(v);
+            if (!isNaN(num)) {
+              liveData[k.trim()] = num;
+            }
           }
         });
-      } else if (line.startsWith('{') && line.endsWith('}')) {
+        if (liveData.zmpt1_mv && !liveData.gen_ac_v) liveData.gen_ac_v = (liveData.zmpt1_mv > 50) ? (liveData.zmpt1_mv * 0.15) : 0;
+        if (liveData.zmpt2_mv && !liveData.inv_ac_v) liveData.inv_ac_v = (liveData.zmpt2_mv > 50) ? (liveData.zmpt2_mv * 0.15) : 0;
+        updated = true;
+      }
+      // 2. Production 1Hz Report Lines
+      else if (line.includes('[Generator AC]')) {
+        let m = line.match(/ZMPT1.*?:\s*([\d.-]+)\s*V RMS\s*\|\s*RPM:\s*(\d+)/i);
+        if (m) {
+          liveData.gen_ac_v = parseFloat(m[1]);
+          liveData.rpm = parseInt(m[2]);
+          updated = true;
+        }
+      }
+      else if (line.includes('[MPPT Battery]')) {
+        let m = line.match(/INA1:\s*([\d.-]+)\s*V\s*\|\s*Charge:\s*([\d.-]+)\s*A\s*\(([\d.-]+)\s*W\)\s*\|\s*SoC:\s*([\d.-]+)%\s*\(([\d.-]+)\s*Wh\)/i);
+        if (m) {
+          liveData.ina1_v = parseFloat(m[1]);
+          liveData.ina1_a = parseFloat(m[2]);
+          liveData.ina1_w = parseFloat(m[3]);
+          liveData.battery_soc = parseFloat(m[4]);
+          liveData.battery_wh = parseFloat(m[5]);
+          updated = true;
+        }
+      }
+      else if (line.includes('[Inverter DC In]')) {
+        let m = line.match(/ACS758.*?:\s*([\d.-]+)\s*A\s*\|\s*DC Input:\s*([\d.-]+)\s*W/i);
+        if (m) {
+          liveData.acs_a = parseFloat(m[1]);
+          liveData.inv_power = parseFloat(m[2]);
+          updated = true;
+        }
+      }
+      else if (line.includes('[Inverter AC Out]')) {
+        let m = line.match(/ZMPT2.*?:\s*([\d.-]+)\s*V\s*\|\s*ZMCT.*?:\s*([\d.-]+)\s*A\s*\|\s*AC Power:\s*([\d.-]+)\s*W/i);
+        if (m) {
+          liveData.inv_ac_v = parseFloat(m[1]);
+          liveData.inv_ac_a = parseFloat(m[2]);
+          liveData.inv_ac_w = parseFloat(m[3]);
+          updated = true;
+        }
+      }
+      else if (line.includes('[Inverter Eff]')) {
+        let m = line.match(/Efficiency:\s*([\d.-]+)\s*%/i);
+        if (m) {
+          liveData.inv_efficiency = parseFloat(m[1]);
+          updated = true;
+        }
+      }
+      else if (line.includes('[Control/Lights]')) {
+        let m = line.match(/INA2:\s*([\d.-]+)\s*V\s*\|\s*Load:\s*([\d.-]+)\s*A\s*\(([\d.-]+)\s*W\)/i);
+        if (m) {
+          liveData.ina2_v = parseFloat(m[1]);
+          liveData.ina2_a = parseFloat(m[2]);
+          liveData.ina2_w = parseFloat(m[3]);
+          updated = true;
+        }
+      }
+      else if (line.includes('[Temperature]')) {
+        let m = line.match(/ESP32 CPU:\s*([\d.-]+)°C/i);
+        if (m) {
+          liveData.cpu_temp = parseFloat(m[1]);
+          updated = true;
+        }
+      }
+      // 3. JSON Stream
+      else if (line.startsWith('{') && line.endsWith('}')) {
         try {
           let json = JSON.parse(line);
-          Object.assign(record, json);
+          Object.assign(liveData, json);
+          updated = true;
         } catch (e) {}
       }
 
-      // Update Channel Values & Data Buffer
-      channels.forEach(ch => {
-        if (record[ch.id] !== undefined) {
-          ch.val = record[ch.id];
-          let lbl = document.getElementById('lbl_' + ch.id);
-          if (lbl) lbl.textContent = ch.val.toFixed(1);
+      if (updated) {
+        let record = { timestamp: now, ...liveData };
+
+        // Update Top Metric Cards
+        document.getElementById('valZ1').textContent = liveData.gen_ac_v.toFixed(1) + ' V';
+        document.getElementById('subZ1').textContent = `Raw: ${Math.round(liveData.raw_z1)} counts | ${liveData.zmpt1_mv.toFixed(1)} mV`;
+
+        document.getElementById('valZ2').textContent = liveData.inv_ac_v.toFixed(1) + ' V';
+        document.getElementById('subZ2').textContent = `Raw: ${Math.round(liveData.raw_z2)} counts | ${liveData.zmpt2_mv.toFixed(1)} mV`;
+
+        document.getElementById('valZI').textContent = liveData.inv_ac_a.toFixed(2) + ' A';
+        document.getElementById('subZI').textContent = `Power: ${liveData.inv_ac_w.toFixed(1)} W | RMS: ${liveData.zmct_mv.toFixed(1)} mV`;
+
+        document.getElementById('valACS').textContent = liveData.acs_a.toFixed(2) + ' A';
+        let effStr = liveData.inv_efficiency > 0 ? `${liveData.inv_efficiency.toFixed(1)}%` : '--.-%';
+        document.getElementById('subACS').textContent = `DC Input: ${liveData.inv_power.toFixed(1)} W | Eff: ${effStr}`;
+
+        document.getElementById('valInaW').textContent = liveData.ina1_w.toFixed(2) + ' W';
+        document.getElementById('subIna').textContent = `${liveData.ina1_v.toFixed(2)}V | ${liveData.ina1_a.toFixed(2)}A | SoC: ${liveData.battery_soc.toFixed(1)}%`;
+
+        document.getElementById('valRpm').textContent = Math.round(liveData.rpm) + ' RPM';
+        document.getElementById('subPulses').textContent = `Pulses: ${liveData.pulses} | CPU: ${liveData.cpu_temp.toFixed(1)}°C`;
+
+        // Update Channel Legend Labels
+        channels.forEach(ch => {
+          if (record[ch.id] !== undefined) {
+            ch.val = record[ch.id];
+            let lbl = document.getElementById('lbl_' + ch.id);
+            if (lbl) lbl.textContent = ch.val.toFixed(1) + ' ' + ch.unit;
+          }
+        });
+
+        dataBuffer.push(record);
+        if (dataBuffer.length > maxDataPoints) {
+          dataBuffer.shift();
         }
-      });
-
-      // Update Top Metric Cards
-      if (record.zmpt1_mv !== undefined) document.getElementById('valZ1').textContent = record.zmpt1_mv.toFixed(1) + ' mV';
-      if (record.raw_z1 !== undefined) document.getElementById('subZ1').textContent = 'Raw: ' + Math.round(record.raw_z1) + ' counts';
-
-      if (record.zmpt2_mv !== undefined) document.getElementById('valZ2').textContent = record.zmpt2_mv.toFixed(1) + ' mV';
-      if (record.raw_z2 !== undefined) document.getElementById('subZ2').textContent = 'Raw: ' + Math.round(record.raw_z2) + ' counts';
-
-      if (record.zmct_mv !== undefined) document.getElementById('valZI').textContent = record.zmct_mv.toFixed(1) + ' mV';
-      if (record.raw_zi !== undefined) document.getElementById('subZI').textContent = 'Raw: ' + Math.round(record.raw_zi) + ' counts';
-
-      if (record.mic_vpp !== undefined) document.getElementById('valMic').textContent = record.mic_vpp.toFixed(1) + ' mV Vpp';
-      if (record.mic_mv !== undefined) document.getElementById('subMic').textContent = 'Bias: ' + record.mic_mv.toFixed(1) + ' mV';
-
-      if (record.ina1_w !== undefined) document.getElementById('valInaW').textContent = record.ina1_w.toFixed(2) + ' W';
-      if (record.ina1_v !== undefined && record.ina1_a !== undefined) {
-        document.getElementById('subIna').textContent = record.ina1_v.toFixed(2) + 'V | ' + record.ina1_a.toFixed(2) + 'A';
-      }
-
-      if (record.rpm !== undefined) document.getElementById('valRpm').textContent = Math.round(record.rpm) + ' RPM';
-      if (record.pulses !== undefined) document.getElementById('subPulses').textContent = 'Pulses: ' + record.pulses;
-
-      dataBuffer.push(record);
-      if (dataBuffer.length > maxDataPoints) {
-        dataBuffer.shift();
       }
     }
 
@@ -855,7 +944,7 @@
       }
 
       // Calculate Dynamic Y Max
-      let maxY = 100;
+      let maxY = 10;
       channels.forEach(ch => {
         if (ch.enabled) {
           dataBuffer.forEach(d => {
@@ -865,7 +954,7 @@
           });
         }
       });
-      maxY *= 1.1; // 10% padding
+      maxY *= 1.15; // 15% top headroom
 
       // Draw Channel Lines
       channels.forEach(ch => {
@@ -881,7 +970,7 @@
         for (let i = 0; i < pointsCount; i++) {
           let val = dataBuffer[i][ch.id] || 0;
           let x = i * stepX;
-          let y = h - (val / maxY) * (h - 20) - 10;
+          let y = h - (val / maxY) * (h - 30) - 15;
 
           if (i === 0) ctx.moveTo(x, y);
           else ctx.lineTo(x, y);

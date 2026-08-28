@@ -1,5 +1,28 @@
 # Development Log
 
+## 2026-08-28
+
+### Updated (Complete Tool Suite Modernization)
+- **Unified Serial Dashboard & Waveform Plotter (`tools/serial_logger/serial_logger.py`)**:
+  - Replaced legacy MAX9814 audio microphone logic with full support for the **ACS758 50A Inverter Current Sensor** (GPIO 33 & ADS1115 A3).
+  - Modernized regex parsing to support the production 1Hz telemetry report (`[Generator AC]`, `[MPPT Battery]`, `[Inverter DC In]`, `[ACS758 Diag]`, `[Inverter AC Out]`, `[ZMCT Raw Diag]`, `[Inverter Eff]`, `[Control/Lights]`, `[Temperature]`), standalone hardware test reports, and raw stream (`RAW_PLOT:`).
+  - Added real-time tracking and ANSI display for Battery SoC (%), remaining Battery Wh, Inverter DC Power, Inverter Efficiency (%), Generator AC RMS voltage, and Inverter AC RMS load metrics.
+  - Enhanced Window 1 (Diagnostic Dashboard) and Window 2 (Live Waveform Plotter) with dynamic bar graphs and local TCP streaming (`127.0.0.1:8888`).
+- **Browser-Based Web Serial Plotter (`tools/web_serial_plotter/index.html`)**:
+  - Replaced MAX9814 microphone with ACS758 Inverter Current & Power telemetry (GPIO 33 / ADS A3).
+  - Added dynamic metric cards for Generator AC, Inverter AC Output, AC Load Current, Inverter DC Input, MPPT Battery + SoC, and Rotor Speed.
+  - Expanded canvas waveform channels to plot live Generator AC RMS, Inverter AC RMS, Inverter Load Current, ACS758 Current, Battery Power, Aux Control Power, Rotor RPM, and Battery SoC (%).
+  - Synchronized updated Web Serial Plotter to `data/web_serial_plotter.html` and `docs/web_serial_plotter.html`.
+- **1-Hour Battery & System Telemetry Logger (`tools/monitor_ina1_1hour.py`)**:
+  - Upgraded parser to seamlessly capture production 1Hz telemetry frames, `RAW_PLOT:`, and legacy data formats.
+  - Added recording for Inverter DC Current (A), Inverter DC Power (W), Inverter Efficiency (%), Generator AC Voltage (V), Inverter AC Voltage (V), Inverter AC Current (A), and Inverter AC Power (W) to CSV output.
+  - Maintained 1-second console progress status with live battery SoC (%), energy Wh accumulation, and capacity mAh tracking.
+- **Clean Flash & Firmware Upload Scripts (`tools/upload_clean.bat`, `tools/upload_clean.ps1`, `tools/erase_and_monitor.py`)**:
+  - Added automatic web asset compilation step (`tools/generate_web_assets.py`) prior to compiling/uploading firmware to guarantee PROGMEM embedded flash headers (`src/network/web_assets.h`) are always in sync with `data/`.
+  - Upgraded CLI argument forwarding and port selection for single/dual window logging modes.
+- **Embedded Web Assets Header (`src/network/web_assets.h`)**:
+  - Regenerated PROGMEM byte arrays with maximum GZIP compression (18.73 KB in flash).
+
 ## 2026-08-27
 
 ### Fixed & Improved
