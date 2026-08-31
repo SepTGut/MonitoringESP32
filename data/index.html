@@ -88,7 +88,7 @@
                     <span class="page-subtitle" id="uptime-label">Uptime: --</span>
                 </div>
 
-                <!-- Hero Power Cards (4 Channels: Inverter AC Out, Battery MPPT, Inverter DC In, Control & Lights) -->
+                <!-- Hero Power Cards (3 Channels: Inverter AC Out, Battery MPPT, Inverter DC In) -->
                 <div class="highlights-container">
                     <!-- Inverter AC Output Power -->
                     <div class="hero-card" id="card-power-ac" data-type="ac">
@@ -121,8 +121,8 @@
                             </div>
                         </div>
                         <div class="hero-meta">
-                            <h3>MPPT Charge <span class="badge badge-accent" style="font-size:0.65rem;">INA226 #1</span></h3>
-                            <p class="hero-desc">Battery Charging Input <span class="sensor-tag i2c">INA226 #1 &middot; I2C 0x44</span></p>
+                            <h3>MPPT Charge <span class="badge badge-accent" style="font-size:0.65rem;">INA226</span></h3>
+                            <p class="hero-desc">Battery Charging Input <span class="sensor-tag i2c">INA226 &middot; I2C 0x44</span></p>
                         </div>
                     </div>
 
@@ -141,24 +141,6 @@
                         <div class="hero-meta">
                             <h3>Inverter DC Input <span class="badge badge-accent" style="font-size:0.65rem;">ACS758 50A</span></h3>
                             <p class="hero-desc">Battery Discharge <span class="sensor-tag ads">ACS758 &middot; ADS1115 A3</span></p>
-                        </div>
-                    </div>
-
-                    <!-- Control & Lighting Power -->
-                    <div class="hero-card" id="card-power-ctrl" data-type="aux">
-                        <div class="hero-ring">
-                            <svg viewBox="0 0 120 120">
-                                <circle class="ring-bg" cx="60" cy="60" r="52"/>
-                                <circle class="ring-fill" cx="60" cy="60" r="52" id="power-ring-ctrl"/>
-                            </svg>
-                            <div class="hero-value">
-                                <span id="val-ctrlpwr">0.00</span>
-                                <small>W</small>
-                            </div>
-                        </div>
-                        <div class="hero-meta">
-                            <h3>Control & Lights <span class="badge badge-accent" style="font-size:0.65rem;">INA226 #2</span></h3>
-                            <p class="hero-desc">ESP32 & 12V Lights <span class="sensor-tag i2c">INA226 #2 &middot; I2C 0x45</span></p>
                         </div>
                     </div>
                 </div>
@@ -273,36 +255,6 @@
                             <span class="sensor-tag ads">ACS758-050B &middot; ADS1115 (A3) / GPIO 33</span>
                         </div>
                         <div class="metric-bar"><div class="metric-bar-fill" id="bar-inva"></div></div>
-                    </div>
-
-                    <!-- Control & Lighting Supply Voltage (INA226 #2) -->
-                    <div class="metric-card" data-type="voltage">
-                        <div class="metric-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-                            </svg>
-                        </div>
-                        <div class="metric-body">
-                            <span class="metric-label">Control / Aux Voltage</span>
-                            <span class="metric-value"><span id="val-ctrlv">0.00</span> <small>V</small></span>
-                            <span class="sensor-tag i2c">INA226 #2 &middot; I2C 0x45 (Bus V)</span>
-                        </div>
-                        <div class="metric-bar"><div class="metric-bar-fill" id="bar-ctrlv"></div></div>
-                    </div>
-
-                    <!-- Control & Lighting Current (INA226 #2) -->
-                    <div class="metric-card" data-type="current">
-                        <div class="metric-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-                            </svg>
-                        </div>
-                        <div class="metric-body">
-                            <span class="metric-label">Control & Light Current</span>
-                            <span class="metric-value"><span id="val-ctrla">0.00</span> <small>A</small></span>
-                            <span class="sensor-tag i2c">INA226 #2 &middot; I2C 0x45 (Shunt)</span>
-                        </div>
-                        <div class="metric-bar"><div class="metric-bar-fill" id="bar-ctrla"></div></div>
                     </div>
 
                     <!-- RPM -->
@@ -579,34 +531,13 @@
                         </div>
                         <div class="settings-card-body">
                             <div class="form-group">
-                                <label for="cfg-ina1-addr">INA226 #1 (Channel 1 - Main Load)</label>
+                                <label for="cfg-ina1-addr">INA226 I2C Address (Battery & MPPT)</label>
                                 <select id="cfg-ina1-addr">
-                                    <option value="64">0x40 (Default)</option>
+                                    <option value="64">0x40</option>
                                     <option value="65">0x41</option>
                                     <option value="66">0x42</option>
                                     <option value="67">0x43</option>
-                                    <option value="68">0x44</option>
-                                    <option value="69">0x45</option>
-                                    <option value="70">0x46</option>
-                                    <option value="71">0x47</option>
-                                    <option value="72">0x48</option>
-                                    <option value="73">0x49</option>
-                                    <option value="74">0x4A</option>
-                                    <option value="75">0x4B</option>
-                                    <option value="76">0x4C</option>
-                                    <option value="77">0x4D</option>
-                                    <option value="78">0x4E</option>
-                                    <option value="79">0x4F</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="cfg-ina2-addr">INA226 #2 (Channel 2 - Aux)</label>
-                                <select id="cfg-ina2-addr">
-                                    <option value="64">0x40</option>
-                                    <option value="65">0x41 (Default)</option>
-                                    <option value="66">0x42</option>
-                                    <option value="67">0x43</option>
-                                    <option value="68">0x44</option>
+                                    <option value="68">0x44 (Default)</option>
                                     <option value="69">0x45</option>
                                     <option value="70">0x46</option>
                                     <option value="71">0x47</option>

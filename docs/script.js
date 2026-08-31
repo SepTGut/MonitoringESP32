@@ -66,7 +66,6 @@
         maxRpm: 3000,
         maxTemp: 100,
         ina1Addr: 68,  // 0x44 (Battery & MPPT)
-        ina2Addr: 69,  // 0x45 (Control & Lights)
         useAds1115: true,
         adsAddr: 72,   // 0x48 (ADS1115)
         dummyMode: false,
@@ -92,7 +91,7 @@
                                 sensorStackFree: 4096,
                                 networkStackFree: 3200,
                                 adcMode: demoConfigStore.useAds1115 ? 'ADS1115 16-Bit (400kHz Fast I2C, ALRT: GPIO 19)' : 'Internal (eFuse Calibrated)',
-                                i2c: demoConfigStore.useAds1115 ? [0x27, 0x44, 0x45, demoConfigStore.adsAddr] : [0x27, 0x44, 0x45]
+                                i2c: demoConfigStore.useAds1115 ? [0x27, 0x44, demoConfigStore.adsAddr] : [0x27, 0x44]
                             })
                         });
                     } else if (url === '/api/config' && options && options.method === 'POST') {
@@ -152,17 +151,15 @@
     const $ = (id) => document.getElementById(id);
 
     const dom = {
-        // Power hero values (4 Channels)
+        // Power hero values (3 Channels)
         acPwr: $('val-acpwr'),
         dcPwr1: $('val-dcpwr1'),
         invPwr: $('val-invpwr'),
-        ctrlPwr: $('val-ctrlpwr'),
 
         // Power rings
         ringAC: $('power-ring-ac'),
         ringDC1: $('power-ring-dc1'),
         ringInv: $('power-ring-inv'),
-        ringCtrl: $('power-ring-ctrl'),
 
         // Metric values
         acVolt1: $('val-acvolt1'),
@@ -171,8 +168,6 @@
         dcVolt1: $('val-dcvolt1'),
         dcCur1: $('val-dccur1'),
         invA: $('val-inva'),
-        ctrlV: $('val-ctrlv'),
-        ctrlA: $('val-ctrla'),
         rpm: $('val-rpm'),
         temp1: $('val-temp1'),
         temp2: $('val-temp2'),
@@ -185,8 +180,6 @@
         barDcVolt1: $('bar-dcvolt1'),
         barDcCur1: $('bar-dccur1'),
         barInvA: $('bar-inva'),
-        barCtrlV: $('bar-ctrlv'),
-        barCtrlA: $('bar-ctrla'),
         batterySoc: $('val-battery-soc'),
         batteryWh: $('badge-battery-wh'),
         barBatterySoc: $('bar-battery-soc'),
@@ -234,7 +227,6 @@
         cfgMaxRpm: $('cfg-max-rpm'),
         cfgMaxT: $('cfg-max-t'),
         cfgIna1Addr: $('cfg-ina1-addr'),
-        cfgIna2Addr: $('cfg-ina2-addr'),
         cfgUseAds1115: $('cfg-use-ads1115'),
         cfgAdsAddr: $('cfg-ads-addr'),
         cfgDummyMode: $('cfg-dummy-mode'),
@@ -340,7 +332,7 @@
             const acA = Math.max(0, 1.25 + 0.95 * Math.sin(simStep * 0.7));
             const acP = Math.max(0, acV2 * acA * (demoConfigStore.pf || 0.85));
 
-            // 3. MPPT Charging (INA226 #1 @ 0x44)
+            // 3. MPPT Charging (INA226 @ 0x44)
             const dcV1 = 12.65 + 0.15 * Math.sin(simStep * 0.4);
             const dcA1 = Math.max(0, 3.8 + 2.2 * Math.sin(simStep * 0.6) * (windSpeed / 8.0));
             const dcP1 = Math.max(0, dcV1 * dcA1);
@@ -350,18 +342,13 @@
             const invP = dcV1 * invA;
             const invEff = invP > 5.0 ? (acP / invP) * 100.0 : 0.0;
 
-            // 5. Control & 12V Lights Aux (INA226 #2 @ 0x45)
-            const ctrlV = 12.40 + 0.08 * Math.sin(simStep * 0.3);
-            const ctrlA = 0.45 + 0.15 * Math.sin(simStep * 0.9);
-            const ctrlP = ctrlV * ctrlA;
-
-            // 6. RPM & Temperatures
+            // 5. RPM & Temperatures
             const rpm = Math.max(0, 1250 + 450 * Math.sin(simStep * 0.25) * (windSpeed / 8.0));
             const t1 = 32.5 + 3.0 * Math.sin(simStep * 0.15);
             const t2 = 27.5 + 1.5 * Math.sin(simStep * 0.1);
             const tEsp = 43.0 + 3.5 * Math.sin(simStep * 0.2);
 
-            // 7. Battery SoC & Wh (Lakoni 65Ah / 780Wh)
+            // 6. Battery SoC & Wh (Lakoni 65Ah / 780Wh)
             const soc = Math.min(100, Math.max(0, 85.0 + 5.0 * Math.sin(simStep * 0.1)));
             const wh = (soc / 100.0) * 780.0;
 
@@ -369,13 +356,12 @@
                 acV: acV, acV2: acV2, acA: acA, acP: acP,
                 dcV1: dcV1, dcA1: dcA1, dcP1: dcP1,
                 invA: invA, invP: invP, invEff: invEff,
-                ctrlV: ctrlV, ctrlA: ctrlA, ctrlP: ctrlP,
                 soc: soc, wh: wh,
                 rpm: rpm, t1: t1, t2: t2, tEsp: tEsp,
                 uptime: Math.floor(performance.now() / 1000),
                 health: {
                     acV1: true, acV2: true, acI: true,
-                    ina1: true, ina2: true, acs758: true, ads1115: true,
+                    ina1: true, acs758: true, ads1115: true,
                     temp1: true, temp2: true, cpuTemp: true, rpm: true
                 },
                 cycleMs: 12, overruns: 0
@@ -448,7 +434,6 @@
             'acV2': health.acV2,
             'acI': health.acI,
             'ina1': health.ina1,
-            'ina2': health.ina2,
             'acs758': health.acs758,
             'ads1115': health.ads1115,
             'temp1': health.temp1,
@@ -488,26 +473,20 @@
         const dcP1 = data.dcP1 != null ? data.dcP1 : 0;
         const invA = data.invA != null ? data.invA : 0;
         const invP = data.invP != null ? data.invP : (data.dcV1 && invA ? data.dcV1 * Math.abs(invA) : 0);
-        const ctrlV = data.ctrlV != null ? data.ctrlV : 0;
-        const ctrlA = data.ctrlA != null ? data.ctrlA : 0;
-        const ctrlP = data.ctrlP != null ? data.ctrlP : (ctrlV * ctrlA);
 
         // Hero power values
         setText(dom.acPwr, acP.toFixed(1));
         setText(dom.dcPwr1, dcP1.toFixed(1));
         if (dom.invPwr) setText(dom.invPwr, invP.toFixed(1));
-        if (dom.ctrlPwr) setText(dom.ctrlPwr, ctrlP.toFixed(1));
 
         // Power rings
         const maxDCPower = cfg.maxVoltage * cfg.maxCurrent;
         const maxACPower = cfg.maxACVoltage * cfg.maxACCurrent;
         const maxInvPower = 12.0 * 50.0; // 600W max for 50A Inverter
-        const maxCtrlPower = 12.0 * 5.0;  // 60W max for Control/Lights
 
         setRing(dom.ringAC, acP, maxACPower);
         setRing(dom.ringDC1, dcP1, maxDCPower);
         if (dom.ringInv) setRing(dom.ringInv, invP, maxInvPower);
-        if (dom.ringCtrl) setRing(dom.ringCtrl, ctrlP, maxCtrlPower);
 
         // Metric values
         setText(dom.acVolt1, fmt(data.acV, 1));
@@ -516,8 +495,6 @@
         setText(dom.dcVolt1, fmt(data.dcV1, 2));
         setText(dom.dcCur1, fmt(data.dcA1, 2));
         if (dom.invA) setText(dom.invA, fmt(invA, 2));
-        if (dom.ctrlV) setText(dom.ctrlV, fmt(ctrlV, 2));
-        if (dom.ctrlA) setText(dom.ctrlA, fmt(ctrlA, 2));
         setText(dom.rpm, data.rpm != null ? Math.round(data.rpm).toString() : '0');
         setText(dom.temp1, fmt(data.t1, 1));
         setText(dom.temp2, fmt(data.t2, 1));
@@ -532,8 +509,6 @@
         setBar(dom.barDcVolt1, data.dcV1, cfg.maxVoltage);
         setBar(dom.barDcCur1, data.dcA1, cfg.maxCurrent);
         if (dom.barInvA) setBar(dom.barInvA, Math.abs(invA), 50.0); // 50A max
-        if (dom.barCtrlV) setBar(dom.barCtrlV, ctrlV, 20.0);
-        if (dom.barCtrlA) setBar(dom.barCtrlA, ctrlA, 5.0);
 
         // Battery SoC (Lakoni 65Ah @ 100% SoH = 65.0Ah / 780.0 Wh)
         let soc = data.soc != null ? data.soc : data.batterySoc;
@@ -701,15 +676,6 @@
             if (isNaN(maxAcA) || maxAcA < 0.1) errors.push('Max AC Current must be >= 0.1');
         }
 
-        // INA226 addresses must be distinct
-        if (dom.cfgIna1Addr && dom.cfgIna2Addr) {
-            const ina1 = parseInt(dom.cfgIna1Addr.value, 10);
-            const ina2 = parseInt(dom.cfgIna2Addr.value, 10);
-            if (ina1 === ina2) {
-                errors.push('INA226 addresses must be distinct');
-            }
-        }
-
         return errors;
     }
 
@@ -757,7 +723,6 @@
                 if (data.maxTemp != null && dom.cfgMaxT) { dom.cfgMaxT.value = data.maxTemp; cfg.maxTemp = data.maxTemp; }
 
                 if (data.ina1Addr != null && dom.cfgIna1Addr) dom.cfgIna1Addr.value = data.ina1Addr;
-                if (data.ina2Addr != null && dom.cfgIna2Addr) dom.cfgIna2Addr.value = data.ina2Addr;
                 if (data.useAds1115 != null && dom.cfgUseAds1115) dom.cfgUseAds1115.checked = data.useAds1115;
                 if (data.adsAddr != null && dom.cfgAdsAddr) dom.cfgAdsAddr.value = data.adsAddr;
                 if (data.dummyMode != null && dom.cfgDummyMode) dom.cfgDummyMode.checked = data.dummyMode;
@@ -821,7 +786,6 @@
                 maxRpm: dom.cfgMaxRpm ? parseInt(dom.cfgMaxRpm.value, 10) : 3000,
                 maxTemp: dom.cfgMaxT ? parseInt(dom.cfgMaxT.value, 10) : 100,
                 ina1Addr: dom.cfgIna1Addr ? parseInt(dom.cfgIna1Addr.value, 10) : 68,
-                ina2Addr: dom.cfgIna2Addr ? parseInt(dom.cfgIna2Addr.value, 10) : 69,
                 useAds1115: dom.cfgUseAds1115 ? dom.cfgUseAds1115.checked : true,
                 adsAddr: dom.cfgAdsAddr ? parseInt(dom.cfgAdsAddr.value, 10) : 72,
                 dummyMode: dom.cfgDummyMode ? dom.cfgDummyMode.checked : false

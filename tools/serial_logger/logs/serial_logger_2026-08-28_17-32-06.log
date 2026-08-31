@@ -1894,3 +1894,171 @@ entry 0x40080554
   [Control/Lights] INA2: 3.93 V | Load: -0.00 A (0.00 W)
   [Temperature]    Gen/Box: 31.2°C / 30.5°C | ESP32 CPU: 64.4°C
 ==================================================
+==================================================
+            WIND & SOLAR SYSTEM MONITOR           
+==================================================
+  [Generator AC]   ZMPT1 (A0): 0.0 V RMS | RPM: 406
+  [MPPT Battery]   INA1: 12.86 V | Charge: 0.34 A (5.0 W) | SoC: 100.0% (780.0 Wh)
+  [Inverter DC In] ACS758 (GPIO 33): 0.00 A | DC Input: 0.0 W
+  [ACS758 Diag]    GPIO 33: 1677.0 mV (Δ: 2.0 mV) | Baseline: 1675.0 mV | ADS1115 A3: 1629.8 mV
+  [Inverter AC Out]ZMPT2 (A1): 0.0 V | ZMCT (A2): 0.00 A | AC Power: 0.0 W
+  [ZMCT Raw Diag]   RMS Signal: 21.4 mV | DC Offset: 1672.0 mV | Read via: ADS1115 (A2)
+  [Control/Lights] INA2: 3.94 V | Load: -0.00 A (0.00 W)
+  [Temperature]    Gen/Box: 31.2°C / 30.5°C | ESP32 CPU: 64.4°C
+==================================================
+==================================================
+            WIND & SOLAR SYSTEM MONITOR           
+==================================================
+  [Generator AC]   ZMPT1 (A0): 0.0 V RMS | RPM: 209
+  [MPPT Battery]   INA1: 12.87 V | Charge: 0.64 A (8.2 W) | SoC: 100.0% (780.0 Wh)
+  [Inverter DC In] ACS758 (GPIO 33): 0.00 A | DC Input: 0.0 W
+  [ACS758 Diag]    GPIO 33: 1687.1 mV (Δ: 12.1 mV) | Baseline: 1675.0 mV | ADS1115 A3: 1758.9 mV
+  [Inverter AC Out]ZMPT2 (A1): 0.0 V | ZMCT (A2): 0.00 A | AC Power: 0.0 W
+  [ZMCT Raw Diag]   RMS Signal: 21.4 mV | DC Offset: 1672.0 mV | Read via: ADS1115 (A2)
+  [Control/Lights] INA2: 3.94 V | Load: -0.00 A (0.00 W)
+  [Temperature]    Gen/Box: 31.2°C / 30.5°C | ESP32 CPU: 64.4°C
+==================================================
+==================================================
+            WIND & SOLAR SYSTEM MONITOR           
+==================================================
+  [Generator AC]   ZMPT1 (A0): 0.0 V RMS | RPM: 217
+  [MPPT Battery]   INA1: 12.88 V | Charge: 0.70 A (9.0 W) | SoC: 100.0% (780.0 Wh)
+  [Inverter DC In] ACS758 (GPIO 33): 0.00 A | DC Input: 0.0 W
+  [ACS758 Diag]    GPIO 33: 1687.1 mV (Δ: 12.1 mV) | Baseline: 1675.0 mV | ADS1115 A3: 1716.0 mV
+  [Inverter AC Out]ZMPT2 (A1): 0.0 V | ZMCT (A2): 0.00 A | AC Power: 0.0 W
+  [ZMCT Raw Diag]   RMS Signal: 21.6 mV | DC Offset: 1672.0 mV | Read via: ADS1115 (A2)
+  [Control/Lights] INA2: 3.94 V | Load: -0.00 A (0.00 W)
+  [Temperature]    Gen/Box: 31.2°C / 30.5°C | ESP32 CPU: 65.0°C
+==================================================
+==================================================
+            WIND & SOLAR SYSTEM MONITOR           
+==================================================
+  [Generator AC]   ZMPT1 (A0): 0.0 V RMS | RPM: 209
+  [MPPT Battery]   INA1: 12.86 V | Charge: 0.55 A (6.4 W) | SoC: 100.0% (780.0 Wh)
+  [Inverter DC In] ACS758 (GPIO 33): 0.00 A | DC Input: 0.0 W
+  [ACS758 Diag]    GPIO 33: 1687.3 mV (Δ: 12.3 mV) | Baseline: 1675.0 mV | ADS1115 A3: 1658.2 mV
+  [Inverter AC Out]ZMPT2 (A1): 0.0 V | ZMCT (A2): 0.00 A | AC Power: 0.0 W
+  [ZMCT Raw Diag]   RMS Signal: 24.9 mV | DC Offset: 1672.0 mV | Read via: ADS1115 (A2)
+  [Control/Lights] INA2: 3.94 V | Load: -0.00 A (0.00 W)
+  [Temperature]    Gen/Box: 31.2°C / 30.6°C | ESP32 CPU: 64.4°C
+==================================================
+==================================================
+            WIND & SOLAR SYSTEM MONITOR           
+==================================================
+  [Generator AC]   ZMPT1 (A0): 0.0 V RMS | RPM: 210
+  [MPPT Battery]   INA1: 12.86 V | Charge: 0.54 A (6.9 W) | SoC: 100.0% (780.0 Wh)
+  [Inverter DC In] ACS758 (GPIO 33): 0.00 A | DC Input: 0.0 W
+  [ACS758 Diag]    GPIO 33: 1688.0 mV (Δ: 13.0 mV) | Baseline: 1675.0 mV | ADS1115 A3: 1668.4 mV
+  [Inverter AC Out]ZMPT2 (A1): 0.0 V | ZMCT (A2): 0.00 A | AC Power: 0.0 W
+  [ZMCT Raw Diag]   RMS Signal: 21.9 mV | DC Offset: 1672.0 mV | Read via: ADS1115 (A2)
+  [Control/Lights] INA2: 3.94 V | Load: -0.00 A (0.00 W)
+  [Temperature]    Gen/Box: 31.2°C / 30.5°C | ESP32 CPU: 64.4°C
+==================================================
+==================================================
+            WIND & SOLAR SYSTEM MONITOR           
+==================================================
+  [Generator AC]   ZMPT1 (A0): 0.0 V RMS | RPM: 331
+  [MPPT Battery]   INA1: 12.86 V | Charge: 0.70 A (9.1 W) | SoC: 100.0% (780.0 Wh)
+  [Inverter DC In] ACS758 (GPIO 33): 0.00 A | DC Input: 0.0 W
+  [ACS758 Diag]    GPIO 33: 1688.6 mV (Δ: 13.6 mV) | Baseline: 1675.0 mV | ADS1115 A3: 1743.9 mV
+  [Inverter AC Out]ZMPT2 (A1): 0.0 V | ZMCT (A2): 0.00 A | AC Power: 0.0 W
+  [ZMCT Raw Diag]   RMS Signal: 22.0 mV | DC Offset: 1672.0 mV | Read via: ADS1115 (A2)
+  [Control/Lights] INA2: 3.94 V | Load: -0.00 A (0.00 W)
+  [Temperature]    Gen/Box: 31.2°C / 30.6°C | ESP32 CPU: 64.4°C
+==================================================
+==================================================
+            WIND & SOLAR SYSTEM MONITOR           
+==================================================
+  [Generator AC]   ZMPT1 (A0): 0.0 V RMS | RPM: 541
+  [MPPT Battery]   INA1: 12.88 V | Charge: 0.73 A (9.6 W) | SoC: 100.0% (780.0 Wh)
+  [Inverter DC In] ACS758 (GPIO 33): 0.00 A | DC Input: 0.0 W
+  [ACS758 Diag]    GPIO 33: 1688.5 mV (Δ: 13.5 mV) | Baseline: 1675.0 mV | ADS1115 A3: 1756.2 mV
+  [Inverter AC Out]ZMPT2 (A1): 0.0 V | ZMCT (A2): 0.00 A | AC Power: 0.0 W
+  [ZMCT Raw Diag]   RMS Signal: 21.6 mV | DC Offset: 1672.0 mV | Read via: ADS1115 (A2)
+  [Control/Lights] INA2: 3.93 V | Load: -0.00 A (0.00 W)
+  [Temperature]    Gen/Box: 31.2°C / 30.5°C | ESP32 CPU: 64.4°C
+==================================================
+==================================================
+            WIND & SOLAR SYSTEM MONITOR           
+==================================================
+  [Generator AC]   ZMPT1 (A0): 0.0 V RMS | RPM: 538
+  [MPPT Battery]   INA1: 12.86 V | Charge: 0.47 A (5.7 W) | SoC: 100.0% (780.0 Wh)
+  [Inverter DC In] ACS758 (GPIO 33): 0.00 A | DC Input: 0.0 W
+  [ACS758 Diag]    GPIO 33: 1687.2 mV (Δ: 12.2 mV) | Baseline: 1675.0 mV | ADS1115 A3: 1740.2 mV
+  [Inverter AC Out]ZMPT2 (A1): 0.0 V | ZMCT (A2): 0.00 A | AC Power: 0.0 W
+  [ZMCT Raw Diag]   RMS Signal: 21.5 mV | DC Offset: 1672.0 mV | Read via: ADS1115 (A2)
+  [Control/Lights] INA2: 3.94 V | Load: -0.00 A (0.00 W)
+  [Temperature]    Gen/Box: 31.2°C / 30.5°C | ESP32 CPU: 64.4°C
+==================================================
+==================================================
+            WIND & SOLAR SYSTEM MONITOR           
+==================================================
+  [Generator AC]   ZMPT1 (A0): 0.0 V RMS | RPM: 338
+  [MPPT Battery]   INA1: 12.88 V | Charge: 0.77 A (9.9 W) | SoC: 100.0% (780.0 Wh)
+  [Inverter DC In] ACS758 (GPIO 33): 0.00 A | DC Input: 0.0 W
+  [ACS758 Diag]    GPIO 33: 1686.3 mV (Δ: 11.3 mV) | Baseline: 1675.0 mV | ADS1115 A3: 1707.4 mV
+  [Inverter AC Out]ZMPT2 (A1): 0.0 V | ZMCT (A2): 0.00 A | AC Power: 0.0 W
+  [ZMCT Raw Diag]   RMS Signal: 22.1 mV | DC Offset: 1672.0 mV | Read via: ADS1115 (A2)
+  [Control/Lights] INA2: 3.94 V | Load: -0.00 A (0.00 W)
+  [Temperature]    Gen/Box: 31.2°C / 30.5°C | ESP32 CPU: 65.0°C
+==================================================
+==================================================
+            WIND & SOLAR SYSTEM MONITOR           
+==================================================
+  [Generator AC]   ZMPT1 (A0): 0.0 V RMS | RPM: 209
+  [MPPT Battery]   INA1: 12.89 V | Charge: 0.82 A (10.6 W) | SoC: 100.0% (780.0 Wh)
+  [Inverter DC In] ACS758 (GPIO 33): 0.00 A | DC Input: 0.0 W
+  [ACS758 Diag]    GPIO 33: 1687.3 mV (Δ: 12.3 mV) | Baseline: 1675.0 mV | ADS1115 A3: 1617.9 mV
+  [Inverter AC Out]ZMPT2 (A1): 0.0 V | ZMCT (A2): 0.00 A | AC Power: 0.0 W
+  [ZMCT Raw Diag]   RMS Signal: 21.6 mV | DC Offset: 1672.0 mV | Read via: ADS1115 (A2)
+  [Control/Lights] INA2: 3.94 V | Load: -0.00 A (0.00 W)
+  [Temperature]    Gen/Box: 31.2°C / 30.5°C | ESP32 CPU: 64.4°C
+==================================================
+==================================================
+            WIND & SOLAR SYSTEM MONITOR           
+==================================================
+  [Generator AC]   ZMPT1 (A0): 0.0 V RMS | RPM: 207
+  [MPPT Battery]   INA1: 12.86 V | Charge: 0.54 A (5.8 W) | SoC: 100.0% (780.0 Wh)
+  [Inverter DC In] ACS758 (GPIO 33): 0.00 A | DC Input: 0.0 W
+  [ACS758 Diag]    GPIO 33: 1686.8 mV (Δ: 11.8 mV) | Baseline: 1675.0 mV | ADS1115 A3: 1741.4 mV
+  [Inverter AC Out]ZMPT2 (A1): 0.0 V | ZMCT (A2): 0.00 A | AC Power: 0.0 W
+  [ZMCT Raw Diag]   RMS Signal: 21.5 mV | DC Offset: 1672.0 mV | Read via: ADS1115 (A2)
+  [Control/Lights] INA2: 3.94 V | Load: -0.00 A (0.00 W)
+  [Temperature]    Gen/Box: 31.2°C / 30.5°C | ESP32 CPU: 65.0°C
+==================================================
+==================================================
+            WIND & SOLAR SYSTEM MONITOR           
+==================================================
+  [Generator AC]   ZMPT1 (A0): 0.0 V RMS | RPM: 212
+  [MPPT Battery]   INA1: 12.88 V | Charge: 0.68 A (7.8 W) | SoC: 100.0% (780.0 Wh)
+  [Inverter DC In] ACS758 (GPIO 33): 0.00 A | DC Input: 0.0 W
+  [ACS758 Diag]    GPIO 33: 1686.5 mV (Δ: 11.5 mV) | Baseline: 1675.0 mV | ADS1115 A3: 1725.8 mV
+  [Inverter AC Out]ZMPT2 (A1): 0.0 V | ZMCT (A2): 0.00 A | AC Power: 0.0 W
+  [ZMCT Raw Diag]   RMS Signal: 21.7 mV | DC Offset: 1672.0 mV | Read via: ADS1115 (A2)
+  [Control/Lights] INA2: 3.94 V | Load: -0.00 A (0.00 W)
+  [Temperature]    Gen/Box: 31.2°C / 30.5°C | ESP32 CPU: 65.0°C
+==================================================
+==================================================
+            WIND & SOLAR SYSTEM MONITOR           
+==================================================
+  [Generator AC]   ZMPT1 (A0): 0.0 V RMS | RPM: 539
+  [MPPT Battery]   INA1: 12.86 V | Charge: 0.59 A (8.3 W) | SoC: 100.0% (780.0 Wh)
+  [Inverter DC In] ACS758 (GPIO 33): 0.00 A | DC Input: 0.0 W
+  [ACS758 Diag]    GPIO 33: 1688.2 mV (Δ: 13.2 mV) | Baseline: 1675.0 mV | ADS1115 A3: 1670.8 mV
+  [Inverter AC Out]ZMPT2 (A1): 0.0 V | ZMCT (A2): 0.00 A | AC Power: 0.0 W
+  [ZMCT Raw Diag]   RMS Signal: 21.6 mV | DC Offset: 1672.0 mV | Read via: ADS1115 (A2)
+  [Control/Lights] INA2: 3.94 V | Load: -0.00 A (0.00 W)
+  [Temperature]    Gen/Box: 31.2°C / 30.5°C | ESP32 CPU: 65.0°C
+==================================================
+==================================================
+            WIND & SOLAR SYSTEM MONITOR           
+==================================================
+  [Generator AC]   ZMPT1 (A0): 0.0 V RMS | RPM: 339
+  [MPPT Battery]   INA1: 12.88 V | Charge: 0.61 A (9.0 W) | SoC: 100.0% (780.0 Wh)
+  [Inverter DC In] ACS758 (GPIO 33): 0.00 A | DC Input: 0.0 W
+  [ACS758 Diag]    GPIO 33: 1687.3 mV (Δ: 12.3 mV) | Baseline: 1675.0 mV | ADS1115 A3: 1752.2 mV
+  [Inverter AC Out]ZMPT2 (A1): 0.0 V | ZMCT (A2): 0.00 A | AC Power: 0.0 W
+  [ZMCT Raw Diag]   RMS Signal: 22.0 mV | DC Offset: 1672.0 mV | Read via: ADS1115 (A2)
+  [Control/Lights] INA2: 3.93 V | Load: -0.00 A (0.00 W)
+  [Temperature]    Gen/Box: 31.2°C / 30.5°C | ESP32 CPU: 64.4°C
+==================================================

@@ -44,8 +44,6 @@ static void serializeSensorData(JsonDocument& doc, const SensorData& data) {
     // DC — Inverter Input (ACS758 50A)
     doc["invA"] = data.inverter_current; doc["invP"] = data.inverter_power;
     doc["invEff"] = data.inverter_efficiency;
-    // DC — Control & Lights (INA226 #2)
-    doc["ctrlV"] = data.ina2_voltage; doc["ctrlA"] = data.ina2_current; doc["ctrlP"] = data.ina2_power;
     // Mechanical & Thermal
     doc["rpm"] = data.rpm;
     doc["t1"] = data.temperature1; doc["t2"] = data.temperature2; doc["tEsp"] = data.temperature_esp;
@@ -56,7 +54,6 @@ static void serializeSensorData(JsonDocument& doc, const SensorData& data) {
     health["acV2"] = (data.health & SensorData::HEALTH_AC_V2) != 0;
     health["acI"] = (data.health & SensorData::HEALTH_AC_I) != 0;
     health["ina1"] = (data.health & SensorData::HEALTH_INA1) != 0;
-    health["ina2"] = (data.health & SensorData::HEALTH_INA2) != 0;
     health["acs758"] = (data.health & SensorData::HEALTH_ACS758) != 0;
     health["ads1115"] = (data.health & SensorData::HEALTH_ADS1115) != 0;
     health["temp1"] = (data.health & SensorData::HEALTH_TEMP1) != 0;

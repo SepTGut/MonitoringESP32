@@ -9,12 +9,10 @@ import os
 import sys
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-LOGGER_DIR = os.path.join(SCRIPT_DIR, "serial_logger")
+if SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, SCRIPT_DIR)
 
-if LOGGER_DIR not in sys.path:
-    sys.path.insert(0, LOGGER_DIR)
-
-import log_ploter
+import plot_log_data
 
 if __name__ == "__main__":
-    log_ploter.main()
+    plot_log_data.main()

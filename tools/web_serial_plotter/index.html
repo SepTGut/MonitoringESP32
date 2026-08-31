@@ -519,11 +519,11 @@
         <div class="metric-sub" id="subACS">DC Input: 0.0 W | Eff: --.-%</div>
       </div>
 
-      <!-- Card 5: MPPT Battery (INA226 #1) -->
+      <!-- Card 5: MPPT Battery (INA226) -->
       <div class="metric-card">
         <div class="card-accent-line" style="background: var(--accent-green)"></div>
         <div class="metric-title">
-          <span>MPPT Battery (INA1 0x44)</span>
+          <span>MPPT Battery (INA226 0x44)</span>
           <span style="color: var(--accent-green)">Battery</span>
         </div>
         <div class="metric-value" id="valInaW" style="color: var(--accent-green)">0.00 W</div>
@@ -621,7 +621,6 @@
       { id: 'inv_ac_a', name: 'Inverter AC Load (A RMS)', color: '#f59e0b', enabled: true, unit: 'A', val: 0 },
       { id: 'acs_a', name: 'Inverter DC Input (ACS758 A)', color: '#a855f7', enabled: true, unit: 'A', val: 0 },
       { id: 'ina1_w', name: 'MPPT Battery Power (W)', color: '#10b981', enabled: true, unit: 'W', val: 0 },
-      { id: 'ina2_w', name: 'Aux Control Power (W)', color: '#6366f1', enabled: false, unit: 'W', val: 0 },
       { id: 'rpm', name: 'Rotor Speed (RPM)', color: '#ec4899', enabled: true, unit: 'RPM', val: 0 },
       { id: 'battery_soc', name: 'Battery SoC (%)', color: '#14b8a6', enabled: false, unit: '%', val: 0 }
     ];
@@ -638,7 +637,6 @@
       gen_ac_v: 0, inv_ac_v: 0, inv_ac_a: 0, inv_ac_w: 0,
       acs_a: 0, inv_power: 0, inv_efficiency: 0,
       ina1_v: 0, ina1_a: 0, ina1_w: 0, battery_soc: 0, battery_wh: 0,
-      ina2_v: 0, ina2_a: 0, ina2_w: 0,
       rpm: 0, pulses: 0,
       zmpt1_mv: 0, zmpt2_mv: 0, zmct_mv: 0, acs_mv: 0,
       raw_z1: 0, raw_z2: 0, raw_zi: 0, raw_acs: 0,
@@ -847,15 +845,6 @@
         let m = line.match(/Efficiency:\s*([\d.-]+)\s*%/i);
         if (m) {
           liveData.inv_efficiency = parseFloat(m[1]);
-          updated = true;
-        }
-      }
-      else if (line.includes('[Control/Lights]')) {
-        let m = line.match(/INA2:\s*([\d.-]+)\s*V\s*\|\s*Load:\s*([\d.-]+)\s*A\s*\(([\d.-]+)\s*W\)/i);
-        if (m) {
-          liveData.ina2_v = parseFloat(m[1]);
-          liveData.ina2_a = parseFloat(m[2]);
-          liveData.ina2_w = parseFloat(m[3]);
           updated = true;
         }
       }

@@ -21,15 +21,16 @@
 static const float OFFSET_ALPHA = 0.001f;
 
 // Noise floor dead-band (in mV). Readings below this are clamped to 0.
-// Prevents floating pin / ambient EM noise from producing false AC readings (clamps 35-36V floating noise to 0.0V).
-static const float ADC_NOISE_FLOOR_MV = 160.0f;
-static const float AC_MIN_VOLTAGE_CUTOFF = 12.0f; // Minimum valid AC voltage (V)
+// Clamps idle baseline noise (< 12mV RMS) to 0.0V while allowing genuine AC voltages (>= 2.9V AC) to pass.
+static const float ADC_NOISE_FLOOR_MV = 12.0f;
+static const float AC_MIN_VOLTAGE_CUTOFF = 2.5f; // Minimum valid AC voltage (V)
 
 ZMPT101B::ZMPT101B(uint8_t pin, float calibration)
     : _pin(pin),
       _calibration(calibration),
       _offset(1650.0f),         // ESP32 ADC midpoint (~1.65V / 1650mV)
       _lastRawAdc(0.0f),
+      _lastRmsMv(0.0f),
       _filter(FILTER_WINDOW_SIZE) {
 }
 
@@ -82,6 +83,7 @@ float ZMPT101B::calculateRMS(ADS1115Sensor* ads, int8_t adsChannel) {
 
     if (sampleCount == 0) {
         _lastRawAdc = 0.0f;
+        _lastRmsMv = 0.0f;
         return 0.0f;
     }
 
@@ -93,6 +95,7 @@ float ZMPT101B::calculateRMS(ADS1115Sensor* ads, int8_t adsChannel) {
 
     // True RMS in mV = sqrt( mean of squared samples )
     float rmsMv = sqrtf(_lastRawAdc);
+    _lastRmsMv = rmsMv;
 
     // Noise floor dead-band: clamp floating pin noise and idle noise to exactly 0
     if (rmsMv < ADC_NOISE_FLOOR_MV) {
@@ -105,7 +108,7 @@ float ZMPT101B::calculateRMS(ADS1115Sensor* ads, int8_t adsChannel) {
     // Apply calibration to get actual AC voltage
     float acVoltage = adcVoltage * _calibration;
 
-    // Minimum cutoff guard: ignore residual noise below 3V AC
+    // Minimum cutoff guard: ignore residual noise below 2.5V AC
     return (acVoltage >= AC_MIN_VOLTAGE_CUTOFF) ? acVoltage : 0.0f;
 }
 

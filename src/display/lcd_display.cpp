@@ -157,13 +157,13 @@ void LcdDisplay::drawScreen(uint8_t screen, const SensorData& data) {
         }
  
         case 1: {
-            // Screen 1: DC Channels (Details for DC1 & DC2)
-            // Line 0: [battery]D1: [dc1_voltage]V [dc1_current]A
-            snprintf(buf, sizeof(buf), "\x05" "D1:%5.2fV %4.2fA", data.ina1_voltage, data.ina1_current);
+            // Screen 1: DC Power Overview (Battery INA226 & Inverter ACS758)
+            // Line 0: [battery]BAT:[ina1_voltage]V [battery_soc]%
+            snprintf(buf, sizeof(buf), "\x05" "BAT:%5.2fV %3.0f%%", data.ina1_voltage, data.battery_soc);
             printLine(0, buf);
             
-            // Line 1: [battery]D2: [dc2_voltage]V [dc2_current]A
-            snprintf(buf, sizeof(buf), "\x05" "D2:%5.2fV %4.2fA", data.ina2_voltage, data.ina2_current);
+            // Line 1: [bolt]INV:[inverter_current]A [inverter_power]W
+            snprintf(buf, sizeof(buf), "\x06" "INV:%5.2fA %4.0fW", fabsf(data.inverter_current), data.inverter_power);
             printLine(1, buf);
             break;
         }

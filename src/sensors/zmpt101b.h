@@ -23,6 +23,9 @@ public:
     // Read raw ADC midpoint value (for diagnostics)
     float readRawADC();
 
+    // Read raw unfiltered RMS signal in mV (for diagnostics)
+    float getRawRMSMilliVolts() const { return _lastRmsMv; }
+
     // Set calibration multiplier at runtime
     void setCalibration(float calibration) { _calibration = calibration; }
 
@@ -38,6 +41,7 @@ private:
     float         _calibration;
     float         _offset;          // DC midpoint in mV (auto-calibrated)
     float         _lastRawAdc;
+    float         _lastRmsMv;       // Raw RMS signal in mV before deadband
     MovingAverage _filter;
 
     // Calculate true RMS from ADC samples

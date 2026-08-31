@@ -77,9 +77,6 @@ telemetry = {
     # Electrical - Inverter AC Output (ZMPT2 & ZMCT103C)
     "inv_ac_v": 0.0, "inv_ac_a": 0.0, "inv_ac_w": 0.0,
     
-    # Electrical - Auxiliary / Control Load (INA226 #2 @ 0x45)
-    "ina2_v": 0.0, "ina2_a": 0.0, "ina2_w": 0.0, "ina2_status": "MISSING",
-    
     # Mechanical & Environment
     "rpm": 0, "pulses": 0,
     "temp1": 0.0, "temp1_status": "DISCONNECTED",
@@ -95,12 +92,13 @@ telemetry = {
 # --- Regular Expression Parsers ---
 # 1. Production 1Hz Structured Report
 re_prod_gen   = re.compile(r"\[Generator AC\]\s*ZMPT1.*?:\s*([\d.-]+)\s*V RMS\s*\|\s*RPM:\s*(\d+)")
+re_prod_zmpt1diag = re.compile(r"\[ZMPT1 Raw Diag\]\s*RMS Signal:\s*([\d.-]+)\s*mV.*?Inst A0:\s*([\d.-]+)\s*mV")
 re_prod_bat   = re.compile(r"\[MPPT Battery\]\s*INA1:\s*([\d.-]+)\s*V\s*\|\s*Charge:\s*([\d.-]+)\s*A\s*\(([\d.-]+)\s*W\)\s*\|\s*SoC:\s*([\d.-]+)%\s*\(([\d.-]+)\s*Wh\)")
 re_prod_invdc = re.compile(r"\[Inverter DC In\]\s*ACS758.*?:\s*([\d.-]+)\s*A\s*\|\s*DC Input:\s*([\d.-]+)\s*W")
 re_prod_acsdiag = re.compile(r"\[ACS758 Diag\]\s*GPIO 33:\s*([\d.-]+)\s*mV.*?ADS1115 A3:\s*([\d.-]+)\s*mV")
 re_prod_invac = re.compile(r"\[Inverter AC Out\]\s*ZMPT2.*?:\s*([\d.-]+)\s*V\s*\|\s*ZMCT.*?:\s*([\d.-]+)\s*A\s*\|\s*AC Power:\s*([\d.-]+)\s*W")
+re_prod_zmpt2diag = re.compile(r"\[ZMPT2 Raw Diag\]\s*RMS Signal:\s*([\d.-]+)\s*mV.*?Inst A1:\s*([\d.-]+)\s*mV")
 re_prod_inveff = re.compile(r"\[Inverter Eff\]\s*Efficiency:\s*([\d.-]+)\s*%")
-re_prod_ctrl  = re.compile(r"\[Control/Lights\]\s*INA2:\s*([\d.-]+)\s*V\s*\|\s*Load:\s*([\d.-]+)\s*A\s*\(([\d.-]+)\s*W\)")
 re_prod_temp  = re.compile(r"\[Temperature\]\s*Gen/Box:\s*([\d.-]+)°C\s*/\s*([\d.-]+)°C\s*\|\s*ESP32 CPU:\s*([\d.-]+)°C")
 
 # 2. Hardware Test Diagnostic Report
@@ -115,8 +113,7 @@ re_ads1  = re.compile(r"Channel A1 \(ZMPT2\)\s*:\s*([\d.-]+)\s*mV")
 re_ads2  = re.compile(r"Channel A2 \(ZMCT\)\s*:\s*([\d.-]+)\s*mV")
 re_ads3  = re.compile(r"Channel A3 \(ACS758.*?\)\s*:\s*([\d.-]+)\s*mV.*?Calc:\s*([\d.-]+)\s*A|Channel A3 \(Aux\)\s*:\s*([\d.-]+)\s*mV")
 
-re_ina1  = re.compile(r"INA226 #1 \(0x44\):\s*([\d.-]+)V\s*\|\s*([\d.-]+)A\s*\|\s*([\d.-]+)W\s*\[(\w+)\]")
-re_ina2  = re.compile(r"INA226 #2 \(0x45\):\s*([\d.-]+)V\s*\|\s*([\d.-]+)A\s*\|\s*([\d.-]+)W\s*\[(\w+)\]")
+re_ina1  = re.compile(r"INA226\s*(?:#1)?\s*\(0x44\):\s*([\d.-]+)V\s*\|\s*([\d.-]+)A\s*\|\s*([\d.-]+)W\s*\[(\w+)\]")
 
 re_temp1 = re.compile(r"DS18B20 #1\s*:\s*([\d.-]+)\s*°C\s*\[(\w+)\]")
 re_temp2 = re.compile(r"DS18B20 #2\s*:\s*([\d.-]+)\s*°C\s*\[(\w+)\]")
@@ -255,6 +252,12 @@ def parse_serial_line(line):
         telemetry["source_mode"] = "Production 1Hz Report"
         return True
 
+    m = re_prod_zmpt1diag.search(cleaned)
+    if m:
+        telemetry["zmpt1_mv"] = float(m.group(1))
+        telemetry["ads0_mv"] = float(m.group(2))
+        return True
+
     m = re_prod_bat.search(cleaned)
     if m:
         telemetry["ina1_v"] = float(m.group(1))
@@ -284,17 +287,15 @@ def parse_serial_line(line):
         telemetry["inv_ac_w"] = float(m.group(3))
         return True
 
+    m = re_prod_zmpt2diag.search(cleaned)
+    if m:
+        telemetry["zmpt2_mv"] = float(m.group(1))
+        telemetry["ads1_mv"] = float(m.group(2))
+        return True
+
     m = re_prod_inveff.search(cleaned)
     if m:
         telemetry["inv_efficiency"] = float(m.group(1))
-        return True
-
-    m = re_prod_ctrl.search(cleaned)
-    if m:
-        telemetry["ina2_v"] = float(m.group(1))
-        telemetry["ina2_a"] = float(m.group(2))
-        telemetry["ina2_w"] = float(m.group(3))
-        telemetry["ina2_status"] = "OK"
         return True
 
     m = re_prod_temp.search(cleaned)
@@ -379,14 +380,6 @@ def parse_serial_line(line):
         telemetry["ina1_a"] = float(m.group(2))
         telemetry["ina1_w"] = float(m.group(3))
         telemetry["ina1_status"] = m.group(4)
-        return True
-
-    m = re_ina2.search(cleaned)
-    if m:
-        telemetry["ina2_v"] = float(m.group(1))
-        telemetry["ina2_a"] = float(m.group(2))
-        telemetry["ina2_w"] = float(m.group(3))
-        telemetry["ina2_status"] = m.group(4)
         return True
 
     m = re_temp1.search(cleaned)
@@ -479,7 +472,7 @@ def render_dashboard(port, log_filename):
     print(f"    Generator AC (ZMPT1 A0) : {C_GREEN}{t['gen_ac_v']:5.1f} V RMS{C_RESET} | eFuse: {t['zmpt1_mv']:6.1f} mV (Raw: {t['raw_z1']})")
     print(f"    Rotor Speed & Pulses    : {C_GREEN}{t['rpm']:5.0f} RPM{C_RESET} ({t['pulses']} Pulses)\n")
 
-    print(f"  {C_BOLD}{C_BLUE}[2. MPPT SOLAR/WIND BATTERY (INA226 #1 @ 0x44)]{C_RESET}")
+    print(f"  {C_BOLD}{C_BLUE}[2. MPPT SOLAR/WIND BATTERY (INA226 @ 0x44)]{C_RESET}")
     ina1_st = f"{C_GREEN}[OK]{C_RESET}" if t["ina1_status"] == "OK" else f"{C_RED}[MISSING]{C_RESET}"
     print(f"    Battery Voltage  : {C_GREEN}{t['ina1_v']:5.2f} V{C_RESET} | Charge Current: {C_GREEN}{t['ina1_a']:5.2f} A{C_RESET} | Power: {C_CYAN}{t['ina1_w']:6.2f} W{C_RESET} {ina1_st}")
     print(f"    State of Charge  : {C_WHITE}{C_BOLD}{t['battery_soc']:5.1f} %{C_RESET} | Energy Remaining: {C_AMBER}{t['battery_wh']:6.1f} Wh{C_RESET} (Nominal 780Wh)\n")
@@ -492,18 +485,14 @@ def render_dashboard(port, log_filename):
     else:
         print(f"    Conversion Efficiency    : {C_DIM}--.- % (Standby / Low Load){C_RESET}\n")
 
-    print(f"  {C_BOLD}{C_PURPLE}[4. AUXILIARY / CONTROL LOAD (INA226 #2 @ 0x45)]{C_RESET}")
-    ina2_st = f"{C_GREEN}[OK]{C_RESET}" if t["ina2_status"] == "OK" else f"{C_RED}[MISSING]{C_RESET}"
-    print(f"    Aux Load (Lights/Ctrl)   : {C_GREEN}{t['ina2_v']:5.2f} V{C_RESET} | Current: {C_GREEN}{t['ina2_a']:5.2f} A{C_RESET} | Power: {C_CYAN}{t['ina2_w']:6.2f} W{C_RESET} {ina2_st}\n")
-
-    print(f"  {C_BOLD}{C_YELLOW}[5. ANALOG FRONT-END & ADS1115 16-BIT ADC (0x48)]{C_RESET}")
+    print(f"  {C_BOLD}{C_YELLOW}[4. ANALOG FRONT-END & ADS1115 16-BIT ADC (0x48)]{C_RESET}")
     if t["ads_connected"] or t["ads0_mv"] > 0:
         print(f"    Channel A0 (ZMPT1 Gen) : {C_PURPLE}{t['ads0_mv']:8.3f} mV{C_RESET}   Channel A1 (ZMPT2 Inv) : {C_PURPLE}{t['ads1_mv']:8.3f} mV{C_RESET}")
         print(f"    Channel A2 (ZMCT Curr) : {C_AMBER}{t['ads2_mv']:8.3f} mV{C_RESET}   Channel A3 (ACS758 In) : {C_RED}{t['ads3_mv']:8.3f} mV{C_RESET}\n")
     else:
         print(f"    Status: {C_YELLOW}Using internal ESP32 eFuse ADC (ZMPT1:{t['zmpt1_mv']:.0f}mV, ZMPT2:{t['zmpt2_mv']:.0f}mV, ZMCT:{t['zmct_mv']:.0f}mV){C_RESET}\n")
 
-    print(f"  {C_BOLD}{C_GREEN}[6. TEMPERATURE MONITORING]{C_RESET}")
+    print(f"  {C_BOLD}{C_GREEN}[5. TEMPERATURE MONITORING]{C_RESET}")
     t1_st = f"{C_GREEN}[OK]{C_RESET}" if t["temp1_status"] == "OK" else f"{C_RED}[DISCONNECTED]{C_RESET}"
     t2_st = f"{C_GREEN}[OK]{C_RESET}" if t["temp2_status"] == "OK" else f"{C_RED}[DISCONNECTED]{C_RESET}"
     print(f"    Generator Box Temp : {C_GREEN}{t['temp1']:5.1f} °C{C_RESET} {t1_st}   Enclosure Temp : {C_GREEN}{t['temp2']:5.1f} °C{C_RESET} {t2_st}")

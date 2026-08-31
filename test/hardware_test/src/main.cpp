@@ -45,7 +45,6 @@ static OneWire           oneWire(PIN_DS18B20);
 static DallasTemperature tempSensors(&oneWire);
 static ADS1115           ads(0x48);
 static INA226            ina1(0x44);
-static INA226            ina2(0x45);
 static LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // --- RPM Interrupt Handling ---
@@ -67,7 +66,6 @@ void IRAM_ATTR rpmISR() {
 // Hardware state flags
 static bool adsConnected  = false;
 static bool ina1Connected = false;
-static bool ina2Connected = false;
 static bool lcdConnected  = false;
 static uint8_t i2cFoundAddrs[16];
 static uint8_t i2cFoundCount = 0;
@@ -82,7 +80,6 @@ void scanI2CBus() {
             }
             if (addr == 0x48 || addr == 0x49 || addr == 0x4A || addr == 0x4B) adsConnected = true;
             if (addr == 0x44 || addr == 0x40) ina1Connected = true;
-            if (addr == 0x45 || addr == 0x41) ina2Connected = true;
             if (addr == 0x27 || addr == 0x3F) lcdConnected = true;
         }
     }
@@ -118,14 +115,10 @@ void setup() {
         Serial.println("[Init] ADS1115 not detected on I2C bus");
     }
 
-    // Initialize INA226 modules if found
+    // Initialize INA226 module if found
     if (ina1Connected && ina1.begin()) {
         ina1.setMaxCurrentShunt(0.80, 0.10);
-        Serial.println("[Init] INA226 #1 initialized @ 0x44 (R100 = 0.10Ω)");
-    }
-    if (ina2Connected && ina2.begin()) {
-        ina2.setMaxCurrentShunt(0.80, 0.10);
-        Serial.println("[Init] INA226 #2 initialized @ 0x45 (R100 = 0.10Ω)");
+        Serial.println("[Init] INA226 (Battery/MPPT) initialized @ 0x44 (R100 = 0.10Ω)");
     }
 
     // Initialize OneWire DS18B20
@@ -183,14 +176,10 @@ void loop() {
         ads3_mV = ads.readADC(3) * 0.125f;
     }
 
-    // --- 3. Read INA226 DC Power Sensors ---
+    // --- 3. Read INA226 DC Power Sensor ---
     float ina1_V = ina1Connected ? ina1.getBusVoltage() : 0.0f;
     float ina1_A = ina1Connected ? ((ina1.getShuntVoltage_mV() / 1000.0f) / 0.10f) : 0.0f;
     float ina1_W = ina1_V * fabsf(ina1_A);
-    
-    float ina2_V = ina2Connected ? ina2.getBusVoltage() : 0.0f;
-    float ina2_A = ina2Connected ? ((ina2.getShuntVoltage_mV() / 1000.0f) / 0.10f) : 0.0f;
-    float ina2_W = ina2_V * fabsf(ina2_A);
 
     // --- 4. Read DS18B20 Temperatures ---
     float temp1 = tempSensors.getTempCByIndex(0);
@@ -258,11 +247,9 @@ void loop() {
     }
 
     // INA226 DC Power
-    Serial.println("├─ [3] INA226 DC Power Sensors ─────────────────────────────┤");
-    Serial.printf("│  INA226 #1 (0x44): %5.2fV | %5.2fA | %6.2fW [%s]        │\n",
+    Serial.println("├─ [3] INA226 DC Power Sensor ──────────────────────────────┤");
+    Serial.printf("│  INA226 (0x44): %5.2fV | %5.2fA | %6.2fW [%s]            │\n",
                   ina1_V, ina1_A, ina1_W, ina1Connected ? "OK" : "MISSING");
-    Serial.printf("│  INA226 #2 (0x45): %5.2fV | %5.2fA | %6.2fW [%s]        │\n",
-                  ina2_V, ina2_A, ina2_W, ina2Connected ? "OK" : "MISSING");
 
     // Temperatures
     Serial.println("├─ [4] Temperature Sensors ─────────────────────────────────┤");
@@ -280,10 +267,10 @@ void loop() {
     Serial.println("└───────────────────────────────────────────────────────────┘");
     
     // Machine-readable serial plot stream for log_ploter.py
-    Serial.printf("RAW_PLOT:raw_z1=%u,raw_z2=%u,raw_zi=%u,zmpt1_mv=%.1f,zmpt2_mv=%.1f,zmct_mv=%.1f,ads0=%.3f,ads1=%.3f,ads2=%.3f,ads3=%.3f,acs_a=%.2f,ina1_v=%.2f,ina1_a=%.2f,ina1_w=%.2f,ina2_v=%.2f,ina2_a=%.2f,ina2_w=%.2f,rpm=%.0f,temp1=%.1f,temp2=%.1f,temp_esp=%.1f,raw_acs=%u,acs_mv=%.1f\n",
+    Serial.printf("RAW_PLOT:raw_z1=%u,raw_z2=%u,raw_zi=%u,zmpt1_mv=%.1f,zmpt2_mv=%.1f,zmct_mv=%.1f,ads0=%.3f,ads1=%.3f,ads2=%.3f,ads3=%.3f,acs_a=%.2f,ina1_v=%.2f,ina1_a=%.2f,ina1_w=%.2f,rpm=%.0f,temp1=%.1f,temp2=%.1f,temp_esp=%.1f,raw_acs=%u,acs_mv=%.1f\n",
                   raw_z1, raw_z2, raw_zi, zmpt1_mV, zmpt2_mV, zmct_mV,
                   ads0_mV, ads1_mV, ads2_mV, ads3_mV, acs_ads_A,
-                  ina1_V, ina1_A, ina1_W, ina2_V, ina2_A, ina2_W,
+                  ina1_V, ina1_A, ina1_W,
                   rpm, (temp1 > -100 ? temp1 : 0.0f), (temp2 > -100 ? temp2 : 0.0f), cpuTemp,
                   raw_acs, acs_fallback_mV);
     Serial.println();

@@ -47,8 +47,7 @@ void ConfigManager::loadDefaults() {
     _config.maxRpm   = DEFAULT_MAX_RPM;
     _config.maxTemp  = DEFAULT_MAX_TEMP;
 
-    _config.ina1Addr = INA226_ADDR_1; // Default INA226 #1 (from pin_config.h)
-    _config.ina2Addr = INA226_ADDR_2; // Default INA226 #2 (from pin_config.h)
+    _config.ina1Addr = INA226_ADDR_1; // Default INA226 (from pin_config.h)
     _config.useAds1115 = true;        // External ADS1115 16-bit I2C ADC used by default
     _config.adsAddr = DEFAULT_ADS1115_ADDR; // Default ADS1115 address (0x48)
     _config.enablePowerSwitch = ENABLE_POWER_SWITCH;
@@ -278,9 +277,6 @@ bool ConfigManager::updateFromJson(const JsonVariant& json, String& error, Strin
     if (json.containsKey("ina1Addr")) {
         const uint8_t value = json["ina1Addr"].as<uint8_t>(); if (!validInaAddress(value)) return fail("ina1Addr", "Must be an INA226 address (0x40-0x4F)"); next.ina1Addr = value; restartRequired = true;
     }
-    if (json.containsKey("ina2Addr")) {
-        const uint8_t value = json["ina2Addr"].as<uint8_t>(); if (!validInaAddress(value)) return fail("ina2Addr", "Must be an INA226 address (0x40-0x4F)"); next.ina2Addr = value; restartRequired = true;
-    }
     if (json.containsKey("useAds1115")) {
         if (!json["useAds1115"].is<bool>()) return fail("useAds1115", "Must be a boolean"); next.useAds1115 = json["useAds1115"].as<bool>(); restartRequired = true;
     }
@@ -297,7 +293,6 @@ bool ConfigManager::updateFromJson(const JsonVariant& json, String& error, Strin
         const uint32_t value = json["pwrSwTimeout"].as<uint32_t>(); if (value < 1000 || value > 3600000) return fail("pwrSwTimeout", "Must be 1000-3600000 ms"); next.powerSwitchTimeoutMs = value;
     }
 
-    if (next.ina1Addr == next.ina2Addr) return fail("ina2Addr", "INA226 addresses must be distinct");
     if (next.staEnabled && (!printableString(next.staSSID, 1, 32) || !printableString(next.staPass, 8, 63))) return fail("staEnabled", "Enabled STA requires SSID and password");
     if (_mutex == NULL) {
         _mutex = xSemaphoreCreateMutex();
@@ -355,7 +350,6 @@ void ConfigManager::serialize(JsonDocument& doc, bool includeSecrets) const {
     doc["maxTemp"]    = config.maxTemp;
 
     doc["ina1Addr"]   = config.ina1Addr;
-    doc["ina2Addr"]   = config.ina2Addr;
     doc["useAds1115"] = config.useAds1115;
     doc["adsAddr"]    = config.adsAddr;
     doc["pwrSwEn"]    = config.enablePowerSwitch;

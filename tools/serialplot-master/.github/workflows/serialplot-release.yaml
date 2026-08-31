@@ -1,0 +1,66 @@
+name: Serialplot build and release action
+run-name: Building ${{ github.event.repository.name }} ${{ github.ref_name }}
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+
+      - name: Install Qt on Windows
+        if: runner.os == 'Windows'
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: 6.4.0
+          modules: qtserialport
+          arch: win64_mingw
+
+      - name: Install dependencies on Ubuntu
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y --no-install-recommends libgl1-mesa-dev qt6-base-dev libqt6serialport6-dev libqt6svg6-dev
+
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: cmake -G 'Unix Makefiles' -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+      - name: Package installer
+        run: cmake --build ${{github.workspace}}/build -t package
+
+      - name: Package appimage for ubuntu
+        if: runner.os == 'Linux'
+        run: cmake --build ${{github.workspace}}/build -t appimage
+
+      - name: Upload ubuntu files to Release
+        if: runner.os == 'Linux'
+        uses: softprops/action-gh-release@v2
+        with:
+          fail_on_unmatched_files: true
+          files: |
+            build/*.deb
+            build/SerialPlot*.AppImage
+
+      - name: Upload windows files to Release
+        if: runner.os == 'Windows'
+        uses: softprops/action-gh-release@v2
+        with:
+          fail_on_unmatched_files: true
+          files: |
+            build/*win64.exe

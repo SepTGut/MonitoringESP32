@@ -32,6 +32,7 @@
 #include <WiFi.h>
 #include <esp_wifi.h>
 #include <DNSServer.h>
+#include <ESPmDNS.h>
 #include <esp_sleep.h>
 #include <driver/rtc_io.h>
 
@@ -41,6 +42,9 @@ static portMUX_TYPE i2cScanMux = portMUX_INITIALIZER_UNLOCKED;
 
 static volatile bool adcCalRequested = false;
 static portMUX_TYPE adcCalMux = portMUX_INITIALIZER_UNLOCKED;
+
+// Serial output mode (false = formatted text box, true = comma-separated values for SerialPlot)
+static volatile bool serialCsvMode = false;
 
 // Task handles for stack watermark diagnostics
 static TaskHandle_t sensorTaskHandle = NULL;
@@ -95,9 +99,8 @@ static DS18B20Sensor tempBus(PIN_DS18B20);
 static RPMSensor    rpmSensor(PIN_RPM_INPUT);
 static LcdDisplay   lcdDisplay;
 
-// Dynamic pointer allocation for I2C INA226 modules and optional ADS1115 module
+// Dynamic pointer allocation for I2C INA226 module and optional ADS1115 module
 static INA226Sensor* ina1 = nullptr;
-static INA226Sensor* ina2 = nullptr;
 static ADS1115Sensor* ads  = nullptr;
 
 static void sensorTaskFunction(void* pvParameters) {
@@ -195,31 +198,21 @@ static void sensorTaskFunction(void* pvParameters) {
     // Initialize power switch pin (RTC GPIO 27)
     pinMode(PIN_POWER_SWITCH, INPUT_PULLDOWN);
 
-    // Fetch config configuration and assign INA226 devices based on software settings
+    // Fetch config configuration and assign INA226 device based on software settings
     SystemConfig cfg = configManager.getConfig();
     
-    // Check if INA226 #1 address is present on the bus
+    // Check if INA226 address is present on the bus
     bool ina1Present = false;
-    bool ina2Present = false;
     for (uint8_t i = 0; i < i2c_count; i++) {
         if (i2c_list[i] == cfg.ina1Addr) ina1Present = true;
-        if (i2c_list[i] == cfg.ina2Addr) ina2Present = true;
     }
 
     if (ina1Present) {
-        Serial.printf("[INA226] Dynamic assignment: INA1 mapped to address 0x%02X\n", cfg.ina1Addr);
+        Serial.printf("[INA226] Dynamic assignment: INA1 (Battery/MPPT) mapped to address 0x%02X\n", cfg.ina1Addr);
         ina1 = new INA226Sensor(cfg.ina1Addr, PIN_I2C_SDA, PIN_I2C_SCL);
         ina1->begin();
     } else {
         Serial.printf("[INA226] Warning: INA1 address 0x%02X NOT found on I2C bus. Sensor disabled.\n", cfg.ina1Addr);
-    }
-
-    if (ina2Present) {
-        Serial.printf("[INA226] Dynamic assignment: INA2 mapped to address 0x%02X\n", cfg.ina2Addr);
-        ina2 = new INA226Sensor(cfg.ina2Addr, PIN_I2C_SDA, PIN_I2C_SCL);
-        ina2->begin();
-    } else {
-        Serial.printf("[INA226] Warning: INA2 address 0x%02X NOT found on I2C bus. Sensor disabled.\n", cfg.ina2Addr);
     }
 
     if (cfg.useAds1115) {
@@ -340,8 +333,9 @@ static void sensorTaskFunction(void* pvParameters) {
         const uint32_t cycleStartedAt = millis();
         float temp1 = 0.0f, temp2 = 0.0f, tempEsp = 0.0f;
         float acVoltage1, acRaw1, acVoltage2, acRaw2, acCurrent, acRawI, acPower;
-        float invCurrent = 0.0f, invRawMv = 0.0f, invPower = 0.0f, adsCh3Mv = 0.0f;
-        float dcV1, dcA1, dcP1, dcV2, dcA2, dcP2;
+        float invCurrent = 0.0f, invRawMv = 0.0f, invPower = 0.0f;
+        float adsCh0Mv = 0.0f, adsCh1Mv = 0.0f, adsCh3Mv = 0.0f;
+        float dcV1 = 0.0f, dcA1 = 0.0f, dcP1 = 0.0f;
         float rpm;
 
         bool temp1Valid = false;
@@ -364,7 +358,7 @@ static void sensorTaskFunction(void* pvParameters) {
             acRawI     = acCurrent * 100.0f;
             acPower    = acVoltage2 * acCurrent * currentCfg.pf; // Inverter AC Output Power
 
-            // Battery / MPPT Charging (INA226 #1)
+            // Battery / MPPT Charging (INA226)
             dcV1 = 12.0f + 0.8f * sin(simStep * 0.4f);
             dcA1 = 1.5f + 1.2f * sin(simStep * 0.6f);
             if (dcA1 < 0.0f) dcA1 = 0.0f;
@@ -375,11 +369,6 @@ static void sensorTaskFunction(void* pvParameters) {
             if (invCurrent < 0.0f) invCurrent = 0.0f;
             invPower = dcV1 * invCurrent;
             invRawMv = 2500.0f + (invCurrent * 40.0f);
-
-            // Control / Light power simulation (INA226 #2 before DC-DC)
-            dcV2 = dcV1;
-            dcA2 = 0.45f + 0.15f * sin(simStep * 0.2f);
-            dcP2 = dcV2 * dcA2;
 
             rpm  = 800.0f + 600.0f * sin(simStep * 0.25f) * (windSpeed / 8.0f);
             if (rpm < 0.0f) rpm = 0.0f;
@@ -417,8 +406,12 @@ static void sensorTaskFunction(void* pvParameters) {
                 invRawMv   = acs758.readRawMilliVolts();
             }
 
-            // Also sample ADS1115 A3 for diagnostic comparison
-            adsCh3Mv = (currentCfg.useAds1115 && ads != nullptr && ads->isEnabled()) ? ads->readMilliVolts(ADS1115_CH_ACS758) : 0.0f;
+            // Also sample instantaneous ADS1115 channels for diagnostic comparison
+            if (currentCfg.useAds1115 && ads != nullptr && ads->isEnabled()) {
+                adsCh0Mv = ads->readMilliVolts(ADS1115_CH_ZMPT1);
+                adsCh1Mv = ads->readMilliVolts(ADS1115_CH_ZMPT2);
+                adsCh3Mv = ads->readMilliVolts(ADS1115_CH_ACS758);
+            }
 
             // --- Calculate Inverter AC Output Power & Inverter DC Input Power ---
             // ZMPT1 (A0): Generator AC Voltage (before MPPT)
@@ -428,18 +421,13 @@ static void sensorTaskFunction(void* pvParameters) {
             acPower = acVoltage2 * acCurrent * currentCfg.pf; // Inverter AC Output Power (W)
 
             // --- Read DC Sensors (nullptr-safe) ---
-            // INA226 #1: Battery & MPPT Charging
+            // INA226: Battery & MPPT Charging
             dcV1 = (ina1 != nullptr) ? ina1->readVoltage() : 0.0f;
             dcA1 = (ina1 != nullptr) ? ina1->readCurrent() : 0.0f;
             dcP1 = (ina1 != nullptr) ? ina1->readPower() : 0.0f;
 
             // ACS758 50A: Inverter DC Input Power = V_battery × I_inverter
             invPower = dcV1 * fabsf(invCurrent);
-
-            // INA226 #2: ESP32, Control & 12V Lighting Aux Power (before DC-DC)
-            dcV2 = (ina2 != nullptr) ? ina2->readVoltage() : 0.0f;
-            dcA2 = (ina2 != nullptr) ? ina2->readCurrent() : 0.0f;
-            dcP2 = (ina2 != nullptr) ? ina2->readPower() : 0.0f;
 
             // --- Read RPM ---
             rpm = rpmSensor.getRPM();
@@ -465,7 +453,6 @@ static void sensorTaskFunction(void* pvParameters) {
         frame.battery_wh = (frame.battery_soc / 100.0f) * (12.0f * 65.00f); // 780.00 Wh nominal (65Ah @ 100% SoH)
         frame.inverter_current = invCurrent; frame.inverter_power = invPower;
         frame.inverter_efficiency = (invPower > 5.0f && acPower > 0.0f) ? min(100.0f, (acPower / invPower) * 100.0f) : 0.0f;
-        frame.ina2_voltage = dcV2; frame.ina2_current = dcA2; frame.ina2_power = dcP2;
         frame.temperature1 = temp1; frame.temperature2 = temp2; frame.temperature_esp = tempEsp;
         frame.rpm = static_cast<uint32_t>(rpm);
         frame.health = SensorData::HEALTH_AC_V1 | SensorData::HEALTH_AC_V2 |
@@ -475,35 +462,49 @@ static void sensorTaskFunction(void* pvParameters) {
         if (temp2Valid) frame.health |= SensorData::HEALTH_TEMP2;
         if (currentCfg.useAds1115 && ads != nullptr && ads->isEnabled()) frame.health |= SensorData::HEALTH_ADS1115;
         if (currentCfg.dummyMode || (ina1 != nullptr && ina1->isEnabled())) frame.health |= SensorData::HEALTH_INA1;
-        if (currentCfg.dummyMode || (ina2 != nullptr && ina2->isEnabled())) frame.health |= SensorData::HEALTH_INA2;
         frame.sequence = ++sequence;
 
-        // --- Serial Logging (Dynamic rate) ---
+        // --- Serial Logging (Dynamic rate / CSV mode for SerialPlot) ---
 #if ENABLE_SERIAL_LOG
         uint32_t now = millis();
-        if (now - lastSerialLog >= currentCfg.serialLogMs) {
+        uint32_t targetLogInterval = serialCsvMode ? 100 : currentCfg.serialLogMs;
+        if (now - lastSerialLog >= targetLogInterval) {
             lastSerialLog = now;
 
-            Serial.println("==================================================");
-            Serial.println("            WIND & SOLAR SYSTEM MONITOR           ");
-            Serial.println("==================================================");
-            Serial.printf("  [Generator AC]   ZMPT1 (A0): %.1f V RMS | RPM: %d\n", acVoltage1, (int)rpm);
-            Serial.printf("  [MPPT Battery]   INA1: %.2f V | Charge: %.2f A (%.1f W) | SoC: %.1f%% (%.1f Wh)\n",
-                          dcV1, dcA1, dcP1, frame.battery_soc, frame.battery_wh);
-            Serial.printf("  [Inverter DC In] ACS758 (GPIO 33): %.2f A | DC Input: %.1f W\n", invCurrent, invPower);
-            Serial.printf("  [ACS758 Diag]    GPIO 33: %.1f mV (Δ: %.1f mV) | Baseline: %.1f mV | ADS1115 A3: %.1f mV\n",
-                          invRawMv, invRawMv - acs758.getZeroOffset(), acs758.getZeroOffset(), adsCh3Mv);
-            Serial.printf("  [Inverter AC Out]ZMPT2 (A1): %.1f V | ZMCT (A2): %.2f A | AC Power: %.1f W\n",
-                          acVoltage2, acCurrent, acPower);
-            Serial.printf("  [ZMCT Raw Diag]   RMS Signal: %.1f mV | DC Offset: %.1f mV | Read via: %s\n",
-                          sqrtf(zmct.readRawADC()), zmct.getOffset(),
-                          (currentCfg.useAds1115 && ads != nullptr && ads->isEnabled()) ? "ADS1115 (A2)" : "Internal ADC (GPIO 32)");
-            if (frame.inverter_efficiency > 0.0f) {
-                Serial.printf("  [Inverter Eff]   Efficiency: %.1f %%\n", frame.inverter_efficiency);
+            if (serialCsvMode) {
+                // Real-time CSV line for SerialPlot / Plotters:
+                // Gen_AC_V, Inv_AC_V, Inv_AC_A, Inv_AC_W, Bat_DC_V, MPPT_DC_A, Inv_DC_A, Inv_DC_W, RPM, Temp_Gen, Temp_Box, Temp_ESP
+                Serial.printf("%.1f,%.1f,%.2f,%.1f,%.2f,%.2f,%.2f,%.1f,%lu,%.1f,%.1f,%.1f\n",
+                              acVoltage1, acVoltage2, acCurrent, acPower,
+                              dcV1, dcA1, invCurrent, invPower,
+                              (unsigned long)frame.rpm, temp1, temp2, tempEsp);
+            } else {
+                Serial.println("==================================================");
+                Serial.println("            WIND & SOLAR SYSTEM MONITOR           ");
+                Serial.println("==================================================");
+                Serial.printf("  [Generator AC]   ZMPT1 (A0): %.1f V RMS | RPM: %d\n", acVoltage1, (int)rpm);
+                Serial.printf("  [ZMPT1 Raw Diag] RMS Signal: %.1f mV | DC Offset: %.1f mV | Inst A0: %.1f mV | Read via: %s\n",
+                              zmpt1.getRawRMSMilliVolts(), zmpt1.getOffset(), adsCh0Mv,
+                              (currentCfg.useAds1115 && ads != nullptr && ads->isEnabled()) ? "ADS1115 (A0)" : "Internal ADC (GPIO 34)");
+                Serial.printf("  [MPPT Battery]   INA1: %.2f V | Charge: %.2f A (%.1f W) | SoC: %.1f%% (%.1f Wh)\n",
+                              dcV1, dcA1, dcP1, frame.battery_soc, frame.battery_wh);
+                Serial.printf("  [Inverter DC In] ACS758 (GPIO 33): %.2f A | DC Input: %.1f W\n", invCurrent, invPower);
+                Serial.printf("  [ACS758 Diag]    GPIO 33: %.1f mV (Δ: %.1f mV) | Baseline: %.1f mV | ADS1115 A3: %.1f mV\n",
+                              invRawMv, invRawMv - acs758.getZeroOffset(), acs758.getZeroOffset(), adsCh3Mv);
+                Serial.printf("  [Inverter AC Out]ZMPT2 (A1): %.1f V | ZMCT (A2): %.2f A | AC Power: %.1f W\n",
+                              acVoltage2, acCurrent, acPower);
+                Serial.printf("  [ZMPT2 Raw Diag] RMS Signal: %.1f mV | DC Offset: %.1f mV | Inst A1: %.1f mV | Read via: %s\n",
+                              zmpt2.getRawRMSMilliVolts(), zmpt2.getOffset(), adsCh1Mv,
+                              (currentCfg.useAds1115 && ads != nullptr && ads->isEnabled()) ? "ADS1115 (A1)" : "Internal ADC (GPIO 35)");
+                Serial.printf("  [ZMCT Raw Diag]  RMS Signal: %.1f mV | DC Offset: %.1f mV | Read via: %s\n",
+                              sqrtf(zmct.readRawADC()), zmct.getOffset(),
+                              (currentCfg.useAds1115 && ads != nullptr && ads->isEnabled()) ? "ADS1115 (A2)" : "Internal ADC (GPIO 32)");
+                if (frame.inverter_efficiency > 0.0f) {
+                    Serial.printf("  [Inverter Eff]   Efficiency: %.1f %%\n", frame.inverter_efficiency);
+                }
+                Serial.printf("  [Temperature]    Gen/Box: %.1f°C / %.1f°C | ESP32 CPU: %.1f°C\n", temp1, temp2, tempEsp);
+                Serial.println("==================================================");
             }
-            Serial.printf("  [Control/Lights] INA2: %.2f V | Load: %.2f A (%.2f W)\n", dcV2, dcA2, dcP2);
-            Serial.printf("  [Temperature]    Gen/Box: %.1f°C / %.1f°C | ESP32 CPU: %.1f°C\n", temp1, temp2, tempEsp);
-            Serial.println("==================================================");
         }
 #endif
 
@@ -589,6 +590,14 @@ static void networkTaskFunction(void* pvParameters) {
     dnsServer.start(53, "*", apIP);
     Serial.println("[DNS] Captive portal DNS started");
 
+    // Setup mDNS responder (http://WiM.local)
+    if (MDNS.begin(MDNS_HOSTNAME)) {
+        MDNS.addService("http", "tcp", 80);
+        Serial.printf("[mDNS] Responder started: http://%s.local\n", MDNS_HOSTNAME);
+    } else {
+        Serial.println("[mDNS] Error setting up mDNS responder");
+    }
+
     // Setup Web Server + WebSocket
     WebDashboard::begin();
 
@@ -618,9 +627,18 @@ static void networkTaskFunction(void* pvParameters) {
             } else if (cmd == "SCAN" || cmd == "I2C") {
                 Serial.println("[Command] Received I2C SCAN command. Scanning bus...");
                 Tasks::requestI2CScan();
+            } else if (cmd == "CSV" || cmd == "PLOT") {
+                serialCsvMode = true;
+                Serial.println("[Command] Serial output switched to CSV mode for SerialPlot.");
+                Serial.println("CSV_HEADER:Gen_AC_V,Inv_AC_V,Inv_AC_A,Inv_AC_W,Bat_DC_V,MPPT_DC_A,Inv_DC_A,Inv_DC_W,Rotor_RPM,Temp_Gen,Temp_Box,Temp_ESP");
+            } else if (cmd == "TEXT" || cmd == "LOG") {
+                serialCsvMode = false;
+                Serial.println("[Command] Serial output switched to formatted text log mode.");
             } else if (cmd == "REBOOT" || cmd == "RESTART") {
                 Serial.println("[Command] Rebooting ESP32...");
                 ESP.restart();
+            } else if (cmd == "HELP" || cmd == "?") {
+                Serial.println("[Commands] CAL (Calibrate zero), SCAN (Scan I2C), CSV/PLOT (SerialPlot stream), TEXT/LOG (Summary box), REBOOT");
             }
         }
 

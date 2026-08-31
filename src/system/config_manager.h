@@ -45,9 +45,8 @@ struct SystemConfig {
     uint32_t maxRpm;
     uint32_t maxTemp;
 
-    // INA226 Bus Address Assignments
+    // INA226 Bus Address Assignment
     uint8_t ina1Addr;
-    uint8_t ina2Addr;
 
     // External ADS1115 16-Bit ADC Options
     bool useAds1115;
@@ -83,7 +82,7 @@ public:
                         bool& restartRequired, bool allowSetupCompletion = true);
 
     // Update zero-point baseline offsets and save to LittleFS (thread-safe)
-    bool updateOffsets(float o1, float o2, float oi, float o_acs = 2500.0f);
+    bool updateOffsets(float o1, float o2, float oi, float o_acs = 1675.0f);
 
     // Serialize current config to JSON
     void serialize(JsonDocument& doc, bool includeSecrets = false) const;

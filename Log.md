@@ -1,5 +1,42 @@
 # Development Log
 
+## 2026-08-31
+
+### Changed & Refactored (Decommission of INA226 #2, Recalibration Pipeline & mDNS)
+- **Multicast DNS (mDNS) Integration**:
+  - Added `#define MDNS_HOSTNAME "WiM"` to `src/config/config.h`.
+  - Initialized `ESPmDNS` responder in `src/system/freertos_tasks.cpp` and registered HTTP service (`_http._tcp.local` on port 80).
+  - Enables direct browser navigation at **`http://WiM.local`** (or `http://wim.local`) across local WiFi networks and Access Point clients without needing to type IP addresses.
+- **Hardware Architecture Simplification**:
+  - Removed secondary INA226 sensor (previously monitoring ESP32 controller / auxiliary lights at `0x45`).
+  - Streamlined system to a single **INA226 sensor** (`0x44`) dedicated to **Lakoni 12V 65Ah Battery & MPPT Charging Input**, with the **ACS758 50A sensor** on GPIO 33 / ADS1115 A3 monitoring Inverter DC Input (Discharge).
+- **Core Firmware Updates (`src/`)**:
+  - `src/config/pin_config.h`: Removed `INA226_ADDR_2` (`0x45`) and updated comments for single INA226 bus architecture.
+  - `src/system/data_manager.h`: Removed `ina2_voltage`, `ina2_current`, `ina2_power` from `SensorData` struct, removed `HEALTH_INA2` bitmask, and renumbered health bitmasks.
+  - `src/system/config_manager.h` & `src/system/config_manager.cpp`: Removed `ina2Addr` configuration parameter, serialization, deserialization, and validation.
+  - `src/system/freertos_tasks.cpp`: Removed INA226 #2 pointer, I2C discovery allocation, sensor sampling, dummy simulation, and 1Hz production log output (`[Control/Lights]`).
+  - `src/display/lcd_display.cpp`: Redesigned LCD Screen 1 from showing D1/D2 to showing:
+    - Line 0: `[battery]BAT: [voltage]V [battery_soc]%` (Battery Voltage & SoC)
+    - Line 1: `[bolt]INV: [inverter_current]A [inverter_power]W` (ACS758 Inverter DC Current & Input Power)
+  - `src/network/web_server.cpp`: Removed `ctrlV`, `ctrlA`, `ctrlP` and `health["ina2"]` from live WebSocket JSON telemetry payloads.
+- **Web UI & Dashboard Modernization (`data/`, `docs/`, `test/web_preview/`)**:
+  - Removed `#card-power-ctrl` from Hero section, resulting in a balanced 3-card Hero layout (Inverter AC Out, Battery MPPT, Inverter DC In).
+  - Removed Control & Light metric cards (`#val-ctrlv`, `#val-ctrla`).
+  - Audited `script.js` DOM bindings and mock demo store: removed residual `ina2Addr`, `0x45`, `cfgIna2Addr` and `ina2` health badge entries.
+  - Regenerated PROGMEM compressed web assets (`src/network/web_assets.h`, 18.17 KB).
+  - Removed INA226 #2 address dropdown from Settings and updated INA226 #1 label to `INA226 I2C Address (Battery & MPPT)`.
+  - Cleaned up DOM cache, simulation data, telemetry bindings, and settings handlers in `script.js`.
+  - Regenerated PROGMEM compressed assets (`src/network/web_assets.h`, 18.20 KB).
+- **Diagnostic & Logging Tools (`tools/`, `test/`)**:
+  - `tools/serial_logger/serial_logger.py`: Removed `re_prod_ctrl`, `re_ina2`, `ina2_*` state keys, and Auxiliary / Control Load section from ANSI dashboard.
+  - `tools/web_serial_plotter/index.html`: Removed `ina2_w` channel and updated card labels; synchronized to `data/` and `docs/`.
+  - `test/hardware_test/src/main.cpp`: Updated standalone diagnostic test to scan and test single INA226 (`0x44`) alongside ADS1115, DS18B20, and ACS758.
+- **Configuration System Audit & Alignment**:
+  - `src/config/pin_config.h`: Corrected comments for I2C bus device list and documented hardware pin strapping for address `0x44` (A0=GND, A1=VS+/VCC).
+  - `src/config/config.h`: Harmonized `WEBSOCKET_PUSH_MS` to `200` ms (matching `config.json` 5Hz live telemetry rate).
+  - `src/system/config_manager.h`: Updated default argument in `updateOffsets(..., float o_acs = 1675.0f)` to use resting zero baseline `1675.0f` (`ACS758_ZERO_OFFSET`).
+  - `data/config.json`: Aligned all JSON defaults with `config.h` and firmware configuration definitions.
+
 ## 2026-08-28
 
 ### Updated (Complete Tool Suite Modernization)

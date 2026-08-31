@@ -12,9 +12,9 @@
 struct SensorData {
     enum Health : uint16_t {
         HEALTH_AC_V1 = 1 << 0, HEALTH_AC_V2 = 1 << 1, HEALTH_AC_I = 1 << 2,
-        HEALTH_INA1 = 1 << 3, HEALTH_INA2 = 1 << 4, HEALTH_TEMP1 = 1 << 5,
-        HEALTH_TEMP2 = 1 << 6, HEALTH_CPU_TEMP = 1 << 7, HEALTH_RPM = 1 << 8,
-        HEALTH_ACS758 = 1 << 9, HEALTH_ADS1115 = 1 << 10
+        HEALTH_INA1 = 1 << 3, HEALTH_TEMP1 = 1 << 4,
+        HEALTH_TEMP2 = 1 << 5, HEALTH_CPU_TEMP = 1 << 6, HEALTH_RPM = 1 << 7,
+        HEALTH_ACS758 = 1 << 8, HEALTH_ADS1115 = 1 << 9
     };
     // --- RAW ADC values ---
     float zmpt1_adc;        // ZMPT101B #1 raw (mV) — Generator AC
@@ -30,7 +30,7 @@ struct SensorData {
     float inv_ac_current;   // ZMCT103C: Inverter AC Load RMS current (A)
     float inv_ac_power;     // Inverter AC Output Real Power (W) = V_inv_ac × I_inv_ac × PF
 
-    // --- INA226 #1 (DC / Battery & MPPT Charging) ---
+    // --- INA226 (DC / Battery & MPPT Charging) ---
     float ina1_voltage;     // Battery Bus voltage (V)
     float ina1_current;     // MPPT Charging Current (A)
     float ina1_power;       // MPPT Charging Power (W)
@@ -41,11 +41,6 @@ struct SensorData {
     float inverter_current; // Inverter DC discharge current (A)
     float inverter_power;   // Inverter DC load power (W) = V_battery × I_inverter
     float inverter_efficiency; // Inverter conversion efficiency (%) = (P_ac_out / P_dc_in) * 100
-
-    // --- INA226 #2 (ESP32, Control & 12V Lighting Aux Power) ---
-    float ina2_voltage;     // Aux/Control Bus voltage (V)
-    float ina2_current;     // Control & Lighting Current (A)
-    float ina2_power;       // Control & Lighting Power (W)
 
     // --- Temperature ---
     float temperature1;     // DS18B20 #1 (°C)

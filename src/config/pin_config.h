@@ -26,7 +26,7 @@
 
 #define PIN_RPM_INPUT 16 // IR / Proximity sensor input (GPIO 16)
 
-// --- I2C Bus (shared by ADS1115, INA226 x2, LCD) ---
+// --- I2C Bus (shared by ADS1115, INA226, LCD) ---
 #define PIN_I2C_SDA 21
 #define PIN_I2C_SCL 22
 
@@ -49,9 +49,7 @@
 #define ADS1115_ADDR_SCL 0x4B // ADDR pin -> SCL
 
 #define INA226_ADDR_1                                                          \
-  0x44 // INA226 #1: Battery / MPPT Charging (A0=GND, A1=GND)
-#define INA226_ADDR_2                                                          \
-  0x45 // INA226 #2: ESP32, Control & 12V Lighting Aux Power (A0=VS, A1=GND)
+  0x44 // INA226: Battery / MPPT Charging (A0=GND, A1=VS+/VCC)
 #define LCD_I2C_ADDR 0x27 // PCF8574 I2C LCD Display
 
 // --- DS18B20 OneWire Bus ---
