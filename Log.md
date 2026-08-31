@@ -4,6 +4,8 @@
 
 - **Hardware Flash & Live Deployment**:
   - Successfully flashed clean firmware binary to ESP32 on `COM3` (`788,816 bytes`).
+  - Captured live telemetry session from active ESP32 hardware (`INA226: 12.47V / 72.1% SoC`, `ACS758: 0.36A / 4.5W`, `DS18B20: 24.3°C / 26.9°C`, `CPU: 57.8°C`).
+  - Successfully executed `tools/plot_log_data.py --html` on the live session log, extracting structured CSV datasets (`_extracted.csv`) and rendering interactive 4-panel visual HTML telemetry dashboards.
   - System cleanly booted and initialized dual-core FreeRTOS tasks:
     - `[SensorTask]` active on Core 1 at 10Hz sampling rate.
     - `[NetworkTask]` active on Core 0 running HTTP port 80, Captive Portal DNS on port 53, and mDNS responder at **`http://WiM.local`**.

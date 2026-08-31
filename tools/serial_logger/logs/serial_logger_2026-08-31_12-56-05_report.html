@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 Wind Monitor — Telemetry Log Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background: #0b132b; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 20px; }
+        h1 { text-align: center; color: #00e5ff; font-size: 24px; margin-bottom: 24px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1400px; margin: 0 auto; }
+        @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+        .card { background: #1c2541; border-radius: 12px; padding: 18px; border: 1px solid rgba(255,255,255,0.08); }
+        .card h2 { margin-top: 0; font-size: 16px; color: #94a3b8; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px; }
+        canvas { width: 100% !important; height: 280px !important; }
+    </style>
+</head>
+<body>
+    <h1>⚡ ESP32 Wind & Solar Monitor — Session Telemetry Analysis</h1>
+    <div class="grid">
+        <div class="card">
+            <h2>AC Voltages & Power Output</h2>
+            <canvas id="chartAC"></canvas>
+        </div>
+        <div class="card">
+            <h2>DC Power Flow & Battery</h2>
+            <canvas id="chartDC"></canvas>
+        </div>
+        <div class="card">
+            <h2>Inverter Power Balance</h2>
+            <canvas id="chartPower"></canvas>
+        </div>
+        <div class="card">
+            <h2>Rotor Speed & Temperatures</h2>
+            <canvas id="chartMech"></canvas>
+        </div>
+    </div>
+    <script>
+        const labels = ["0.0s", "1.0s", "2.0s", "3.0s", "4.0s", "5.0s", "6.0s", "7.0s", "8.0s"];
+        const opts = { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' } }, y: { grid: { color: 'rgba(255,255,255,0.05)' } } } };
+        
+        new Chart(document.getElementById('chartAC'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'Gen AC (V)', data: [4.6, 4.6, 4.6, 4.6, 4.6, 4.6, 4.6, 4.6, 4.6], borderColor: '#00e676', borderWidth: 2, fill: false },
+                    { label: 'Inv AC Out (V)', data: [0.0, 3.1, 3.5, 3.8, 3.2, 2.2, 0.9, 1.7, 2.7], borderColor: '#00e5ff', borderWidth: 2, fill: false },
+                    { label: 'AC Power (W)', data: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], borderColor: '#ff9800', borderWidth: 1.5, borderDash: [4,4], fill: false }
+                ]
+            },
+            options: opts
+        });
+
+        new Chart(document.getElementById('chartDC'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'Battery (V)', data: [12.46, 12.47, 12.47, 12.47, 12.47, 12.47, 12.47, 12.47, 12.47], borderColor: '#2979ff', borderWidth: 2, fill: false },
+                    { label: 'MPPT Charge (A)', data: [-0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0], borderColor: '#76ff03', borderWidth: 2, fill: false },
+                    { label: 'Inv DC Current (A)', data: [0.39, 0.35, 0.37, 0.36, 0.36, 0.37, 0.37, 0.36, 0.35], borderColor: '#f50057', borderWidth: 2, fill: false }
+                ]
+            },
+            options: opts
+        });
+
+        new Chart(document.getElementById('chartPower'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'Inverter DC In (W)', data: [4.8, 4.4, 4.6, 4.5, 4.5, 4.6, 4.6, 4.5, 4.4], borderColor: '#d500f9', borderWidth: 2, fill: false },
+                    { label: 'Inverter AC Out (W)', data: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], borderColor: '#ff9800', borderWidth: 2, fill: false }
+                ]
+            },
+            options: opts
+        });
+
+        new Chart(document.getElementById('chartMech'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'Rotor RPM', data: [0, 0, 0, 0, 0, 0, 0, 0, 0], borderColor: '#00b0ff', borderWidth: 2, fill: false },
+                    { label: 'Gen Temp (°C)', data: [24.3, 24.3, 24.3, 24.3, 24.3, 24.3, 24.3, 24.3, 24.3], borderColor: '#ff5252', borderWidth: 1.5, fill: false },
+                    { label: 'Box Temp (°C)', data: [27.0, 26.9, 26.9, 26.9, 26.9, 27.0, 26.9, 26.9, 26.9], borderColor: '#ffab00', borderWidth: 1.5, fill: false }
+                ]
+            },
+            options: opts
+        });
+    </script>
+</body>
+</html>
