@@ -29,6 +29,10 @@
   "adsAddr": 72,
   "pwrSwEn": true,
   "pwrSwTimeout": 10000,
+  "autoLog": true,
+  "autoLogHostOnly": true,
+  "autoLogThresh": 2.0,
+  "autoLogHoldoff": 4000,
   "dummyMode": false,
   "setupRequired": false
 }

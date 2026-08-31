@@ -87,7 +87,15 @@
 #define ENABLE_POWER_SWITCH   true    // Enable power switch deep sleep monitoring
 #define POWER_SWITCH_TIMEOUT  10000   // Milliseconds LOW before entering Deep Sleep (default 10s)
 
+// --- Auto-Logging Configuration (Power-Triggered & Host-Aware) ---
+#define AUTO_LOG_ENABLED        true    // Automatically start/stop logging based on active power
+#define AUTO_LOG_HOST_ONLY      true    // Only log when connected to a laptop/PC (stops when running standalone)
+#define AUTO_LOG_POWER_THRESH_W 2.0f    // Minimum active power (Watts) or generation to trigger logging
+#define AUTO_LOG_HOLDOFF_MS     4000    // Hold-off delay (ms) after power drops to 0 before pausing logging (3-5s)
+#define HOST_ACTIVE_TIMEOUT_MS  60000   // Host inactivity timeout (ms) before marking laptop disconnected
+
 // --- Feature Flags ---
 #define ENABLE_SERIAL_LOG   1       // Enable serial monitor output
 // #define ENABLE_MQTT              // Uncomment to enable MQTT telemetry
+
 

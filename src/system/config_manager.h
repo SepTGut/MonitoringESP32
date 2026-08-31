@@ -56,6 +56,12 @@ struct SystemConfig {
     bool enablePowerSwitch;
     uint32_t powerSwitchTimeoutMs;
 
+    // Power-Triggered & Host-Aware Auto-Logging
+    bool autoLogEnabled;
+    bool autoLogHostOnly;
+    float autoLogThresholdW;
+    uint32_t autoLogHoldoffMs;
+
     // Simulation/Dummy Mode
     bool dummyMode;
     bool setupRequired;

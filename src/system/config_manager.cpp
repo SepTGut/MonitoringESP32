@@ -52,6 +52,10 @@ void ConfigManager::loadDefaults() {
     _config.adsAddr = DEFAULT_ADS1115_ADDR; // Default ADS1115 address (0x48)
     _config.enablePowerSwitch = ENABLE_POWER_SWITCH;
     _config.powerSwitchTimeoutMs = POWER_SWITCH_TIMEOUT;
+    _config.autoLogEnabled = AUTO_LOG_ENABLED;
+    _config.autoLogHostOnly = AUTO_LOG_HOST_ONLY;
+    _config.autoLogThresholdW = AUTO_LOG_POWER_THRESH_W;
+    _config.autoLogHoldoffMs = AUTO_LOG_HOLDOFF_MS;
     _config.dummyMode = false; // Simulated dummy sensors mode disabled by default
     _config.setupRequired = true;
 }
@@ -292,6 +296,18 @@ bool ConfigManager::updateFromJson(const JsonVariant& json, String& error, Strin
     if (json.containsKey("pwrSwTimeout")) {
         const uint32_t value = json["pwrSwTimeout"].as<uint32_t>(); if (value < 1000 || value > 3600000) return fail("pwrSwTimeout", "Must be 1000-3600000 ms"); next.powerSwitchTimeoutMs = value;
     }
+    if (json.containsKey("autoLog")) {
+        if (!json["autoLog"].is<bool>()) return fail("autoLog", "Must be a boolean"); next.autoLogEnabled = json["autoLog"].as<bool>();
+    }
+    if (json.containsKey("autoLogHostOnly")) {
+        if (!json["autoLogHostOnly"].is<bool>()) return fail("autoLogHostOnly", "Must be a boolean"); next.autoLogHostOnly = json["autoLogHostOnly"].as<bool>();
+    }
+    if (json.containsKey("autoLogThresh")) {
+        const float v = json["autoLogThresh"].as<float>(); if (!validFinite(v, 0.1f, 1000.0f)) return fail("autoLogThresh", "Must be 0.1-1000 W"); next.autoLogThresholdW = v;
+    }
+    if (json.containsKey("autoLogHoldoff")) {
+        const uint32_t value = json["autoLogHoldoff"].as<uint32_t>(); if (value < 500 || value > 60000) return fail("autoLogHoldoff", "Must be 500-60000 ms"); next.autoLogHoldoffMs = value;
+    }
 
     if (next.staEnabled && (!printableString(next.staSSID, 1, 32) || !printableString(next.staPass, 8, 63))) return fail("staEnabled", "Enabled STA requires SSID and password");
     if (_mutex == NULL) {
@@ -354,6 +370,10 @@ void ConfigManager::serialize(JsonDocument& doc, bool includeSecrets) const {
     doc["adsAddr"]    = config.adsAddr;
     doc["pwrSwEn"]    = config.enablePowerSwitch;
     doc["pwrSwTimeout"] = config.powerSwitchTimeoutMs;
+    doc["autoLog"]    = config.autoLogEnabled;
+    doc["autoLogHostOnly"] = config.autoLogHostOnly;
+    doc["autoLogThresh"] = config.autoLogThresholdW;
+    doc["autoLogHoldoff"] = config.autoLogHoldoffMs;
     doc["dummyMode"]  = config.dummyMode;
     doc["setupRequired"] = config.setupRequired;
 }

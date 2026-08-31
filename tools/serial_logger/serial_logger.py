@@ -559,7 +559,9 @@ def run_logger(port=None, baud_rate=115200, mode="dual"):
     try:
         ser = serial.Serial(port, baud_rate, timeout=1)
         ser.dtr = False; ser.rts = False; time.sleep(0.1)
-        ser.dtr = True; ser.rts = True
+        ser.dtr = True; ser.rts = True; time.sleep(0.1)
+        # Send keepalive handshake so ESP32 knows laptop host is actively listening
+        ser.write(b"PING\n")
 
         log_file = open(log_filename, "a", encoding="utf-8")
         log_file.write(f"=== Unified Serial Logger Session Started at {datetime.now()} ===\n")

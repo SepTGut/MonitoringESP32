@@ -2,7 +2,28 @@
 
 ## 2026-08-31
 
-### Changed & Refactored (Decommission of INA226 #2, Recalibration Pipeline & mDNS)
+- **Hardware Flash & Live Deployment**:
+  - Successfully flashed clean firmware binary to ESP32 on `COM3` (`788,816 bytes`).
+  - System cleanly booted and initialized dual-core FreeRTOS tasks:
+    - `[SensorTask]` active on Core 1 at 10Hz sampling rate.
+    - `[NetworkTask]` active on Core 0 running HTTP port 80, Captive Portal DNS on port 53, and mDNS responder at **`http://WiM.local`**.
+    - Primary I2C bus successfully discovered and initialized: LCD 16x2 (`0x27`), INA226 Battery/MPPT sensor (`0x44`), and ADS1115 16-bit ADC (`0x48`).
+- **Host-Aware & Power-Triggered Auto-Logging Engine**:
+  - `src/config/config.h`: Added `#define AUTO_LOG_ENABLED true`, `#define AUTO_LOG_HOST_ONLY true` (logs only when connected to a laptop/PC), `#define AUTO_LOG_POWER_THRESH_W 2.0f`, `#define AUTO_LOG_HOLDOFF_MS 4000` (4.0s hold-off window), and `#define HOST_ACTIVE_TIMEOUT_MS 60000` (60s host inactivity timeout).
+  - `src/system/freertos_tasks.cpp`: Implemented dual-gated logging state machine in `sensorTaskFunction()`. Serial stream only transmits when **(Laptop Connected == true)** AND **(Power Active == true)**.
+    - Laptop detection includes a 30s boot grace window for initial diagnostics, refreshed continuously by any incoming serial activity (SerialPlot commands, Python logger handshake, or pressing ENTER).
+    - When power drops below threshold, holds logging active for 4.0 seconds before entering standby.
+    - When running standalone on battery without a laptop, stays completely silent to conserve power and avoid UART FIFO stalls.
+  - Added serial commands `AUTOLOG [ON/OFF]`, `HOSTONLY [ON/OFF]`, `PING` / `CONNECT` / `HOST`, and `AUTOLOG` (status summary).
+  - `src/system/config_manager.h` & `src/system/config_manager.cpp`: Added `autoLogHostOnly` to `SystemConfig` struct, JSON persistence, and API schema.
+  - `data/index.html` & `data/script.js`: Added "Only Log When Connected to Laptop / PC" UI settings checkbox and synchronized with demo store and API.
+  - Regenerated PROGMEM web assets (`web_assets.h`, 18.63 KB) and synchronized across `data/`, `docs/`, and `test/web_preview/`.
+  - `tools/serial_logger/serial_logger.py`: Added automatic keepalive handshake (`PING`) on serial port open.
+- **SerialPlot & Real-Time Waveform Plotter Integration**:
+  - `src/system/freertos_tasks.cpp`: Added real-time CSV streaming mode toggled via serial commands `CSV` / `PLOT` (10Hz / 100ms interval) and `TEXT` / `LOG` (standard 1Hz summary box).
+  - Created [`tools/serialplot/wind_monitor_serialplot.ini`](file:///d:/MyCode/New%20folder/MonitoringESP32/tools/serialplot/wind_monitor_serialplot.ini): Pre-configured profile for SerialPlot featuring 12 channels (Gen AC V, Inv AC V, Inv AC A, Inv AC W, Battery V, MPPT A, Inverter DC A, Inverter DC W, RPM, Temp Gen, Temp Box, Temp ESP), dark mode theme, auto-scaling, and quick-action macro buttons (`CAL`, `SCAN`, `CSV`, `TEXT`, `REBOOT`).
+  - Created [`tools/plot_log_data.py`](file:///d:/MyCode/New%20folder/MonitoringESP32/tools/plot_log_data.py): Automatic post-log parser, CSV dataset exporter, and interactive 4-panel visual dashboard (supporting Matplotlib and standalone interactive Chart.js HTML reports).
+  - Updated [`tools/log_ploter.py`](file:///d:/MyCode/New%20folder/MonitoringESP32/tools/log_ploter.py) to point to the new plotter engine.
 - **Multicast DNS (mDNS) Integration**:
   - Added `#define MDNS_HOSTNAME "WiM"` to `src/config/config.h`.
   - Initialized `ESPmDNS` responder in `src/system/freertos_tasks.cpp` and registered HTTP service (`_http._tcp.local` on port 80).

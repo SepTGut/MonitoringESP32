@@ -81,6 +81,41 @@ def parse_log_file(log_path):
             if not clean:
                 continue
 
+            # Check if RAW_PLOT stream line (from hardware test or live raw stream)
+            if "RAW_PLOT:" in clean:
+                parts = clean.split("RAW_PLOT:", 1)[1].split(",")
+                kv = {}
+                for p in parts:
+                    if "=" in p:
+                        k, v = p.split("=", 1)
+                        try:
+                            kv[k.strip()] = float(v.strip())
+                        except ValueError:
+                            pass
+                rec = {
+                    "time_s": time_idx,
+                    "gen_ac_v": kv.get("zmpt1_mv", kv.get("ads0", 0.0)) / 1000.0 * 242.0 if kv.get("zmpt1_mv", 0) > 20 else 0.0,
+                    "inv_ac_v": kv.get("zmpt2_mv", kv.get("ads1", 0.0)) / 1000.0 * 327.8 if kv.get("zmpt2_mv", 0) > 20 else 0.0,
+                    "inv_ac_a": kv.get("zmct_mv", kv.get("ads2", 0.0)) / 1000.0 * 0.22 if kv.get("zmct_mv", 0) > 40 else 0.0,
+                    "inv_ac_w": 0.0,
+                    "bat_dc_v": kv.get("ina1_v", 0.0),
+                    "mppt_dc_a": kv.get("ina1_a", 0.0),
+                    "mppt_dc_w": kv.get("ina1_w", 0.0),
+                    "bat_soc": max(0.0, min(100.0, (kv.get("ina1_v", 12.0) - 10.5) / (12.8 - 10.5) * 100.0)),
+                    "bat_wh": 0.0,
+                    "inv_dc_a": kv.get("acs_a", 0.0),
+                    "inv_dc_w": kv.get("inv_power", 0.0),
+                    "inv_eff": 0.0,
+                    "rpm": int(kv.get("rpm", 0)),
+                    "temp_gen": kv.get("temp1", 0.0),
+                    "temp_box": kv.get("temp2", 0.0),
+                    "temp_cpu": kv.get("temp_esp", 0.0)
+                }
+                rec["inv_ac_w"] = rec["inv_ac_v"] * rec["inv_ac_a"] * 0.85
+                records.append(rec)
+                time_idx += 1
+                continue
+
             # Check if direct CSV stream line
             m_csv = re_csv_line.match(clean)
             if m_csv:

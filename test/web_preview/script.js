@@ -68,6 +68,9 @@
         ina1Addr: 68,  // 0x44 (Battery & MPPT)
         useAds1115: true,
         adsAddr: 72,   // 0x48 (ADS1115)
+        autoLog: true,
+        autoLogThresh: 2.0,
+        autoLogHoldoff: 4000,
         dummyMode: false,
         setupRequired: false
     };
@@ -215,6 +218,10 @@
         cfgPollMs: $('cfg-poll-ms'),
         cfgPushMs: $('cfg-push-ms'),
         cfgLogMs: $('cfg-log-ms'),
+        cfgAutoLog: $('cfg-auto-log'),
+        cfgAutoLogHostOnly: $('cfg-auto-log-host-only'),
+        cfgAutoLogThresh: $('cfg-auto-log-thresh'),
+        cfgAutoLogHoldoff: $('cfg-auto-log-holdoff'),
         cfgCalZmpt1: $('cfg-cal-zmpt1'),
         cfgCalZmpt2: $('cfg-cal-zmpt2'),
         cfgCalZmct: $('cfg-cal-zmct'),
@@ -636,6 +643,19 @@
             errors.push('Serial log interval must be 250-60000 ms');
         }
 
+        if (dom.cfgAutoLogThresh) {
+            const th = parseFloat(dom.cfgAutoLogThresh.value);
+            if (isNaN(th) || !isFinite(th) || th < 0.1 || th > 1000) {
+                errors.push('Auto-log active threshold must be between 0.1 and 1000 W');
+            }
+        }
+        if (dom.cfgAutoLogHoldoff) {
+            const hd = parseInt(dom.cfgAutoLogHoldoff.value, 10);
+            if (isNaN(hd) || hd < 500 || hd > 60000) {
+                errors.push('Auto-log hold-off delay must be between 500 and 60000 ms (0.5 - 60s)');
+            }
+        }
+
         // Calibration values
         const calFields = [
             { el: dom.cfgCalZmpt1, name: 'ZMPT1 cal', min: 0.01, max: 1000 },
@@ -708,6 +728,10 @@
                 if (data.pollMs != null && dom.cfgPollMs) dom.cfgPollMs.value = data.pollMs;
                 if (data.wsPushMs != null && dom.cfgPushMs) dom.cfgPushMs.value = data.wsPushMs;
                 if (data.logMs != null && dom.cfgLogMs) dom.cfgLogMs.value = data.logMs;
+                if (data.autoLog != null && dom.cfgAutoLog) dom.cfgAutoLog.checked = data.autoLog;
+                if (data.autoLogHostOnly != null && dom.cfgAutoLogHostOnly) dom.cfgAutoLogHostOnly.checked = data.autoLogHostOnly;
+                if (data.autoLogThresh != null && dom.cfgAutoLogThresh) dom.cfgAutoLogThresh.value = data.autoLogThresh;
+                if (data.autoLogHoldoff != null && dom.cfgAutoLogHoldoff) dom.cfgAutoLogHoldoff.value = data.autoLogHoldoff;
 
                 if (data.zmpt1Cal != null && dom.cfgCalZmpt1) dom.cfgCalZmpt1.value = data.zmpt1Cal;
                 if (data.zmpt2Cal != null && dom.cfgCalZmpt2) dom.cfgCalZmpt2.value = data.zmpt2Cal;
@@ -776,6 +800,10 @@
                 pollMs: dom.cfgPollMs ? parseInt(dom.cfgPollMs.value, 10) : 100,
                 wsPushMs: dom.cfgPushMs ? parseInt(dom.cfgPushMs.value, 10) : 500,
                 logMs: dom.cfgLogMs ? parseInt(dom.cfgLogMs.value, 10) : 1000,
+                autoLog: dom.cfgAutoLog ? dom.cfgAutoLog.checked : true,
+                autoLogHostOnly: dom.cfgAutoLogHostOnly ? dom.cfgAutoLogHostOnly.checked : true,
+                autoLogThresh: dom.cfgAutoLogThresh ? parseFloat(dom.cfgAutoLogThresh.value) : 2.0,
+                autoLogHoldoff: dom.cfgAutoLogHoldoff ? parseInt(dom.cfgAutoLogHoldoff.value, 10) : 4000,
                 zmpt1Cal: dom.cfgCalZmpt1 ? parseFloat(dom.cfgCalZmpt1.value) : 150.0,
                 zmpt2Cal: dom.cfgCalZmpt2 ? parseFloat(dom.cfgCalZmpt2.value) : 150.0,
                 zmctCal: dom.cfgCalZmct ? parseFloat(dom.cfgCalZmct.value) : 0.1493,

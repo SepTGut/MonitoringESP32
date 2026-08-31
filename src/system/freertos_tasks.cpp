@@ -46,6 +46,9 @@ static portMUX_TYPE adcCalMux = portMUX_INITIALIZER_UNLOCKED;
 // Serial output mode (false = formatted text box, true = comma-separated values for SerialPlot)
 static volatile bool serialCsvMode = false;
 
+// Laptop / Host Connection tracking
+static volatile uint32_t lastHostContactMs = 0;
+
 // Task handles for stack watermark diagnostics
 static TaskHandle_t sensorTaskHandle = NULL;
 static TaskHandle_t networkTaskHandle = NULL;
@@ -464,11 +467,51 @@ static void sensorTaskFunction(void* pvParameters) {
         if (currentCfg.dummyMode || (ina1 != nullptr && ina1->isEnabled())) frame.health |= SensorData::HEALTH_INA1;
         frame.sequence = ++sequence;
 
-        // --- Serial Logging (Dynamic rate / CSV mode for SerialPlot) ---
+        // --- Serial Logging (Power-Triggered & Laptop-Host Aware Auto-Log) ---
 #if ENABLE_SERIAL_LOG
+        static bool isLoggingActive = true;
+        static uint32_t lastPowerActiveTime = 0;
         uint32_t now = millis();
+
+        // Check if connected to laptop / active USB serial host
+        const bool isHostActive = !currentCfg.autoLogHostOnly ||
+                                  (now < 30000) ||
+                                  (lastHostContactMs > 0 && (now - lastHostContactMs < HOST_ACTIVE_TIMEOUT_MS));
+
+        if (currentCfg.autoLogEnabled) {
+            const float pThresh = currentCfg.autoLogThresholdW;
+            const bool isPowerActive = (acVoltage1 > 3.0f ||
+                                        dcP1 > pThresh ||
+                                        invPower > pThresh ||
+                                        acPower > 1.0f ||
+                                        frame.rpm > 50);
+
+            if (isPowerActive) {
+                lastPowerActiveTime = now;
+                if (!isLoggingActive) {
+                    isLoggingActive = true;
+                    if (!serialCsvMode && isHostActive) {
+                        Serial.printf("\n[AutoLog] Active Power Detected (>%.1fW / Gen %.1fV / RPM %lu) — Logging STARTED\n",
+                                      pThresh, acVoltage1, (unsigned long)frame.rpm);
+                    }
+                }
+            } else {
+                if (isLoggingActive) {
+                    if (now - lastPowerActiveTime >= currentCfg.autoLogHoldoffMs) {
+                        isLoggingActive = false;
+                        if (!serialCsvMode && isHostActive) {
+                            Serial.printf("\n[AutoLog] Power Idle for %.1fs — Logging STOPPED (Standby)\n",
+                                          currentCfg.autoLogHoldoffMs / 1000.0f);
+                        }
+                    }
+                }
+            }
+        } else {
+            isLoggingActive = true; // Continuous logging when auto-log is disabled
+        }
+
         uint32_t targetLogInterval = serialCsvMode ? 100 : currentCfg.serialLogMs;
-        if (now - lastSerialLog >= targetLogInterval) {
+        if (isHostActive && isLoggingActive && (now - lastSerialLog >= targetLogInterval)) {
             lastSerialLog = now;
 
             if (serialCsvMode) {
@@ -618,6 +661,8 @@ static void networkTaskFunction(void* pvParameters) {
 
         // Process Serial USB Commands (e.g. CAL, SCAN, REBOOT)
         if (Serial.available()) {
+            lastHostContactMs = millis(); // Refresh laptop host connection timestamp
+
             String cmd = Serial.readStringUntil('\n');
             cmd.trim();
             cmd.toUpperCase();
@@ -634,11 +679,40 @@ static void networkTaskFunction(void* pvParameters) {
             } else if (cmd == "TEXT" || cmd == "LOG") {
                 serialCsvMode = false;
                 Serial.println("[Command] Serial output switched to formatted text log mode.");
+            } else if (cmd == "AUTOLOG ON") {
+                SystemConfig cfg = configManager.getConfig();
+                cfg.autoLogEnabled = true;
+                configManager.save();
+                Serial.println("[Command] Auto-Logging ENABLED (starts on power > threshold, stops after 4s hold-off).");
+            } else if (cmd == "AUTOLOG OFF") {
+                SystemConfig cfg = configManager.getConfig();
+                cfg.autoLogEnabled = false;
+                configManager.save();
+                Serial.println("[Command] Auto-Logging DISABLED (continuous logging).");
+            } else if (cmd == "HOSTONLY ON") {
+                SystemConfig cfg = configManager.getConfig();
+                cfg.autoLogHostOnly = true;
+                configManager.save();
+                Serial.println("[Command] Laptop/Host-Only Logging ENABLED (logging runs only when laptop terminal is active).");
+            } else if (cmd == "HOSTONLY OFF") {
+                SystemConfig cfg = configManager.getConfig();
+                cfg.autoLogHostOnly = false;
+                configManager.save();
+                Serial.println("[Command] Laptop/Host-Only Logging DISABLED (logging active even without laptop).");
+            } else if (cmd == "AUTOLOG") {
+                SystemConfig cfg = configManager.getConfig();
+                Serial.printf("[Command] Auto-Log Status: %s | Host-Only: %s | Threshold: %.1f W | Hold-off: %u ms\n",
+                              cfg.autoLogEnabled ? "ENABLED" : "DISABLED",
+                              cfg.autoLogHostOnly ? "YES" : "NO",
+                              cfg.autoLogThresholdW, cfg.autoLogHoldoffMs);
+            } else if (cmd == "PING" || cmd == "CONNECT" || cmd == "HOST") {
+                Serial.printf("[Host] Laptop connection acknowledged. Uptime: %llu s\n",
+                              (unsigned long long)(esp_timer_get_time() / 1000000ULL));
             } else if (cmd == "REBOOT" || cmd == "RESTART") {
                 Serial.println("[Command] Rebooting ESP32...");
                 ESP.restart();
             } else if (cmd == "HELP" || cmd == "?") {
-                Serial.println("[Commands] CAL (Calibrate zero), SCAN (Scan I2C), CSV/PLOT (SerialPlot stream), TEXT/LOG (Summary box), REBOOT");
+                Serial.println("[Commands] CAL, SCAN, CSV/PLOT, TEXT/LOG, AUTOLOG [ON/OFF], HOSTONLY [ON/OFF], PING, REBOOT");
             }
         }
 
